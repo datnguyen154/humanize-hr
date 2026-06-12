@@ -44,17 +44,17 @@ export const authController = {
 
     async getCurrentUser(req: Request, res: Response): Promise<Response> {
         try {
-            const body = req.body as { userId?: unknown };
-            const queryUserId = req.query.userId;
-            const userId = body.userId ?? queryUserId;
+            const authenticatedUser = req.user;
 
-            if (!isNonEmptyString(userId)) {
-                return res.status(400).json({
-                    message: "userId is required",
+            if (!authenticatedUser) {
+                return res.status(401).json({
+                    message: "Unauthorized",
                 });
             }
 
-            const user = await authService.getCurrentUser(userId);
+            const user = await authService.getCurrentUser(
+                authenticatedUser.userId,
+            );
 
             return res.status(200).json({
                 data: user,
