@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { LoginPage } from '../pages/login'
+import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
 import { ProtectedRoute } from './router/ProtectedRoute'
 import { RoleGuard } from './router/RoleGuard'
 
@@ -16,14 +17,20 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: '/admin/dashboard',
+    path: '/admin',
     element: (
       <ProtectedRoute>
         <RoleGuard allowedRoles={['ADMIN']}>
-          <AdminDashboardPage />
+          <AdminLayout />
         </RoleGuard>
       </ProtectedRoute>
     ),
+    children: [
+      {
+        path: 'dashboard',
+        element: <AdminDashboardPage />,
+      },
+    ],
   },
   {
     path: '/employee/dashboard',
