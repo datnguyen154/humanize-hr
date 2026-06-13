@@ -1,8 +1,10 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
-import { DashboardPage } from '../pages/dashboard/DashboardPage'
+import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
+import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { LoginPage } from '../pages/login'
 import { ProtectedRoute } from './router/ProtectedRoute'
+import { RoleGuard } from './router/RoleGuard'
 
 export const router = createBrowserRouter([
   {
@@ -14,10 +16,22 @@ export const router = createBrowserRouter([
     element: <LoginPage />,
   },
   {
-    path: '/dashboard',
+    path: '/admin/dashboard',
     element: (
       <ProtectedRoute>
-        <DashboardPage />
+        <RoleGuard allowedRoles={['ADMIN']}>
+          <AdminDashboardPage />
+        </RoleGuard>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/employee/dashboard',
+    element: (
+      <ProtectedRoute>
+        <RoleGuard allowedRoles={['EMPLOYEE']}>
+          <EmployeeDashboardPage />
+        </RoleGuard>
       </ProtectedRoute>
     ),
   },

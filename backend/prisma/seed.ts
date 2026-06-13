@@ -4,7 +4,8 @@ import { PrismaClient, Role, UserStatus } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const main = async (): Promise<void> => {
-  const passwordHash = await bcrypt.hash("12345678", 10);
+  const password = "12345678";
+  const passwordHash = await bcrypt.hash(password, 10);
 
   const admin = await prisma.user.upsert({
     where: {
@@ -25,7 +26,30 @@ const main = async (): Promise<void> => {
     },
   });
 
+  const employee = await prisma.user.upsert({
+    where: {
+      email: "employee@example.com",
+    },
+    update: {
+      passwordHash,
+      fullName: "Employee User",
+      role: Role.EMPLOYEE,
+      status: UserStatus.ACTIVE,
+    },
+    create: {
+      email: "employee@example.com",
+      passwordHash,
+      fullName: "Employee User",
+      role: Role.EMPLOYEE,
+      status: UserStatus.ACTIVE,
+    },
+  });
+
   console.log(`Seeded admin user: ${admin.email}`);
+  console.log(`Seeded employee user: ${employee.email}`);
+  console.log("Seeded credentials:");
+  console.log(`ADMIN    -> email: ${admin.email}, password: ${password}`);
+  console.log(`EMPLOYEE -> email: ${employee.email}, password: ${password}`);
 };
 
 main()

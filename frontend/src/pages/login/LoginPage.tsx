@@ -18,7 +18,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { authStorage, getMe, login, useAuthStore } from "@/features/auth";
+import {
+    authStorage,
+    getDashboardPathByRole,
+    getMe,
+    login,
+    useAuthStore,
+} from "@/features/auth";
 import type { ApiErrorResponse } from "@/shared/types";
 
 const loginSchema = z.object({
@@ -86,7 +92,7 @@ export function LoginPage() {
 
             setUser(user);
             console.log("Thông tin người dùng:", user);
-            navigate("/dashboard");
+            navigate(getDashboardPathByRole(user.role));
         } catch (error) {
             setLoginError(getLoginErrorMessage(error));
         }
