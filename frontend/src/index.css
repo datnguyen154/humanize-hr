@@ -14,6 +14,10 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
+  --color-tertiary: var(--tertiary);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-neutral: var(--neutral);
+  --color-neutral-foreground: var(--neutral-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
@@ -31,25 +35,35 @@
 
 :root {
   --radius: 0.5rem;
-  --background: oklch(0.985 0.003 247.858);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.437 0.078 188.216);
-  --primary-foreground: oklch(0.985 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.437 0.078 188.216);
+
+  --hrm-primary: #1E40AF;
+  --hrm-secondary: #64748B;
+  --hrm-tertiary: #BFBAFC;
+  --hrm-neutral: #0F172A;
+
+  --background: #F8FAFC;
+  --foreground: var(--hrm-neutral);
+  --card: #FFFFFF;
+  --card-foreground: var(--hrm-neutral);
+  --popover: #FFFFFF;
+  --popover-foreground: var(--hrm-neutral);
+  --primary: var(--hrm-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--hrm-secondary);
+  --secondary-foreground: #FFFFFF;
+  --tertiary: var(--hrm-tertiary);
+  --tertiary-foreground: var(--hrm-neutral);
+  --neutral: var(--hrm-neutral);
+  --neutral-foreground: #FFFFFF;
+  --muted: #EEF2F7;
+  --muted-foreground: var(--hrm-secondary);
+  --accent: var(--hrm-tertiary);
+  --accent-foreground: var(--hrm-neutral);
+  --destructive: #DC2626;
+  --destructive-foreground: #FFFFFF;
+  --border: #E2E8F0;
+  --input: #CBD5E1;
+  --ring: var(--hrm-primary);
 }
 
 @layer base {
