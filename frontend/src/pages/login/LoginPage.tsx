@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -65,6 +66,7 @@ const getLoginErrorMessage = (error: unknown) => {
 export function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   const {
     register,
@@ -92,6 +94,7 @@ export function LoginPage() {
       const user = await getMe()
 
       console.log('Thông tin người dùng:', user)
+      navigate('/dashboard')
     } catch (error) {
       setLoginError(getLoginErrorMessage(error))
     }
