@@ -25,7 +25,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { authStorage, getMe, login } from '@/features/auth'
+import { authStorage, getMe, login, useAuthStore } from '@/features/auth'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const loginSchema = z.object({
@@ -66,6 +66,7 @@ const getLoginErrorMessage = (error: unknown) => {
 export function LoginPage() {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
+  const setUser = useAuthStore((state) => state.setUser)
   const navigate = useNavigate()
 
   const {
@@ -93,6 +94,7 @@ export function LoginPage() {
 
       const user = await getMe()
 
+      setUser(user)
       console.log('Thông tin người dùng:', user)
       navigate('/dashboard')
     } catch (error) {
