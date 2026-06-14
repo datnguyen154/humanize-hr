@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
+import { EmployeeListPage } from '../pages/admin/employees/EmployeeListPage'
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
@@ -29,6 +30,10 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <AdminDashboardPage />,
+      },
+      {
+        path: 'employees',
+        element: <EmployeeListPage />,
       },
     ],
   },

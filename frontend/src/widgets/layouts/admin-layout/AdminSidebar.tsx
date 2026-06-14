@@ -1,12 +1,14 @@
+import { NavLink } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 
 const adminMenuItems = [
-  'Tổng quan',
-  'Nhân viên',
-  'Phòng ban',
-  'Chấm công',
-  'Nghỉ phép',
-  'Bảng lương',
+  { label: 'Tổng quan', to: '/admin/dashboard' },
+  { label: 'Nhân viên', to: '/admin/employees' },
+  { label: 'Phòng ban', to: '/admin/dashboard' },
+  { label: 'Chấm công', to: '/admin/dashboard' },
+  { label: 'Nghỉ phép', to: '/admin/dashboard' },
+  { label: 'Bảng lương', to: '/admin/dashboard' },
 ]
 
 export function AdminSidebar() {
@@ -18,15 +20,18 @@ export function AdminSidebar() {
       </div>
 
       <nav className="grid gap-1" aria-label="Menu quản trị">
-        {adminMenuItems.map((item, index) => (
-          <Button
-            key={item}
-            type="button"
-            variant={index === 0 ? 'secondary' : 'ghost'}
-            className="justify-start"
-          >
-            {item}
-          </Button>
+        {adminMenuItems.map((item) => (
+          <NavLink key={item.label} to={item.to}>
+            {({ isActive }) => (
+              <Button
+                type="button"
+                variant={isActive ? 'secondary' : 'ghost'}
+                className="w-full justify-start"
+              >
+                {item.label}
+              </Button>
+            )}
+          </NavLink>
         ))}
       </nav>
     </aside>
