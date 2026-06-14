@@ -17,6 +17,17 @@ enum UserStatus {
   INACTIVE
 }
 
+enum EmployeeStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
   id            String         @id @default(uuid()) @db.Uuid
   email         String         @unique
@@ -24,9 +35,33 @@ model User {
   fullName      String
   role          Role           @default(EMPLOYEE)
   status        UserStatus     @default(ACTIVE)
+  employee      Employee?
   refreshTokens RefreshToken[]
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+}
+
+model Employee {
+  id           String         @id @default(uuid()) @db.Uuid
+  userId       String?        @unique @db.Uuid
+  employeeCode String         @unique
+  fullName     String
+  email        String         @unique
+  phone        String
+  gender       Gender
+  dateOfBirth  DateTime
+  position     String
+  departmentId String?        @db.Uuid
+  status       EmployeeStatus @default(ACTIVE)
+  joinedAt     DateTime
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([email])
+  @@index([employeeCode])
+  @@index([status, createdAt])
 }
 
 model RefreshToken {
