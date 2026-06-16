@@ -69,6 +69,8 @@ type CreatedEmployee = Pick<
     | "updatedAt"
 >;
 
+type EmployeeStatusResult = Pick<Employee, "id" | "status">;
+
 export class EmployeeServiceError extends Error {
     constructor(
         message: string,
@@ -365,5 +367,31 @@ export const employeeService = {
         );
 
         return toCreatedEmployee(updatedEmployee);
+    },
+
+    async updateEmployeeStatus(
+        id: string,
+        statusInput: string | undefined,
+    ): Promise<EmployeeStatusResult> {
+        if (!UUID_REGEX.test(id)) {
+            throw new EmployeeServiceError("Employee not found", 404);
+        }
+
+        const existingEmployee = await employeeRepository.findEmployeeById(id);
+
+        if (!existingEmployee) {
+            throw new EmployeeServiceError("Employee not found", 404);
+        }
+
+        const status = parseEmployeeStatus(statusInput);
+        const updatedEmployee = await employeeRepository.updateEmployeeStatus(
+            id,
+            status,
+        );
+
+        return {
+            id: updatedEmployee.id,
+            status: updatedEmployee.status,
+        };
     },
 };

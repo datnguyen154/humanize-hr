@@ -109,4 +109,14 @@ export const employeeRepository = {
             data,
         });
     },
+
+    updateEmployeeStatus(
+        id: string,
+        status: EmployeeStatus,
+    ): Promise<Employee> {
+        return prisma.employee.update({
+            where: { id },
+            data: { status },
+        });
+    },
 };

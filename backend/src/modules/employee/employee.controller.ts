@@ -192,4 +192,23 @@ export const employeeController = {
             return handleError(error, res);
         }
     },
+
+    async updateEmployeeStatus(req: Request, res: Response): Promise<Response> {
+        try {
+            const { status } = req.body as {
+                status?: string;
+            };
+
+            const result = await employeeService.updateEmployeeStatus(
+                req.params.id,
+                status,
+            );
+
+            return res.status(200).json({
+                data: result,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };
