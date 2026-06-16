@@ -179,6 +179,19 @@ Là Admin, tôi muốn cập nhật thông tin nhân viên để đảm bảo d�
 
 ---
 
+## US-EMP-008: Deactivate Employee
+
+Là Admin, tôi muốn thay đổi trạng thái nhân viên để ngừng hoặc khôi phục hoạt động của nhân viên trong hệ thống.
+
+### Acceptance Criteria
+
+- Chỉ ADMIN được phép thay đổi trạng thái.
+- Nhân viên phải tồn tại.
+- status chỉ nhận ACTIVE hoặc INACTIVE.
+- Cập nhật thành công trả về trạng thái mới.
+
+---
+
 ## 5. API Contract
 
 ## 5.1 Get Employee List
@@ -391,6 +404,45 @@ Chỉ ADMIN được phép cập nhật nhân viên.
 | email đã tồn tại        | 409    |
 | dữ liệu không hợp lệ    | 400    |
 | không có quyền          | 403    |
+
+## 5.4 Update Employee Status
+
+### Endpoint
+
+PATCH /api/employees/:id/status
+
+### Authentication
+
+Authorization: Bearer access_token
+
+### Authorization
+
+Chỉ ADMIN được phép thực hiện.
+
+### Request Body
+
+{
+"status": "INACTIVE"
+}
+
+### Success Response
+
+```JSON
+{
+  "data": {
+    "id": "uuid",
+    "status": "INACTIVE"
+  }
+}
+```
+
+### Error Responses
+
+| Case               | Status |
+| ------------------ | ------ |
+| Employee not found | 404    |
+| Invalid status     | 400    |
+| Forbidden          | 403    |
 
 ## 6. Database Fields Needed For Employee Model
 
