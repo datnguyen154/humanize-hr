@@ -53,6 +53,8 @@ type CreateEmployeeInput = {
     joinedAt?: string;
 };
 
+type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
+
 type CreatedEmployee = Pick<
     Employee,
     | "id"
@@ -275,5 +277,93 @@ export const employeeService = {
         });
 
         return toCreatedEmployee(employee);
+    },
+
+    async updateEmployee(
+        id: string,
+        data: UpdateEmployeeInput,
+    ): Promise<CreatedEmployee> {
+        if (!UUID_REGEX.test(id)) {
+            throw new EmployeeServiceError("Employee not found", 404);
+        }
+
+        const existingEmployee = await employeeRepository.findEmployeeById(id);
+
+        if (!existingEmployee) {
+            throw new EmployeeServiceError("Employee not found", 404);
+        }
+
+        const updateData: {
+            employeeCode?: string;
+            fullName?: string;
+            email?: string;
+            phone?: string;
+            position?: string;
+            status?: EmployeeStatus;
+            joinedAt?: Date;
+        } = {};
+
+        if (data.employeeCode !== undefined) {
+            updateData.employeeCode = parseRequiredString(
+                data.employeeCode,
+                "employeeCode",
+            );
+
+            const employeeWithSameCode =
+                await employeeRepository.findEmployeeByEmployeeCode(
+                    updateData.employeeCode,
+                );
+
+            if (employeeWithSameCode && employeeWithSameCode.id !== id) {
+                throw new EmployeeServiceError(
+                    "employeeCode already exists",
+                    409,
+                );
+            }
+        }
+
+        if (data.fullName !== undefined) {
+            updateData.fullName = parseRequiredString(
+                data.fullName,
+                "fullName",
+            );
+        }
+
+        if (data.email !== undefined) {
+            updateData.email = parseRequiredString(data.email, "email");
+
+            const employeeWithSameEmail =
+                await employeeRepository.findEmployeeByEmail(updateData.email);
+
+            if (employeeWithSameEmail && employeeWithSameEmail.id !== id) {
+                throw new EmployeeServiceError("email already exists", 409);
+            }
+        }
+
+        if (data.phone !== undefined) {
+            updateData.phone = parseRequiredString(data.phone, "phone");
+        }
+
+        if (data.position !== undefined) {
+            updateData.position = parseRequiredString(
+                data.position,
+                "position",
+            );
+        }
+
+        if (data.status !== undefined) {
+            updateData.status = parseEmployeeStatus(data.status);
+        }
+
+        if (data.joinedAt !== undefined) {
+            updateData.joinedAt = parseRequiredDate(data.joinedAt, "joinedAt");
+        }
+
+        const updatedEmployee = await employeeRepository.updateEmployee(
+            id,
+            updateData,
+        );
+
+        return toCreatedEmployee(updatedEmployee);
     },
 };

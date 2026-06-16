@@ -151,4 +151,45 @@ export const employeeController = {
             return handleError(error, res);
         }
     },
+
+    async updateEmployee(req: Request, res: Response): Promise<Response> {
+        try {
+            const {
+                employeeCode,
+                fullName,
+                email,
+                phone,
+                position,
+                status,
+                joinedAt,
+            } = req.body as {
+                employeeCode?: string;
+                fullName?: string;
+                email?: string;
+                phone?: string;
+                position?: string;
+                status?: string;
+                joinedAt?: string;
+            };
+
+            const employee = await employeeService.updateEmployee(
+                req.params.id,
+                {
+                    employeeCode,
+                    fullName,
+                    email,
+                    phone,
+                    position,
+                    status,
+                    joinedAt,
+                },
+            );
+
+            return res.status(200).json({
+                data: employee,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };

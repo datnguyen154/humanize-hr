@@ -26,3 +26,10 @@ employeeRoutes.get(
     requireRole("ADMIN"),
     employeeController.getEmployeeById,
 );
+
+employeeRoutes.patch(
+    "/:id",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.updateEmployee,
+);
