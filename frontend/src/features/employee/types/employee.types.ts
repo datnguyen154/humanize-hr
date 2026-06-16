@@ -36,6 +36,11 @@ export type CreateEmployeeRequest = {
 
 export type UpdateEmployeeRequest = CreateEmployeeRequest
 
+export type UpdateEmployeeStatusResponse = {
+  id: string
+  status: EmployeeStatus
+}
+
 export type EmployeesQueryParams = {
   page: number
   limit: number

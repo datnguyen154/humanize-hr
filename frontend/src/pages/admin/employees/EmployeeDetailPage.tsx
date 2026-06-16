@@ -1,7 +1,10 @@
+import { AxiosError } from 'axios'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useUpdateEmployeeStatusMutation } from '@/features/employee/hooks/useUpdateEmployeeStatusMutation'
 import { useEmployeeDetailQuery } from '@/features/employee/hooks/useEmployeesQuery'
 import type { EmployeeStatus } from '@/features/employee/types/employee.types'
 
@@ -17,7 +20,11 @@ export function EmployeeDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const employeeQuery = useEmployeeDetailQuery(id ?? '')
+  const updateEmployeeStatusMutation = useUpdateEmployeeStatusMutation()
+  const [statusError, setStatusError] = useState<string | null>(null)
   const employee = employeeQuery.data
+  const nextStatus: EmployeeStatus =
+    employee?.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
 
   const details = employee
     ? [
@@ -32,6 +39,37 @@ export function EmployeeDetailPage() {
         { label: 'Ngày cập nhật', value: formatDate(employee.updatedAt) },
       ]
     : []
+
+  const handleStatusUpdate = async () => {
+    if (!id || !employee) {
+      return
+    }
+
+    const confirmMessage =
+      employee.status === 'ACTIVE'
+        ? 'Bạn có chắc muốn tạm ngưng nhân viên này?'
+        : 'Bạn có chắc muốn kích hoạt lại nhân viên này?'
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    setStatusError(null)
+
+    try {
+      await updateEmployeeStatusMutation.mutateAsync({
+        id,
+        status: nextStatus,
+      })
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setStatusError('Cập nhật trạng thái nhân viên thất bại')
+        return
+      }
+
+      setStatusError('Cập nhật trạng thái nhân viên thất bại')
+    }
+  }
 
   return (
     <section className="grid gap-5">
@@ -60,6 +98,18 @@ export function EmployeeDetailPage() {
           >
             Sửa thông tin
           </Button>
+          {employee ? (
+            <Button
+              type="button"
+              variant={employee.status === 'ACTIVE' ? 'destructive' : 'default'}
+              disabled={updateEmployeeStatusMutation.isPending}
+              onClick={handleStatusUpdate}
+            >
+              {employee.status === 'ACTIVE'
+                ? 'Tạm ngưng nhân viên'
+                : 'Kích hoạt lại'}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -68,6 +118,12 @@ export function EmployeeDetailPage() {
           <CardTitle className="text-lg">Thông tin nhân viên</CardTitle>
         </CardHeader>
         <CardContent>
+          {statusError ? (
+            <p className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {statusError}
+            </p>
+          ) : null}
+
           {employeeQuery.isLoading ? (
             <p className="py-8 text-center text-muted-foreground">
               Đang tải thông tin nhân viên...

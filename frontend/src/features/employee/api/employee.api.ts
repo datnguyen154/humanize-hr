@@ -7,6 +7,8 @@ import type {
   EmployeesQueryParams,
   EmployeesResponse,
   UpdateEmployeeRequest,
+  UpdateEmployeeStatusResponse,
+  EmployeeStatus,
 } from '../types/employee.types'
 
 export const getEmployees = async (params: EmployeesQueryParams) => {
@@ -65,6 +67,29 @@ export const updateEmployee = async (
   const response = await axiosInstance.patch<{ data: EmployeeDetail }>(
     `/employees/${id}`,
     payload,
+    {
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
+    },
+  )
+
+  return response.data.data
+}
+
+export const updateEmployeeStatus = async (
+  id: string,
+  status: EmployeeStatus,
+) => {
+  const accessToken = authStorage.getAccessToken()
+
+  const response = await axiosInstance.patch<{
+    data: UpdateEmployeeStatusResponse
+  }>(
+    `/employees/${id}/status`,
+    { status },
     {
       headers: accessToken
         ? {
