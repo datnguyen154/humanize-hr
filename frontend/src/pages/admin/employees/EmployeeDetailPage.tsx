@@ -45,13 +45,22 @@ export function EmployeeDetailPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/admin/employees')}
-        >
-          Quay lại danh sách
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/admin/employees')}
+          >
+            Quay lại danh sách
+          </Button>
+          <Button
+            type="button"
+            disabled={!id}
+            onClick={() => navigate(`/admin/employees/${id}/edit`)}
+          >
+            Sửa thông tin
+          </Button>
+        </div>
       </div>
 
       <Card>

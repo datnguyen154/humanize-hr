@@ -34,6 +34,8 @@ export type CreateEmployeeRequest = {
   joinedAt: string
 }
 
+export type UpdateEmployeeRequest = CreateEmployeeRequest
+
 export type EmployeesQueryParams = {
   page: number
   limit: number
