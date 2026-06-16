@@ -2,6 +2,7 @@ import { axiosInstance } from '@/shared/api'
 
 import { authStorage } from '../../auth'
 import type {
+  CreateEmployeeRequest,
   EmployeeDetail,
   EmployeesQueryParams,
   EmployeesResponse,
@@ -18,6 +19,24 @@ export const getEmployees = async (params: EmployeesQueryParams) => {
         }
       : undefined,
   })
+
+  return response.data
+}
+
+export const createEmployee = async (payload: CreateEmployeeRequest) => {
+  const accessToken = authStorage.getAccessToken()
+
+  const response = await axiosInstance.post<EmployeeDetail>(
+    '/employees',
+    payload,
+    {
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
+    },
+  )
 
   return response.data
 }

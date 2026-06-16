@@ -24,6 +24,16 @@ export type EmployeeDetail = Employee & {
   updatedAt: string
 }
 
+export type CreateEmployeeRequest = {
+  employeeCode: string
+  fullName: string
+  email: string
+  phone?: string
+  position: string
+  status: EmployeeStatus
+  joinedAt: string
+}
+
 export type EmployeesQueryParams = {
   page: number
   limit: number
