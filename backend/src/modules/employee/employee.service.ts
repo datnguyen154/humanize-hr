@@ -29,6 +29,20 @@ type GetEmployeesResult = {
   meta: GetEmployeesMeta;
 };
 
+type EmployeeDetail = Pick<
+  Employee,
+  | "id"
+  | "employeeCode"
+  | "fullName"
+  | "email"
+  | "phone"
+  | "position"
+  | "status"
+  | "joinedAt"
+  | "createdAt"
+  | "updatedAt"
+>;
+
 export class EmployeeServiceError extends Error {
   constructor(
     message: string,
@@ -42,6 +56,8 @@ export class EmployeeServiceError extends Error {
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const parsePositiveInteger = (
   value: number | string | undefined,
@@ -117,6 +133,31 @@ export const employeeService = {
         hasNextPage: page < totalPages,
         hasPreviousPage: page > 1 && totalPages > 0,
       },
+    };
+  },
+
+  async getEmployeeById(id: string): Promise<EmployeeDetail> {
+    if (!UUID_REGEX.test(id)) {
+      throw new EmployeeServiceError("Employee not found", 404);
+    }
+
+    const employee = await employeeRepository.findEmployeeById(id);
+
+    if (!employee) {
+      throw new EmployeeServiceError("Employee not found", 404);
+    }
+
+    return {
+      id: employee.id,
+      employeeCode: employee.employeeCode,
+      fullName: employee.fullName,
+      email: employee.email,
+      phone: employee.phone,
+      position: employee.position,
+      status: employee.status,
+      joinedAt: employee.joinedAt,
+      createdAt: employee.createdAt,
+      updatedAt: employee.updatedAt,
     };
   },
 };

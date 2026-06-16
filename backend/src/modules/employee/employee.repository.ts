@@ -75,4 +75,10 @@ export const employeeRepository = {
       where: buildEmployeeWhere(params),
     });
   },
+
+  findEmployeeById(id: string): Promise<Employee | null> {
+    return prisma.employee.findUnique({
+      where: { id },
+    });
+  },
 };

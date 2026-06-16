@@ -12,3 +12,10 @@ employeeRoutes.get(
   requireRole("ADMIN"),
   employeeController.getEmployees,
 );
+
+employeeRoutes.get(
+  "/:id",
+  authenticate,
+  requireRole("ADMIN"),
+  employeeController.getEmployeeById,
+);

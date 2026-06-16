@@ -104,4 +104,14 @@ export const employeeController = {
       return handleError(error, res);
     }
   },
+
+  async getEmployeeById(req: Request, res: Response): Promise<Response> {
+    try {
+      const employee = await employeeService.getEmployeeById(req.params.id);
+
+      return res.status(200).json(employee);
+    } catch (error) {
+      return handleError(error, res);
+    }
+  },
 };
