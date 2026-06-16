@@ -141,6 +141,26 @@ Là Admin, tôi muốn lọc nhân viên theo trạng thái để biết ai đan
 - Backend lọc nhân viên theo trạng thái.
 - Nếu `status` không hợp lệ, trả về lỗi `400`.
 
+## US-EMP-006: Tạo nhân viên
+
+Là Admin, tôi muốn tạo nhân viên mới để quản lý nhân sự trong hệ thống.
+
+### Acceptance Criteria
+
+- Chỉ ADMIN được phép tạo nhân viên.
+- employeeCode là bắt buộc.
+- employeeCode phải duy nhất.
+- fullName là bắt buộc.
+- email là bắt buộc.
+- email phải duy nhất.
+- phone là bắt buộc.
+- position là bắt buộc.
+- status là bắt buộc.
+- status chỉ nhận ACTIVE hoặc INACTIVE.
+- joinedAt là bắt buộc.
+- joinedAt phải là ngày hợp lệ.
+- Tạo thành công trả về thông tin nhân viên vừa tạo.
+
 ---
 
 ## 5. API Contract
@@ -239,6 +259,64 @@ Khi không có nhân viên phù hợp:
 }
 ```
 
+## 5.2 Create Employee
+
+### Endpoint
+
+POST /api/employees
+
+### Authentication
+
+Yêu cầu access token.
+
+Authorization: Bearer access_token
+
+### Authorization
+
+Chỉ ADMIN được phép tạo nhân viên.
+
+### Request Body
+
+```json
+{
+    "employeeCode": "EMP031",
+    "fullName": "Nguyen Van B",
+    "email": "b@example.com",
+    "phone": "0901234567",
+    "position": "Frontend Developer",
+    "status": "ACTIVE",
+    "joinedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Success Response
+
+```json
+{
+    "data": {
+        "id": "uuid",
+        "employeeCode": "EMP031",
+        "fullName": "Nguyen Van B",
+        "email": "b@example.com",
+        "phone": "0901234567",
+        "position": "Frontend Developer",
+        "status": "ACTIVE",
+        "joinedAt": "2024-01-01T00:00:00.000Z",
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2024-01-01T00:00:00.000Z"
+    }
+}
+```
+
+### Error Responses
+
+| Case                    | Status |
+| ----------------------- | ------ |
+| employeeCode đã tồn tại | 409    |
+| email đã tồn tại        | 409    |
+| dữ liệu không hợp lệ    | 400    |
+| không có quyền          | 403    |
+
 ---
 
 ## 6. Database Fields Needed For Employee Model
@@ -331,5 +409,9 @@ shadcn Table nên hiển thị các cột MVP:
 - Chức vụ.
 - Trạng thái.
 - Ngày vào công ty.
+
+Trong MVP Create Employee hiện tại,
+gender, dateOfBirth và departmentId
+sẽ được bổ sung ở giai đoạn sau.
 
 Các action như thêm, sửa, xóa nhân viên sẽ làm ở bước sau, không thuộc phạm vi tài liệu MVP hiện tại.
