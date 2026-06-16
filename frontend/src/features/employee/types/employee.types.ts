@@ -19,6 +19,11 @@ export type Employee = {
   joinedAt: string
 }
 
+export type EmployeeDetail = Employee & {
+  createdAt: string
+  updatedAt: string
+}
+
 export type EmployeesQueryParams = {
   page: number
   limit: number

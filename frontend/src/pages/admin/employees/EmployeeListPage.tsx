@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,6 +37,7 @@ const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
 export function EmployeeListPage() {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('ALL')
@@ -87,6 +89,10 @@ export function EmployeeListPage() {
     ) : (
       <ArrowDown className="size-4" aria-hidden="true" />
     )
+  }
+
+  const navigateToDetail = (id: string) => {
+    navigate(`/admin/employees/${id}`)
   }
 
   return (
@@ -192,9 +198,22 @@ export function EmployeeListPage() {
                 </TableHeader>
                 <TableBody>
                   {employees.map((employee) => (
-                    <TableRow key={employee.id}>
+                    <TableRow
+                      key={employee.id}
+                      className="cursor-pointer"
+                      onClick={() => navigateToDetail(employee.id)}
+                    >
                       <TableCell className="font-medium">
-                        {employee.employeeCode}
+                        <button
+                          type="button"
+                          className="font-medium text-primary hover:underline"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(employee.id)
+                          }}
+                        >
+                          {employee.employeeCode}
+                        </button>
                       </TableCell>
                       <TableCell>{employee.fullName}</TableCell>
                       <TableCell>{employee.email}</TableCell>
