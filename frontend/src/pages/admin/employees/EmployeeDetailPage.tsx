@@ -4,17 +4,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useUpdateEmployeeStatusMutation } from '@/features/employee/hooks/useUpdateEmployeeStatusMutation'
-import { useEmployeeDetailQuery } from '@/features/employee/hooks/useEmployeesQuery'
-import type { EmployeeStatus } from '@/features/employee/types/employee.types'
-
-const statusLabel: Record<EmployeeStatus, string> = {
-  ACTIVE: 'Đang làm việc',
-  INACTIVE: 'Tạm ngưng',
-}
-
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat('vi-VN').format(new Date(date))
+import {
+  employeeStatusLabel,
+  formatEmployeeDate,
+  useEmployeeDetailQuery,
+  useUpdateEmployeeStatusMutation,
+  type EmployeeStatus,
+} from '@/features/employee'
 
 export function EmployeeDetailPage() {
   const { id } = useParams()
@@ -33,10 +29,10 @@ export function EmployeeDetailPage() {
         { label: 'Email', value: employee.email },
         { label: 'Số điện thoại', value: employee.phone },
         { label: 'Chức vụ', value: employee.position },
-        { label: 'Trạng thái', value: statusLabel[employee.status] },
-        { label: 'Ngày vào làm', value: formatDate(employee.joinedAt) },
-        { label: 'Ngày tạo', value: formatDate(employee.createdAt) },
-        { label: 'Ngày cập nhật', value: formatDate(employee.updatedAt) },
+        { label: 'Trạng thái', value: employeeStatusLabel[employee.status] },
+        { label: 'Ngày vào làm', value: formatEmployeeDate(employee.joinedAt) },
+        { label: 'Ngày tạo', value: formatEmployeeDate(employee.createdAt) },
+        { label: 'Ngày cập nhật', value: formatEmployeeDate(employee.updatedAt) },
       ]
     : []
 

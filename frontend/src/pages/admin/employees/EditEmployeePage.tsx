@@ -9,8 +9,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useUpdateEmployeeMutation } from '@/features/employee/hooks/useUpdateEmployeeMutation'
-import { useEmployeeDetailQuery } from '@/features/employee/hooks/useEmployeesQuery'
+import {
+  toDateInputValue,
+  useEmployeeDetailQuery,
+  useUpdateEmployeeMutation,
+} from '@/features/employee'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const editEmployeeSchema = z.object({
@@ -37,8 +40,6 @@ const getEditEmployeeErrorMessage = (error: unknown) => {
 
   return 'Cập nhật nhân viên thất bại'
 }
-
-const toDateInputValue = (date: string) => date.slice(0, 10)
 
 export function EditEmployeePage() {
   const { id } = useParams()

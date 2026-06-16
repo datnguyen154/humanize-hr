@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { updateEmployee } from '../api/employee.api'
-import { employeesQueryKeys } from './useEmployeesQuery'
+import { employeeQueryKeys } from '../lib/employee.query-keys'
 import type { UpdateEmployeeRequest } from '../types/employee.types'
 
 type UpdateEmployeeMutationParams = {
@@ -16,9 +16,9 @@ export function useUpdateEmployeeMutation() {
     mutationFn: ({ id, payload }: UpdateEmployeeMutationParams) =>
       updateEmployee(id, payload),
     onSuccess: (_employee, variables) => {
-      void queryClient.invalidateQueries({ queryKey: ['employees'] })
+      void queryClient.invalidateQueries({ queryKey: employeeQueryKeys.all })
       void queryClient.invalidateQueries({
-        queryKey: employeesQueryKeys.detail(variables.id),
+        queryKey: employeeQueryKeys.detail(variables.id),
       })
     },
   })

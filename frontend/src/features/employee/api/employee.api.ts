@@ -4,40 +4,38 @@ import { authStorage } from '../../auth'
 import type {
   CreateEmployeeRequest,
   EmployeeDetail,
+  EmployeeStatus,
   EmployeesQueryParams,
   EmployeesResponse,
   UpdateEmployeeRequest,
   UpdateEmployeeStatusResponse,
-  EmployeeStatus,
 } from '../types/employee.types'
 
-export const getEmployees = async (params: EmployeesQueryParams) => {
+const getAuthHeaders = () => {
   const accessToken = authStorage.getAccessToken()
 
+  return accessToken
+    ? {
+        Authorization: `Bearer ${accessToken}`,
+      }
+    : undefined
+}
+
+export const getEmployees = async (params: EmployeesQueryParams) => {
   const response = await axiosInstance.get<EmployeesResponse>('/employees', {
     params,
-    headers: accessToken
-      ? {
-          Authorization: `Bearer ${accessToken}`,
-        }
-      : undefined,
+    headers: getAuthHeaders(),
   })
 
   return response.data
 }
 
 export const createEmployee = async (payload: CreateEmployeeRequest) => {
-  const accessToken = authStorage.getAccessToken()
-
   const response = await axiosInstance.post<EmployeeDetail>(
     '/employees',
     payload,
     {
-      headers: accessToken
-        ? {
-            Authorization: `Bearer ${accessToken}`,
-          }
-        : undefined,
+      headers: getAuthHeaders(),
     },
   )
 
@@ -45,14 +43,8 @@ export const createEmployee = async (payload: CreateEmployeeRequest) => {
 }
 
 export const getEmployeeById = async (id: string) => {
-  const accessToken = authStorage.getAccessToken()
-
   const response = await axiosInstance.get<EmployeeDetail>(`/employees/${id}`, {
-    headers: accessToken
-      ? {
-          Authorization: `Bearer ${accessToken}`,
-        }
-      : undefined,
+    headers: getAuthHeaders(),
   })
 
   return response.data
@@ -62,17 +54,11 @@ export const updateEmployee = async (
   id: string,
   payload: UpdateEmployeeRequest,
 ) => {
-  const accessToken = authStorage.getAccessToken()
-
   const response = await axiosInstance.patch<{ data: EmployeeDetail }>(
     `/employees/${id}`,
     payload,
     {
-      headers: accessToken
-        ? {
-            Authorization: `Bearer ${accessToken}`,
-          }
-        : undefined,
+      headers: getAuthHeaders(),
     },
   )
 
@@ -83,19 +69,13 @@ export const updateEmployeeStatus = async (
   id: string,
   status: EmployeeStatus,
 ) => {
-  const accessToken = authStorage.getAccessToken()
-
   const response = await axiosInstance.patch<{
     data: UpdateEmployeeStatusResponse
   }>(
     `/employees/${id}/status`,
     { status },
     {
-      headers: accessToken
-        ? {
-            Authorization: `Bearer ${accessToken}`,
-          }
-        : undefined,
+      headers: getAuthHeaders(),
     },
   )
 

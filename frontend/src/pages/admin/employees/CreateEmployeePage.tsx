@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useCreateEmployeeMutation } from '@/features/employee/hooks/useCreateEmployeeMutation'
+import { useCreateEmployeeMutation } from '@/features/employee'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const createEmployeeSchema = z.object({

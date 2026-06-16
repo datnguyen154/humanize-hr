@@ -13,12 +13,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useEmployeesQuery } from '@/features/employee/hooks/useEmployeesQuery'
-import type {
-  EmployeeSortBy,
-  EmployeeSortOrder,
-  EmployeeStatus,
-} from '@/features/employee/types/employee.types'
+import {
+  employeeStatusLabel,
+  formatEmployeeDate,
+  useEmployeesQuery,
+  type EmployeeSortBy,
+  type EmployeeSortOrder,
+  type EmployeeStatus,
+} from '@/features/employee'
 
 type StatusFilter = 'ALL' | EmployeeStatus
 
@@ -27,14 +29,6 @@ const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: 'Đang làm việc', value: 'ACTIVE' },
   { label: 'Tạm ngưng', value: 'INACTIVE' },
 ]
-
-const statusLabel: Record<EmployeeStatus, string> = {
-  ACTIVE: 'Đang làm việc',
-  INACTIVE: 'Tạm ngưng',
-}
-
-const formatDate = (date: string) =>
-  new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
 export function EmployeeListPage() {
   const navigate = useNavigate()
@@ -228,8 +222,10 @@ export function EmployeeListPage() {
                       <TableCell>{employee.email}</TableCell>
                       <TableCell>{employee.phone}</TableCell>
                       <TableCell>{employee.position}</TableCell>
-                      <TableCell>{statusLabel[employee.status]}</TableCell>
-                      <TableCell>{formatDate(employee.joinedAt)}</TableCell>
+                      <TableCell>
+                        {employeeStatusLabel[employee.status]}
+                      </TableCell>
+                      <TableCell>{formatEmployeeDate(employee.joinedAt)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
