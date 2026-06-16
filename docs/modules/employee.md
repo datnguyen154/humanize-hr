@@ -163,6 +163,22 @@ Là Admin, tôi muốn tạo nhân viên mới để quản lý nhân sự trong
 
 ---
 
+## US-EMP-007: Cập nhật nhân viên
+
+Là Admin, tôi muốn cập nhật thông tin nhân viên để đảm bảo dữ liệu nhân sự luôn chính xác.
+
+### Acceptance Criteria
+
+- Chỉ ADMIN được phép cập nhật nhân viên.
+- Nhân viên phải tồn tại.
+- employeeCode phải duy nhất.
+- email phải duy nhất.
+- status chỉ nhận ACTIVE hoặc INACTIVE.
+- joinedAt phải là ngày hợp lệ.
+- Cập nhật thành công trả về thông tin nhân viên mới nhất.
+
+---
+
 ## 5. API Contract
 
 ## 5.1 Get Employee List
@@ -318,6 +334,63 @@ Chỉ ADMIN được phép tạo nhân viên.
 | không có quyền          | 403    |
 
 ---
+
+## 5.3 Update Employee
+
+### Endpoint
+
+PATCH /api/employees/:id
+
+### Authentication
+
+Authorization: Bearer access_token
+
+### Authorization
+
+Chỉ ADMIN được phép cập nhật nhân viên.
+
+### Request Body
+
+```json
+{
+    "employeeCode": "EMP001",
+    "fullName": "Nguyen Van A Updated",
+    "email": "updated@example.com",
+    "phone": "0901234567",
+    "position": "Senior Frontend Developer",
+    "status": "ACTIVE",
+    "joinedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+### Success Response
+
+```json
+{
+    "data": {
+        "id": "uuid",
+        "employeeCode": "EMP001",
+        "fullName": "Nguyen Van A Updated",
+        "email": "updated@example.com",
+        "phone": "0901234567",
+        "position": "Senior Frontend Developer",
+        "status": "ACTIVE",
+        "joinedAt": "2024-01-01T00:00:00.000Z",
+        "createdAt": "2024-01-01T00:00:00.000Z",
+        "updatedAt": "2026-06-16T00:00:00.000Z"
+    }
+}
+```
+
+### Error Responses
+
+| Case                    | Status |
+| ----------------------- | ------ |
+| Employee không tồn tại  | 404    |
+| employeeCode đã tồn tại | 409    |
+| email đã tồn tại        | 409    |
+| dữ liệu không hợp lệ    | 400    |
+| không có quyền          | 403    |
 
 ## 6. Database Fields Needed For Employee Model
 
