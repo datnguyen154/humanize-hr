@@ -1,117 +1,154 @@
 import { EmployeeStatus } from "@prisma/client";
 import type { Request, Response } from "express";
 
-import {
-  EmployeeServiceError,
-  employeeService,
-} from "./employee.service";
-import type {
-  EmployeeSortBy,
-  EmployeeSortOrder,
-} from "./employee.repository";
+import { EmployeeServiceError, employeeService } from "./employee.service";
+import type { EmployeeSortBy, EmployeeSortOrder } from "./employee.repository";
 
 const allowedSortBy: EmployeeSortBy[] = [
-  "employeeCode",
-  "fullName",
-  "joinedAt",
-  "createdAt",
+    "employeeCode",
+    "fullName",
+    "joinedAt",
+    "createdAt",
 ];
 
 const allowedSortOrder: EmployeeSortOrder[] = ["asc", "desc"];
 
 const getSingleQueryValue = (value: unknown): string | undefined => {
-  if (typeof value === "string") {
-    return value;
-  }
+    if (typeof value === "string") {
+        return value;
+    }
 
-  if (Array.isArray(value) && typeof value[0] === "string") {
-    return value[0];
-  }
+    if (Array.isArray(value) && typeof value[0] === "string") {
+        return value[0];
+    }
 
-  return undefined;
+    return undefined;
 };
 
 const parseStatus = (value: unknown): EmployeeStatus | undefined => {
-  const status = getSingleQueryValue(value);
+    const status = getSingleQueryValue(value);
 
-  if (!status) {
-    return undefined;
-  }
+    if (!status) {
+        return undefined;
+    }
 
-  if (status === EmployeeStatus.ACTIVE || status === EmployeeStatus.INACTIVE) {
-    return status;
-  }
+    if (
+        status === EmployeeStatus.ACTIVE ||
+        status === EmployeeStatus.INACTIVE
+    ) {
+        return status;
+    }
 
-  throw new EmployeeServiceError("Invalid status", 400);
+    throw new EmployeeServiceError("Invalid status", 400);
 };
 
 const parseSortBy = (value: unknown): EmployeeSortBy | undefined => {
-  const sortBy = getSingleQueryValue(value);
+    const sortBy = getSingleQueryValue(value);
 
-  if (!sortBy) {
-    return undefined;
-  }
+    if (!sortBy) {
+        return undefined;
+    }
 
-  if (allowedSortBy.includes(sortBy as EmployeeSortBy)) {
-    return sortBy as EmployeeSortBy;
-  }
+    if (allowedSortBy.includes(sortBy as EmployeeSortBy)) {
+        return sortBy as EmployeeSortBy;
+    }
 
-  throw new EmployeeServiceError("Invalid sortBy", 400);
+    throw new EmployeeServiceError("Invalid sortBy", 400);
 };
 
 const parseSortOrder = (value: unknown): EmployeeSortOrder | undefined => {
-  const sortOrder = getSingleQueryValue(value);
+    const sortOrder = getSingleQueryValue(value);
 
-  if (!sortOrder) {
-    return undefined;
-  }
+    if (!sortOrder) {
+        return undefined;
+    }
 
-  if (allowedSortOrder.includes(sortOrder as EmployeeSortOrder)) {
-    return sortOrder as EmployeeSortOrder;
-  }
+    if (allowedSortOrder.includes(sortOrder as EmployeeSortOrder)) {
+        return sortOrder as EmployeeSortOrder;
+    }
 
-  throw new EmployeeServiceError("Invalid sortOrder", 400);
+    throw new EmployeeServiceError("Invalid sortOrder", 400);
 };
 
 const handleError = (error: unknown, res: Response): Response => {
-  if (error instanceof EmployeeServiceError) {
-    return res.status(error.statusCode).json({
-      message: error.message,
+    if (error instanceof EmployeeServiceError) {
+        return res.status(error.statusCode).json({
+            message: error.message,
+        });
+    }
+
+    console.error(error);
+
+    return res.status(500).json({
+        message: "Internal server error",
     });
-  }
-
-  console.error(error);
-
-  return res.status(500).json({
-    message: "Internal server error",
-  });
 };
 
 export const employeeController = {
-  async getEmployees(req: Request, res: Response): Promise<Response> {
-    try {
-      const result = await employeeService.getEmployees({
-        page: getSingleQueryValue(req.query.page),
-        limit: getSingleQueryValue(req.query.limit),
-        search: getSingleQueryValue(req.query.search),
-        status: parseStatus(req.query.status),
-        sortBy: parseSortBy(req.query.sortBy),
-        sortOrder: parseSortOrder(req.query.sortOrder),
-      });
+    async getEmployees(req: Request, res: Response): Promise<Response> {
+        try {
+            const result = await employeeService.getEmployees({
+                page: getSingleQueryValue(req.query.page),
+                limit: getSingleQueryValue(req.query.limit),
+                search: getSingleQueryValue(req.query.search),
+                status: parseStatus(req.query.status),
+                sortBy: parseSortBy(req.query.sortBy),
+                sortOrder: parseSortOrder(req.query.sortOrder),
+            });
 
-      return res.status(200).json(result);
-    } catch (error) {
-      return handleError(error, res);
-    }
-  },
+            return res.status(200).json(result);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 
-  async getEmployeeById(req: Request, res: Response): Promise<Response> {
-    try {
-      const employee = await employeeService.getEmployeeById(req.params.id);
+    async getEmployeeById(req: Request, res: Response): Promise<Response> {
+        try {
+            const employee = await employeeService.getEmployeeById(
+                req.params.id,
+            );
 
-      return res.status(200).json(employee);
-    } catch (error) {
-      return handleError(error, res);
-    }
-  },
+            return res.status(200).json(employee);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async createEmployee(req: Request, res: Response): Promise<Response> {
+        try {
+            const {
+                employeeCode,
+                fullName,
+                email,
+                phone,
+                position,
+                status,
+                joinedAt,
+            } = req.body as {
+                employeeCode?: string;
+                fullName?: string;
+                email?: string;
+                phone?: string;
+                position?: string;
+                status?: string;
+                joinedAt?: string;
+            };
+
+            const employee = await employeeService.createEmployee({
+                employeeCode,
+                fullName,
+                email,
+                phone,
+                position,
+                status,
+                joinedAt,
+            });
+
+            return res.status(201).json({
+                data: employee,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };

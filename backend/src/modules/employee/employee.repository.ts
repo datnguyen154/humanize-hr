@@ -19,6 +19,8 @@ export type EmployeeQueryParams = {
   sortOrder?: EmployeeSortOrder;
 };
 
+export type CreateEmployeeData = Prisma.EmployeeUncheckedCreateInput;
+
 const buildEmployeeWhere = (
   params: EmployeeQueryParams,
 ): Prisma.EmployeeWhereInput => {
@@ -79,6 +81,24 @@ export const employeeRepository = {
   findEmployeeById(id: string): Promise<Employee | null> {
     return prisma.employee.findUnique({
       where: { id },
+    });
+  },
+
+  createEmployee(data: CreateEmployeeData): Promise<Employee> {
+    return prisma.employee.create({
+      data,
+    });
+  },
+
+  findEmployeeByEmail(email: string): Promise<Employee | null> {
+    return prisma.employee.findUnique({
+      where: { email },
+    });
+  },
+
+  findEmployeeByEmployeeCode(employeeCode: string): Promise<Employee | null> {
+    return prisma.employee.findUnique({
+      where: { employeeCode },
     });
   },
 };

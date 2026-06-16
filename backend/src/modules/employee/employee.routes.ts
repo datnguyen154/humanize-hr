@@ -7,15 +7,22 @@ import { employeeController } from "./employee.controller";
 export const employeeRoutes = Router();
 
 employeeRoutes.get(
-  "/",
-  authenticate,
-  requireRole("ADMIN"),
-  employeeController.getEmployees,
+    "/",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.getEmployees,
+);
+
+employeeRoutes.post(
+    "/",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.createEmployee,
 );
 
 employeeRoutes.get(
-  "/:id",
-  authenticate,
-  requireRole("ADMIN"),
-  employeeController.getEmployeeById,
+    "/:id",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.getEmployeeById,
 );
