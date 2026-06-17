@@ -13,6 +13,12 @@ export type Department = {
   updatedAt: string
 }
 
+export type DepartmentDetail = Department
+
+export type DepartmentDetailResponse = {
+  data: DepartmentDetail
+}
+
 export type DepartmentsQueryParams = {
   page: number
   limit: number

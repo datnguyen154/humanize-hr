@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -36,6 +37,7 @@ const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
 export function DepartmentListPage() {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('ALL')
@@ -87,6 +89,10 @@ export function DepartmentListPage() {
     ) : (
       <ArrowDown className="size-4" aria-hidden="true" />
     )
+  }
+
+  const navigateToDetail = (id: string) => {
+    navigate(`/admin/departments/${id}`)
   }
 
   return (
@@ -189,9 +195,22 @@ export function DepartmentListPage() {
                 </TableHeader>
                 <TableBody>
                   {departments.map((department) => (
-                    <TableRow key={department.id}>
+                    <TableRow
+                      key={department.id}
+                      className="cursor-pointer"
+                      onClick={() => navigateToDetail(department.id)}
+                    >
                       <TableCell className="font-medium">
-                        {department.name}
+                        <button
+                          type="button"
+                          className="font-medium text-primary hover:underline"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(department.id)
+                          }}
+                        >
+                          {department.name}
+                        </button>
                       </TableCell>
                       <TableCell>{department.description}</TableCell>
                       <TableCell>

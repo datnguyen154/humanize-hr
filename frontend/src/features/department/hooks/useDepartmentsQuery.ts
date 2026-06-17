@@ -1,17 +1,26 @@
 import { useQuery } from '@tanstack/react-query'
 
-import { getDepartments } from '../api/department.api'
+import { getDepartmentById, getDepartments } from '../api/department.api'
 import type { DepartmentsQueryParams } from '../types/department.types'
 
 export const departmentQueryKeys = {
   all: ['departments'] as const,
   list: (params: DepartmentsQueryParams) =>
     [...departmentQueryKeys.all, 'list', params] as const,
+  detail: (id: string) => [...departmentQueryKeys.all, 'detail', id] as const,
 }
 
 export function useDepartmentsQuery(params: DepartmentsQueryParams) {
   return useQuery({
     queryKey: departmentQueryKeys.list(params),
     queryFn: () => getDepartments(params),
+  })
+}
+
+export function useDepartmentDetailQuery(id: string) {
+  return useQuery({
+    queryKey: departmentQueryKeys.detail(id),
+    queryFn: () => getDepartmentById(id),
+    enabled: Boolean(id),
   })
 }

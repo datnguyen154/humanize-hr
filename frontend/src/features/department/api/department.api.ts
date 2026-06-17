@@ -2,6 +2,7 @@ import { authStorage } from '@/features/auth'
 import { axiosInstance } from '@/shared/api'
 
 import type {
+  DepartmentDetailResponse,
   DepartmentsQueryParams,
   DepartmentsResponse,
 } from '../types/department.types'
@@ -26,4 +27,15 @@ export const getDepartments = async (params: DepartmentsQueryParams) => {
   )
 
   return response.data
+}
+
+export const getDepartmentById = async (id: string) => {
+  const response = await axiosInstance.get<DepartmentDetailResponse>(
+    `/departments/${id}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
 }
