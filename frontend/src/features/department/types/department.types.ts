@@ -19,6 +19,12 @@ export type DepartmentDetailResponse = {
   data: DepartmentDetail
 }
 
+export type CreateDepartmentRequest = {
+  name: string
+  description?: string | null
+  status?: DepartmentStatus
+}
+
 export type DepartmentsQueryParams = {
   page: number
   limit: number

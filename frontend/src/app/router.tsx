@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
+import { CreateDepartmentPage } from '../pages/admin/departments/CreateDepartmentPage'
 import { DepartmentDetailPage } from '../pages/admin/departments/DepartmentDetailPage'
 import { DepartmentListPage } from '../pages/admin/departments/DepartmentListPage'
 import { CreateEmployeePage } from '../pages/admin/employees/CreateEmployeePage'
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
       {
         path: 'departments',
         element: <DepartmentListPage />,
+      },
+      {
+        path: 'departments/create',
+        element: <CreateDepartmentPage />,
       },
       {
         path: 'departments/:id',

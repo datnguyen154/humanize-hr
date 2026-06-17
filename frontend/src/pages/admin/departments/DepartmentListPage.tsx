@@ -97,13 +97,22 @@ export function DepartmentListPage() {
 
   return (
     <section className="grid gap-5">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Quản lý phòng ban
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theo dõi danh sách và trạng thái phòng ban trong hệ thống.
-        </p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">
+            Quản lý phòng ban
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Theo dõi danh sách và trạng thái phòng ban trong hệ thống.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          onClick={() => navigate('/admin/departments/create')}
+        >
+          Thêm phòng ban
+        </Button>
       </div>
 
       <Card>
