@@ -1,0 +1,37 @@
+export type DepartmentStatus = 'ACTIVE' | 'INACTIVE'
+
+export type DepartmentSortBy = 'name' | 'status' | 'createdAt' | 'updatedAt'
+
+export type DepartmentSortOrder = 'asc' | 'desc'
+
+export type Department = {
+  id: string
+  name: string
+  description: string
+  status: DepartmentStatus
+  createdAt: string
+  updatedAt: string
+}
+
+export type DepartmentsQueryParams = {
+  page: number
+  limit: number
+  search?: string
+  status?: DepartmentStatus
+  sortBy?: DepartmentSortBy
+  sortOrder?: DepartmentSortOrder
+}
+
+export type DepartmentsMeta = {
+  page: number
+  limit: number
+  totalItems: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export type DepartmentsResponse = {
+  data: Department[]
+  meta: DepartmentsMeta
+}
