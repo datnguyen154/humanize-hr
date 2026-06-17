@@ -41,13 +41,22 @@ export function DepartmentDetailPage() {
           </p>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/admin/departments')}
-        >
-          Quay lại danh sách
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate('/admin/departments')}
+          >
+            Quay lại danh sách
+          </Button>
+          <Button
+            type="button"
+            onClick={() => navigate(`/admin/departments/${id}/edit`)}
+            disabled={!department}
+          >
+            Sửa phòng ban
+          </Button>
+        </div>
       </div>
 
       <Card>

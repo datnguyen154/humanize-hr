@@ -25,6 +25,12 @@ export type CreateDepartmentRequest = {
   status?: DepartmentStatus
 }
 
+export type UpdateDepartmentRequest = {
+  name?: string
+  description?: string | null
+  status?: DepartmentStatus
+}
+
 export type DepartmentsQueryParams = {
   page: number
   limit: number
