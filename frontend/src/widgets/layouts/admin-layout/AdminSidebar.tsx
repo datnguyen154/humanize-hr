@@ -2,14 +2,7 @@ import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 
-const adminMenuItems = [
-  { label: 'Tổng quan', path: '/admin/dashboard' },
-  { label: 'Nhân viên', path: '/admin/employees' },
-  { label: 'Phòng ban', path: '/admin/departments' },
-  { label: 'Chấm công', path: '/admin/attendance' },
-  { label: 'Nghỉ phép', path: '/admin/leaves' },
-  { label: 'Bảng lương', path: '/admin/payroll' },
-]
+import { adminNavigationItems } from './admin-navigation.config'
 
 export function AdminSidebar() {
   const { pathname } = useLocation()
@@ -22,7 +15,7 @@ export function AdminSidebar() {
       </div>
 
       <nav className="grid gap-1" aria-label="Menu quản trị">
-        {adminMenuItems.map((item) => {
+        {adminNavigationItems.map((item) => {
           const isActive = pathname === item.path
 
           return (
