@@ -1,8 +1,11 @@
+import { AxiosError } from 'axios'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDepartmentDetailQuery } from '@/features/department/hooks/useDepartmentsQuery'
+import { useUpdateDepartmentStatusMutation } from '@/features/department/hooks/useUpdateDepartmentStatusMutation'
 import type { DepartmentStatus } from '@/features/department/types/department.types'
 
 const departmentStatusLabel: Record<DepartmentStatus, string> = {
@@ -17,7 +20,11 @@ export function DepartmentDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const departmentQuery = useDepartmentDetailQuery(id ?? '')
+  const updateDepartmentStatusMutation = useUpdateDepartmentStatusMutation()
+  const [statusError, setStatusError] = useState<string | null>(null)
   const department = departmentQuery.data
+  const nextStatus: DepartmentStatus =
+    department?.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
 
   const details = department
     ? [
@@ -28,6 +35,44 @@ export function DepartmentDetailPage() {
         { label: 'Ngày cập nhật', value: formatDate(department.updatedAt) },
       ]
     : []
+
+  const handleStatusUpdate = async () => {
+    if (!id || !department) {
+      return
+    }
+
+    const confirmMessage =
+      department.status === 'ACTIVE'
+        ? 'Bạn có chắc muốn tạm ngưng phòng ban này?'
+        : 'Bạn có chắc muốn kích hoạt lại phòng ban này?'
+
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    setStatusError(null)
+
+    try {
+      await updateDepartmentStatusMutation.mutateAsync({
+        id,
+        status: nextStatus,
+      })
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        if (error.response?.status === 400) {
+          setStatusError('Trạng thái không hợp lệ')
+          return
+        }
+
+        if (error.response?.status === 404) {
+          setStatusError('Không tìm thấy phòng ban')
+          return
+        }
+      }
+
+      setStatusError('Cập nhật trạng thái phòng ban thất bại')
+    }
+  }
 
   return (
     <section className="grid gap-5">
@@ -56,6 +101,20 @@ export function DepartmentDetailPage() {
           >
             Sửa phòng ban
           </Button>
+          {department ? (
+            <Button
+              type="button"
+              variant={
+                department.status === 'ACTIVE' ? 'destructive' : 'default'
+              }
+              disabled={updateDepartmentStatusMutation.isPending}
+              onClick={handleStatusUpdate}
+            >
+              {department.status === 'ACTIVE'
+                ? 'Tạm ngưng phòng ban'
+                : 'Kích hoạt lại'}
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -64,6 +123,12 @@ export function DepartmentDetailPage() {
           <CardTitle className="text-lg">Thông tin phòng ban</CardTitle>
         </CardHeader>
         <CardContent>
+          {statusError ? (
+            <p className="mb-4 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {statusError}
+            </p>
+          ) : null}
+
           {departmentQuery.isLoading ? (
             <p className="py-8 text-center text-muted-foreground">
               Đang tải thông tin phòng ban...

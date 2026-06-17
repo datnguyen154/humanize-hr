@@ -31,6 +31,11 @@ export type UpdateDepartmentRequest = {
   status?: DepartmentStatus
 }
 
+export type UpdateDepartmentStatusResponse = {
+  id: string
+  status: DepartmentStatus
+}
+
 export type DepartmentsQueryParams = {
   page: number
   limit: number

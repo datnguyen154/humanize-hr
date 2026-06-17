@@ -7,6 +7,7 @@ import type {
   DepartmentsQueryParams,
   DepartmentsResponse,
   UpdateDepartmentRequest,
+  UpdateDepartmentStatusResponse,
 } from '../types/department.types'
 
 const getAuthHeaders = () => {
@@ -61,6 +62,23 @@ export const updateDepartment = async (
   const response = await axiosInstance.patch<DepartmentDetailResponse>(
     `/departments/${id}`,
     payload,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const updateDepartmentStatus = async (
+  id: string,
+  status: UpdateDepartmentStatusResponse['status'],
+) => {
+  const response = await axiosInstance.patch<{
+    data: UpdateDepartmentStatusResponse
+  }>(
+    `/departments/${id}/status`,
+    { status },
     {
       headers: getAuthHeaders(),
     },
