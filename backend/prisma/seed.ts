@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import {
+  DepartmentStatus,
   EmployeeStatus,
   Gender,
   PrismaClient,
@@ -20,6 +21,45 @@ type SampleEmployee = {
   status: EmployeeStatus;
   joinedAt: Date;
 };
+
+type SampleDepartment = {
+  name: string;
+  description: string;
+  status: DepartmentStatus;
+};
+
+const sampleDepartments: SampleDepartment[] = [
+  {
+    name: "Engineering",
+    description:
+      "Phòng phát triển sản phẩm, xây dựng hệ thống và vận hành nền tảng kỹ thuật.",
+    status: DepartmentStatus.ACTIVE,
+  },
+  {
+    name: "Human Resources",
+    description:
+      "Phòng phụ trách tuyển dụng, hồ sơ nhân sự, chính sách và trải nghiệm nhân viên.",
+    status: DepartmentStatus.ACTIVE,
+  },
+  {
+    name: "Finance",
+    description:
+      "Phòng quản lý ngân sách, chi phí, báo cáo tài chính và quy trình thanh toán.",
+    status: DepartmentStatus.ACTIVE,
+  },
+  {
+    name: "Marketing",
+    description:
+      "Phòng xây dựng thương hiệu, truyền thông, chiến dịch quảng bá và nội dung.",
+    status: DepartmentStatus.ACTIVE,
+  },
+  {
+    name: "Sales",
+    description:
+      "Phòng phát triển khách hàng, quản lý cơ hội bán hàng và chăm sóc doanh thu.",
+    status: DepartmentStatus.ACTIVE,
+  },
+];
 
 const sampleEmployees: SampleEmployee[] = [
   {
@@ -286,6 +326,23 @@ const main = async (): Promise<void> => {
     },
   });
 
+  for (const sampleDepartment of sampleDepartments) {
+    await prisma.department.upsert({
+      where: {
+        name: sampleDepartment.name,
+      },
+      update: {
+        description: sampleDepartment.description,
+        status: sampleDepartment.status,
+      },
+      create: {
+        name: sampleDepartment.name,
+        description: sampleDepartment.description,
+        status: sampleDepartment.status,
+      },
+    });
+  }
+
   for (const sampleEmployee of sampleEmployees) {
     await prisma.employee.upsert({
       where: {
@@ -323,6 +380,7 @@ const main = async (): Promise<void> => {
 
   console.log(`Seeded admin user: ${admin.email}`);
   console.log(`Seeded employee user: ${employee.email}`);
+  console.log(`Seeded sample departments: ${sampleDepartments.length}`);
   console.log(`Seeded sample employees: ${sampleEmployees.length}`);
   console.log("Seeded credentials:");
   console.log(`ADMIN    -> email: ${admin.email}, password: ${password}`);
