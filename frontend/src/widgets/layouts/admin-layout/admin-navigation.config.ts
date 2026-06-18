@@ -22,7 +22,7 @@ export const adminNavigationItems = [
   },
   {
     label: 'Nghỉ phép',
-    path: '/admin/leaves',
+    path: '/admin/leave-requests',
   },
   {
     label: 'Bảng lương',

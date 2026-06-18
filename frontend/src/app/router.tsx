@@ -9,6 +9,7 @@ import { CreateEmployeePage } from '../pages/admin/employees/CreateEmployeePage'
 import { EditEmployeePage } from '../pages/admin/employees/EditEmployeePage'
 import { EmployeeDetailPage } from '../pages/admin/employees/EmployeeDetailPage'
 import { EmployeeListPage } from '../pages/admin/employees/EmployeeListPage'
+import { LeaveRequestListPage } from '../pages/admin/leave-requests/LeaveRequestListPage'
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
@@ -69,6 +70,10 @@ export const router = createBrowserRouter([
       {
         path: 'employees/:id',
         element: <EmployeeDetailPage />,
+      },
+      {
+        path: 'leave-requests',
+        element: <LeaveRequestListPage />,
       },
     ],
   },
