@@ -50,7 +50,13 @@ function DetailSection({ title, items }: DetailSectionProps) {
   )
 }
 
-export function LeaveRequestDetailPage() {
+type LeaveRequestDetailPageProps = {
+  backPath?: string
+}
+
+export function LeaveRequestDetailPage({
+  backPath = '/admin/leave-requests',
+}: LeaveRequestDetailPageProps) {
   const { id } = useParams()
   const navigate = useNavigate()
   const leaveRequestQuery = useLeaveRequestDetailQuery(id ?? '')
@@ -140,7 +146,7 @@ export function LeaveRequestDetailPage() {
         <Button
           type="button"
           variant="outline"
-          onClick={() => navigate('/admin/leave-requests')}
+          onClick={() => navigate(backPath)}
         >
           Quay lại danh sách
         </Button>

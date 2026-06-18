@@ -8,15 +8,18 @@ import type { LeaveRequestsQueryParams } from '../types/leaveRequest.types'
 
 export const leaveRequestQueryKeys = {
   all: ['leave-requests'] as const,
-  list: (params: LeaveRequestsQueryParams) =>
-    [...leaveRequestQueryKeys.all, 'list', params] as const,
+  list: (params: LeaveRequestsQueryParams, scope = 'admin') =>
+    [...leaveRequestQueryKeys.all, 'list', scope, params] as const,
   detail: (id: string) =>
     [...leaveRequestQueryKeys.all, 'detail', id] as const,
 }
 
-export function useLeaveRequestsQuery(params: LeaveRequestsQueryParams) {
+export function useLeaveRequestsQuery(
+  params: LeaveRequestsQueryParams,
+  scope?: string,
+) {
   return useQuery({
-    queryKey: leaveRequestQueryKeys.list(params),
+    queryKey: leaveRequestQueryKeys.list(params, scope),
     queryFn: () => getLeaveRequests(params),
   })
 }

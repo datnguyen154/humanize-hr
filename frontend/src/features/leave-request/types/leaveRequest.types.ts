@@ -40,6 +40,13 @@ export type LeaveRequestDetailResponse = {
   data: LeaveRequestDetail
 }
 
+export type CreateLeaveRequestRequest = {
+  leaveType: LeaveType
+  startDate: string
+  endDate: string
+  reason: string
+}
+
 export type LeaveRequestsQueryParams = {
   page: number
   limit: number

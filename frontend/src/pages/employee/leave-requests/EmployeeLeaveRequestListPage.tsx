@@ -1,10 +1,8 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import {
   Table,
   TableBody,
@@ -15,20 +13,9 @@ import {
 } from '@/components/ui/table'
 import { useLeaveRequestsQuery } from '@/features/leave-request/hooks/useLeaveRequestsQuery'
 import type {
-  LeaveRequestSortBy,
-  LeaveRequestSortOrder,
   LeaveRequestStatus,
   LeaveType,
 } from '@/features/leave-request/types/leaveRequest.types'
-
-type StatusFilter = 'ALL' | LeaveRequestStatus
-
-const statusOptions: Array<{ label: string; value: StatusFilter }> = [
-  { label: 'Tất cả', value: 'ALL' },
-  { label: 'Chờ duyệt', value: 'PENDING' },
-  { label: 'Đã duyệt', value: 'APPROVED' },
-  { label: 'Từ chối', value: 'REJECTED' },
-]
 
 const leaveTypeLabel: Record<LeaveType, string> = {
   ANNUAL: 'Nghỉ phép năm',
@@ -52,121 +39,47 @@ const statusClassName: Record<LeaveRequestStatus, string> = {
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
-export function LeaveRequestListPage() {
+export function EmployeeLeaveRequestListPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<StatusFilter>('ALL')
-  const [sortBy, setSortBy] = useState<LeaveRequestSortBy>('createdAt')
-  const [sortOrder, setSortOrder] = useState<LeaveRequestSortOrder>('desc')
-
-  const leaveRequestsQuery = useLeaveRequestsQuery({
-    page,
-    limit: 10,
-    search: search.trim() || undefined,
-    status: status === 'ALL' ? undefined : status,
-    sortBy,
-    sortOrder,
-  })
+  const leaveRequestsQuery = useLeaveRequestsQuery(
+    {
+      page,
+      limit: 10,
+      sortBy: 'createdAt',
+      sortOrder: 'desc',
+    },
+    'employee',
+  )
 
   const leaveRequests = leaveRequestsQuery.data?.data ?? []
   const meta = leaveRequestsQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value)
-    setPage(1)
-  }
-
-  const handleStatusChange = (value: StatusFilter) => {
-    setStatus(value)
-    setPage(1)
-  }
-
-  const handleSort = (column: LeaveRequestSortBy) => {
-    setPage(1)
-
-    if (sortBy === column) {
-      setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'))
-      return
-    }
-
-    setSortBy(column)
-    setSortOrder('asc')
-  }
-
-  const renderSortIcon = (column: LeaveRequestSortBy) => {
-    if (sortBy !== column) {
-      return <ArrowUpDown className="size-4" aria-hidden="true" />
-    }
-
-    return sortOrder === 'asc' ? (
-      <ArrowUp className="size-4" aria-hidden="true" />
-    ) : (
-      <ArrowDown className="size-4" aria-hidden="true" />
-    )
-  }
-
-  const renderSortableHeader = (
-    label: string,
-    column: LeaveRequestSortBy,
-  ) => (
-    <Button
-      type="button"
-      variant="ghost"
-      className="h-auto justify-start gap-1 px-0 font-medium text-muted-foreground hover:bg-transparent hover:text-foreground"
-      onClick={() => handleSort(column)}
-    >
-      {label}
-      {renderSortIcon(column)}
-    </Button>
-  )
-
-  const navigateToDetail = (id: string) => {
-    navigate(`/admin/leave-requests/${id}`)
-  }
 
   return (
     <section className="grid gap-5">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">
-            Quản lý đơn nghỉ phép
+            Đơn nghỉ phép của tôi
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi danh sách và trạng thái đơn nghỉ phép trong hệ thống.
+            Theo dõi các đơn nghỉ phép và trạng thái xét duyệt.
           </p>
         </div>
 
+        <Button
+          type="button"
+          onClick={() => navigate('/employee/leave-requests/create')}
+        >
+          Tạo đơn nghỉ phép
+        </Button>
       </div>
 
       <Card>
-        <CardHeader className="gap-4">
+        <CardHeader>
           <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
-
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Input
-              value={search}
-              placeholder="Tìm theo mã hoặc tên nhân viên"
-              className="h-10 md:max-w-sm"
-              onChange={(event) => handleSearchChange(event.target.value)}
-            />
-
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  variant={status === option.value ? 'default' : 'outline'}
-                  onClick={() => handleStatusChange(option.value)}
-                >
-                  {option.label}
-                </Button>
-              ))}
-            </div>
-          </div>
         </CardHeader>
-
         <CardContent>
           {leaveRequestsQuery.isLoading ? (
             <p className="py-8 text-center text-muted-foreground">
@@ -191,19 +104,11 @@ export function LeaveRequestListPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Mã nhân viên</TableHead>
-                    <TableHead>Họ tên</TableHead>
                     <TableHead>Loại nghỉ phép</TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Ngày bắt đầu', 'startDate')}
-                    </TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Ngày kết thúc', 'endDate')}
-                    </TableHead>
+                    <TableHead>Ngày bắt đầu</TableHead>
+                    <TableHead>Ngày kết thúc</TableHead>
                     <TableHead>Trạng thái</TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Ngày tạo', 'createdAt')}
-                    </TableHead>
+                    <TableHead>Ngày tạo</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -211,22 +116,11 @@ export function LeaveRequestListPage() {
                     <TableRow
                       key={leaveRequest.id}
                       className="cursor-pointer"
-                      onClick={() => navigateToDetail(leaveRequest.id)}
+                      onClick={() =>
+                        navigate(`/employee/leave-requests/${leaveRequest.id}`)
+                      }
                     >
                       <TableCell className="font-medium">
-                        <button
-                          type="button"
-                          className="font-medium text-primary hover:underline"
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            navigateToDetail(leaveRequest.id)
-                          }}
-                        >
-                          {leaveRequest.employee.employeeCode}
-                        </button>
-                      </TableCell>
-                      <TableCell>{leaveRequest.employee.fullName}</TableCell>
-                      <TableCell>
                         {leaveTypeLabel[leaveRequest.leaveType]}
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.startDate)}</TableCell>
@@ -249,7 +143,7 @@ export function LeaveRequestListPage() {
                   type="button"
                   variant="outline"
                   disabled={!meta?.hasPreviousPage}
-                  onClick={() => setPage((current) => Math.max(current - 1, 1))}
+                  onClick={() => setPage((current) => Math.max(1, current - 1))}
                 >
                   Trước
                 </Button>

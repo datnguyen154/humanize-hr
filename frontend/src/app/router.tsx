@@ -12,8 +12,11 @@ import { EmployeeListPage } from '../pages/admin/employees/EmployeeListPage'
 import { LeaveRequestDetailPage } from '../pages/admin/leave-requests/LeaveRequestDetailPage'
 import { LeaveRequestListPage } from '../pages/admin/leave-requests/LeaveRequestListPage'
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
+import { CreateLeaveRequestPage } from '../pages/employee/leave-requests/CreateLeaveRequestPage'
+import { EmployeeLeaveRequestListPage } from '../pages/employee/leave-requests/EmployeeLeaveRequestListPage'
 import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
+import { EmployeeLayout } from '../widgets/layouts/employee-layout/EmployeeLayout'
 import { ProtectedRoute } from './router/ProtectedRoute'
 import { RoleGuard } from './router/RoleGuard'
 
@@ -77,19 +80,43 @@ export const router = createBrowserRouter([
         element: <LeaveRequestListPage />,
       },
       {
+        path: 'leave-requests/create',
+        element: <Navigate to="/admin/leave-requests" replace />,
+      },
+      {
         path: 'leave-requests/:id',
         element: <LeaveRequestDetailPage />,
       },
     ],
   },
   {
-    path: '/employee/dashboard',
+    path: '/employee',
     element: (
       <ProtectedRoute>
         <RoleGuard allowedRoles={['EMPLOYEE']}>
-          <EmployeeDashboardPage />
+          <EmployeeLayout />
         </RoleGuard>
       </ProtectedRoute>
     ),
+    children: [
+      {
+        path: 'dashboard',
+        element: <EmployeeDashboardPage />,
+      },
+      {
+        path: 'leave-requests',
+        element: <EmployeeLeaveRequestListPage />,
+      },
+      {
+        path: 'leave-requests/create',
+        element: <CreateLeaveRequestPage />,
+      },
+      {
+        path: 'leave-requests/:id',
+        element: (
+          <LeaveRequestDetailPage backPath="/employee/leave-requests" />
+        ),
+      },
+    ],
   },
 ])

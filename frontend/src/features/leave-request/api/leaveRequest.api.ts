@@ -2,6 +2,7 @@ import { authStorage } from '@/features/auth'
 import { axiosInstance } from '@/shared/api'
 
 import type {
+  CreateLeaveRequestRequest,
   LeaveRequestDetailResponse,
   LeaveRequestsQueryParams,
   LeaveRequestsResponse,
@@ -32,6 +33,20 @@ export const getLeaveRequests = async (params: LeaveRequestsQueryParams) => {
 export const getLeaveRequestById = async (id: string) => {
   const response = await axiosInstance.get<LeaveRequestDetailResponse>(
     `/leave-requests/${id}`,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const createLeaveRequest = async (
+  payload: CreateLeaveRequestRequest,
+) => {
+  const response = await axiosInstance.post<LeaveRequestDetailResponse>(
+    '/leave-requests',
+    payload,
     {
       headers: getAuthHeaders(),
     },
