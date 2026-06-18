@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -52,6 +53,7 @@ const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
 export function LeaveRequestListPage() {
+  const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('ALL')
@@ -119,6 +121,10 @@ export function LeaveRequestListPage() {
       {renderSortIcon(column)}
     </Button>
   )
+
+  const navigateToDetail = (id: string) => {
+    navigate(`/admin/leave-requests/${id}`)
+  }
 
   return (
     <section className="grid gap-5">
@@ -199,9 +205,22 @@ export function LeaveRequestListPage() {
                 </TableHeader>
                 <TableBody>
                   {leaveRequests.map((leaveRequest) => (
-                    <TableRow key={leaveRequest.id}>
+                    <TableRow
+                      key={leaveRequest.id}
+                      className="cursor-pointer"
+                      onClick={() => navigateToDetail(leaveRequest.id)}
+                    >
                       <TableCell className="font-medium">
-                        {leaveRequest.employee.employeeCode}
+                        <button
+                          type="button"
+                          className="font-medium text-primary hover:underline"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(leaveRequest.id)
+                          }}
+                        >
+                          {leaveRequest.employee.employeeCode}
+                        </button>
                       </TableCell>
                       <TableCell>{leaveRequest.employee.fullName}</TableCell>
                       <TableCell>

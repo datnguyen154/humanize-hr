@@ -34,6 +34,12 @@ export type LeaveRequest = {
   updatedAt: string
 }
 
+export type LeaveRequestDetail = LeaveRequest
+
+export type LeaveRequestDetailResponse = {
+  data: LeaveRequestDetail
+}
+
 export type LeaveRequestsQueryParams = {
   page: number
   limit: number
