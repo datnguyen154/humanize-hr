@@ -33,7 +33,6 @@ type GetLeaveRequestsResult = {
 };
 
 type CreateLeaveRequestInput = {
-    employeeId?: string;
     leaveType?: string;
     startDate?: string;
     endDate?: string;
@@ -248,9 +247,9 @@ export const leaveRequestService = {
     },
 
     async createLeaveRequest(
+        userId: string | undefined,
         data: CreateLeaveRequestInput,
     ): Promise<LeaveRequestWithRelations> {
-        const employeeId = parseRequiredUuid(data.employeeId, "employeeId");
         const leaveType = parseLeaveType(data.leaveType);
         const startDate = parseRequiredDate(data.startDate, "startDate");
         const endDate = parseRequiredDate(data.endDate, "endDate");
@@ -263,14 +262,25 @@ export const leaveRequestService = {
             );
         }
 
-        const employee = await employeeRepository.findEmployeeById(employeeId);
+        if (!userId || !UUID_REGEX.test(userId)) {
+            throw new LeaveRequestServiceError(
+                "Employee profile not found",
+                404,
+            );
+        }
+
+        const employee =
+            await employeeRepository.findEmployeeByUserId(userId);
 
         if (!employee) {
-            throw new LeaveRequestServiceError("Employee not found", 404);
+            throw new LeaveRequestServiceError(
+                "Employee profile not found",
+                404,
+            );
         }
 
         return leaveRequestRepository.createLeaveRequest({
-            employeeId,
+            employeeId: employee.id,
             leaveType,
             startDate,
             endDate,

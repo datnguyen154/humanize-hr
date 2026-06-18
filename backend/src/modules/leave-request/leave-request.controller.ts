@@ -129,23 +129,23 @@ export const leaveRequestController = {
 
     async createLeaveRequest(req: Request, res: Response): Promise<Response> {
         try {
-            const { employeeId, leaveType, startDate, endDate, reason } =
-                req.body as {
-                    employeeId?: string;
-                    leaveType?: string;
-                    startDate?: string;
-                    endDate?: string;
-                    reason?: string;
-                };
+            const { leaveType, startDate, endDate, reason } = req.body as {
+                leaveType?: string;
+                startDate?: string;
+                endDate?: string;
+                reason?: string;
+            };
 
             const leaveRequest =
-                await leaveRequestService.createLeaveRequest({
-                    employeeId,
-                    leaveType,
-                    startDate,
-                    endDate,
-                    reason,
-                });
+                await leaveRequestService.createLeaveRequest(
+                    req.user?.userId,
+                    {
+                        leaveType,
+                        startDate,
+                        endDate,
+                        reason,
+                    },
+                );
 
             return res.status(201).json({
                 data: leaveRequest,

@@ -85,6 +85,12 @@ export const employeeRepository = {
         });
     },
 
+    findEmployeeByUserId(userId: string): Promise<Employee | null> {
+        return prisma.employee.findUnique({
+            where: { userId },
+        });
+    },
+
     createEmployee(data: CreateEmployeeData): Promise<Employee> {
         return prisma.employee.create({
             data,
