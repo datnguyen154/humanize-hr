@@ -8,35 +8,37 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(uuid()) @db.Uuid
-  email         String         @unique
-  passwordHash  String
-  fullName      String
-  role          Role           @default(EMPLOYEE)
-  status        UserStatus     @default(ACTIVE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  employee      Employee?
-  refreshTokens RefreshToken[]
+  id                    String         @id @default(uuid()) @db.Uuid
+  email                 String         @unique
+  passwordHash          String
+  fullName              String
+  role                  Role           @default(EMPLOYEE)
+  status                UserStatus     @default(ACTIVE)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  employee              Employee?
+  refreshTokens         RefreshToken[]
+  reviewedLeaveRequests LeaveRequest[] @relation("LeaveRequestReviewer")
 }
 
 model Employee {
-  id           String         @id @default(uuid()) @db.Uuid
-  userId       String?        @unique @db.Uuid
-  employeeCode String         @unique
-  fullName     String
-  email        String         @unique
-  phone        String
-  gender       Gender
-  dateOfBirth  DateTime
-  position     String
-  departmentId String?        @db.Uuid
-  status       EmployeeStatus @default(ACTIVE)
-  joinedAt     DateTime
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  department   Department?    @relation(fields: [departmentId], references: [id])
-  user         User?          @relation(fields: [userId], references: [id])
+  id            String         @id @default(uuid()) @db.Uuid
+  userId        String?        @unique @db.Uuid
+  employeeCode  String         @unique
+  fullName      String
+  email         String         @unique
+  phone         String
+  gender        Gender
+  dateOfBirth   DateTime
+  position      String
+  departmentId  String?        @db.Uuid
+  status        EmployeeStatus @default(ACTIVE)
+  joinedAt      DateTime
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  department    Department?    @relation(fields: [departmentId], references: [id])
+  user          User?          @relation(fields: [userId], references: [id])
+  leaveRequests LeaveRequest[]
 
   @@index([email])
   @@index([employeeCode])
@@ -69,6 +71,31 @@ model RefreshToken {
   @@index([userId])
 }
 
+model LeaveRequest {
+  id         String             @id @default(uuid()) @db.Uuid
+  employeeId String             @db.Uuid
+  leaveType  LeaveType
+  startDate  DateTime
+  endDate    DateTime
+  reason     String
+  status     LeaveRequestStatus @default(PENDING)
+  reviewedBy String?            @db.Uuid
+  reviewedAt DateTime?
+  reviewNote String?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+  reviewer User?    @relation("LeaveRequestReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, createdAt])
+  @@index([status, createdAt])
+  @@index([createdAt])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([reviewedBy])
+}
+
 enum Role {
   ADMIN
   EMPLOYEE
@@ -87,6 +114,19 @@ enum EmployeeStatus {
 enum DepartmentStatus {
   ACTIVE
   INACTIVE
+}
+
+enum LeaveType {
+  ANNUAL
+  SICK
+  UNPAID
+  OTHER
+}
+
+enum LeaveRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum Gender {
