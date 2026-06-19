@@ -47,6 +47,13 @@ export type CreateLeaveRequestRequest = {
   reason: string
 }
 
+export type LeaveRequestReviewStatus = 'APPROVED' | 'REJECTED'
+
+export type UpdateLeaveRequestStatusRequest = {
+  status: LeaveRequestReviewStatus
+  reviewNote: string
+}
+
 export type LeaveRequestsQueryParams = {
   page: number
   limit: number

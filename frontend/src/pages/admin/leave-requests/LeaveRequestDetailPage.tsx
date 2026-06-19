@@ -1,9 +1,14 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { useAuthStore } from '@/features/auth'
 import { useLeaveRequestDetailQuery } from '@/features/leave-request/hooks/useLeaveRequestsQuery'
+import { useUpdateLeaveRequestStatusMutation } from '@/features/leave-request/hooks/useUpdateLeaveRequestStatusMutation'
 import type {
+  LeaveRequestReviewStatus,
   LeaveRequestStatus,
   LeaveType,
 } from '@/features/leave-request/types/leaveRequest.types'
@@ -59,8 +64,34 @@ export function LeaveRequestDetailPage({
 }: LeaveRequestDetailPageProps) {
   const { id } = useParams()
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const leaveRequestQuery = useLeaveRequestDetailQuery(id ?? '')
+  const updateStatusMutation = useUpdateLeaveRequestStatusMutation()
+  const [reviewNote, setReviewNote] = useState('')
+  const [approvalError, setApprovalError] = useState<string | null>(null)
   const leaveRequest = leaveRequestQuery.data
+  const canReview = user?.role === 'ADMIN' && leaveRequest?.status === 'PENDING'
+
+  const handleReview = async (status: LeaveRequestReviewStatus) => {
+    if (!id) {
+      return
+    }
+
+    setApprovalError(null)
+
+    try {
+      await updateStatusMutation.mutateAsync({
+        id,
+        payload: {
+          status,
+          reviewNote: reviewNote.trim(),
+        },
+      })
+      setReviewNote('')
+    } catch {
+      setApprovalError('Cập nhật trạng thái đơn nghỉ phép thất bại')
+    }
+  }
 
   const sections: DetailSectionProps[] = leaveRequest
     ? [
@@ -173,6 +204,49 @@ export function LeaveRequestDetailPage({
             : null}
         </CardContent>
       </Card>
+
+      {canReview ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Duyệt đơn nghỉ phép</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-4">
+            {approvalError ? (
+              <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {approvalError}
+              </p>
+            ) : null}
+
+            <div className="grid gap-2">
+              <Label htmlFor="reviewNote">Ghi chú duyệt</Label>
+              <textarea
+                id="reviewNote"
+                value={reviewNote}
+                className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                onChange={(event) => setReviewNote(event.target.value)}
+              />
+            </div>
+
+            <div className="flex flex-wrap justify-end gap-3">
+              <Button
+                type="button"
+                disabled={updateStatusMutation.isPending}
+                onClick={() => handleReview('APPROVED')}
+              >
+                Duyệt đơn
+              </Button>
+              <Button
+                type="button"
+                variant="destructive"
+                disabled={updateStatusMutation.isPending}
+                onClick={() => handleReview('REJECTED')}
+              >
+                Từ chối
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
     </section>
   )
 }
