@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import {
+    AttendanceStatus,
     DepartmentStatus,
     EmployeeStatus,
     Gender,
@@ -40,6 +41,14 @@ type SampleLeaveRequest = {
     status: LeaveRequestStatus;
     reviewedAt: Date | null;
     reviewNote: string | null;
+};
+
+type SampleAttendance = {
+    employeeCode: string;
+    attendanceDate: Date;
+    checkInTime: Date;
+    checkOutTime: Date;
+    status: AttendanceStatus;
 };
 
 const sampleDepartments: SampleDepartment[] = [
@@ -392,6 +401,59 @@ const sampleLeaveRequests: SampleLeaveRequest[] = [
     },
 ];
 
+const companyDateTime = (date: string, time: string): Date =>
+    new Date(`${date}T${time}:00+07:00`);
+
+const attendanceDates = [
+    "2026-05-25",
+    "2026-05-27",
+    "2026-06-02",
+    "2026-06-05",
+    "2026-06-10",
+];
+
+const attendanceEmployeeCodes = [
+    "EMP001",
+    "EMP002",
+    "EMP003",
+    "EMP005",
+    "EMP006",
+];
+
+const presentCheckInTimes = ["07:42", "07:51", "07:58", "08:00"];
+const lateCheckInTimes = ["08:07", "08:18", "08:32"];
+const checkOutTimes = ["17:05", "17:22", "17:38", "17:52", "18:00"];
+
+const sampleAttendances: SampleAttendance[] = attendanceEmployeeCodes.flatMap(
+    (employeeCode, employeeIndex) =>
+        attendanceDates.map((attendanceDate, dateIndex) => {
+            const isLate = (employeeIndex + dateIndex) % 4 === 0;
+            const checkInTime = isLate
+                ? lateCheckInTimes[
+                      (employeeIndex + dateIndex) % lateCheckInTimes.length
+                  ]
+                : presentCheckInTimes[
+                      (employeeIndex + dateIndex) % presentCheckInTimes.length
+                  ];
+            const checkOutTime =
+                checkOutTimes[
+                    (employeeIndex * 2 + dateIndex) % checkOutTimes.length
+                ];
+
+            return {
+                employeeCode,
+                attendanceDate: new Date(
+                    `${attendanceDate}T00:00:00.000Z`,
+                ),
+                checkInTime: companyDateTime(attendanceDate, checkInTime),
+                checkOutTime: companyDateTime(attendanceDate, checkOutTime),
+                status: isLate
+                    ? AttendanceStatus.LATE
+                    : AttendanceStatus.PRESENT,
+            };
+        }),
+);
+
 const main = async (): Promise<void> => {
     const password = "12345678";
     const passwordHash = await bcrypt.hash(password, 10);
@@ -490,12 +552,21 @@ const main = async (): Promise<void> => {
         });
     }
 
-    const leaveRequestEmployees = await prisma.employee.findMany({
+    const relatedEmployeeCodes = [
+        ...new Set([
+            ...sampleLeaveRequests.map(
+                (sampleLeaveRequest) => sampleLeaveRequest.employeeCode,
+            ),
+            ...sampleAttendances.map(
+                (sampleAttendance) => sampleAttendance.employeeCode,
+            ),
+        ]),
+    ];
+
+    const relatedEmployees = await prisma.employee.findMany({
         where: {
             employeeCode: {
-                in: sampleLeaveRequests.map(
-                    (sampleLeaveRequest) => sampleLeaveRequest.employeeCode,
-                ),
+                in: relatedEmployeeCodes,
             },
         },
         select: {
@@ -505,7 +576,7 @@ const main = async (): Promise<void> => {
     });
 
     const employeeIdByCode = new Map(
-        leaveRequestEmployees.map((seededEmployee) => [
+        relatedEmployees.map((seededEmployee) => [
             seededEmployee.employeeCode,
             seededEmployee.id,
         ]),
@@ -551,11 +622,45 @@ const main = async (): Promise<void> => {
         });
     }
 
+    for (const sampleAttendance of sampleAttendances) {
+        const employeeId = employeeIdByCode.get(
+            sampleAttendance.employeeCode,
+        );
+
+        if (!employeeId) {
+            throw new Error(
+                `Cannot seed attendance: employee ${sampleAttendance.employeeCode} was not found`,
+            );
+        }
+
+        const attendanceData = {
+            checkInTime: sampleAttendance.checkInTime,
+            checkOutTime: sampleAttendance.checkOutTime,
+            status: sampleAttendance.status,
+        };
+
+        await prisma.attendance.upsert({
+            where: {
+                employeeId_attendanceDate: {
+                    employeeId,
+                    attendanceDate: sampleAttendance.attendanceDate,
+                },
+            },
+            update: attendanceData,
+            create: {
+                employeeId,
+                attendanceDate: sampleAttendance.attendanceDate,
+                ...attendanceData,
+            },
+        });
+    }
+
     console.log(`Seeded admin user: ${admin.email}`);
     console.log(`Seeded employee user: ${employee.email}`);
     console.log(`Seeded sample departments: ${sampleDepartments.length}`);
     console.log(`Seeded sample employees: ${sampleEmployees.length}`);
     console.log(`Seeded sample leave requests: ${sampleLeaveRequests.length}`);
+    console.log(`Seeded sample attendance: ${sampleAttendances.length}`);
     console.log("Seeded credentials:");
     console.log(`ADMIN    -> email: ${admin.email}, password: ${password}`);
     console.log(`EMPLOYEE -> email: ${employee.email}, password: ${password}`);
