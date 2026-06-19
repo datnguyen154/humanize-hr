@@ -39,6 +39,7 @@ model Employee {
   department    Department?    @relation(fields: [departmentId], references: [id])
   user          User?          @relation(fields: [userId], references: [id])
   leaveRequests LeaveRequest[]
+  attendances   Attendance[]
 
   @@index([email])
   @@index([employeeCode])
@@ -96,6 +97,24 @@ model LeaveRequest {
   @@index([reviewedBy])
 }
 
+model Attendance {
+  id             String           @id @default(uuid()) @db.Uuid
+  employeeId     String           @db.Uuid
+  attendanceDate DateTime         @db.Date
+  checkInTime    DateTime
+  checkOutTime   DateTime?
+  status         AttendanceStatus
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  employee Employee @relation(fields: [employeeId], references: [id])
+
+  @@unique([employeeId, attendanceDate])
+  @@index([attendanceDate])
+  @@index([status, attendanceDate])
+  @@index([employeeId, attendanceDate])
+}
+
 enum Role {
   ADMIN
   EMPLOYEE
@@ -127,6 +146,11 @@ enum LeaveRequestStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  LATE
 }
 
 enum Gender {
