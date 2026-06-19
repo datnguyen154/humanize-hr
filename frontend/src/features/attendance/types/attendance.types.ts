@@ -2,9 +2,24 @@ export type AttendanceStatus = 'PRESENT' | 'LATE'
 
 export type AttendanceHistorySortOrder = 'asc' | 'desc'
 
+export type AttendanceSortBy =
+  | 'attendanceDate'
+  | 'checkInTime'
+  | 'checkOutTime'
+  | 'createdAt'
+
+export type AttendanceSortOrder = 'asc' | 'desc'
+
+export type AttendanceEmployee = {
+  id: string
+  employeeCode: string
+  fullName: string
+}
+
 export type AttendanceRecord = {
   id: string
   employeeId: string
+  employee: AttendanceEmployee
   attendanceDate: string
   checkInTime: string
   checkOutTime: string | null
@@ -36,6 +51,20 @@ export type AttendanceHistoryResponse = {
   data: AttendanceRecord[]
   meta: AttendanceHistoryMeta
 }
+
+export type AttendanceListQueryParams = {
+  page: number
+  limit: number
+  search?: string
+  status?: AttendanceStatus
+  employeeId?: string
+  fromDate?: string
+  toDate?: string
+  sortBy?: AttendanceSortBy
+  sortOrder?: AttendanceSortOrder
+}
+
+export type AttendanceListResponse = AttendanceHistoryResponse
 
 export type AttendanceRecordResponse = {
   data: AttendanceRecord

@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
+import { AttendanceListPage } from '../pages/admin/attendance/AttendanceListPage'
 import { CreateDepartmentPage } from '../pages/admin/departments/CreateDepartmentPage'
 import { DepartmentDetailPage } from '../pages/admin/departments/DepartmentDetailPage'
 import { EditDepartmentPage } from '../pages/admin/departments/EditDepartmentPage'
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <AdminDashboardPage />,
+      },
+      {
+        path: 'attendance',
+        element: <AttendanceListPage />,
       },
       {
         path: 'departments',
