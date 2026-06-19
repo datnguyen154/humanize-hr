@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 
 const employeeMenuItems = [
   { label: 'Tổng quan', path: '/employee/dashboard' },
+  { label: 'Chấm công', path: '/employee/attendance' },
   { label: 'Đơn nghỉ phép', path: '/employee/leave-requests' },
 ]
 
