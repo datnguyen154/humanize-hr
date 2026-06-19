@@ -36,3 +36,7 @@ export type AttendanceHistoryResponse = {
   data: AttendanceRecord[]
   meta: AttendanceHistoryMeta
 }
+
+export type AttendanceRecordResponse = {
+  data: AttendanceRecord
+}

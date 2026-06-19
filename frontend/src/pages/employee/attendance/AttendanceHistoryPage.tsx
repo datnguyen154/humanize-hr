@@ -1,3 +1,4 @@
+import { AxiosError } from 'axios'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -10,8 +11,11 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { useCheckInMutation } from '@/features/attendance/hooks/useCheckInMutation'
+import { useCheckOutMutation } from '@/features/attendance/hooks/useCheckOutMutation'
 import { useAttendanceHistoryQuery } from '@/features/attendance/hooks/useAttendanceHistoryQuery'
 import type { AttendanceStatus } from '@/features/attendance/types/attendance.types'
+import type { ApiErrorResponse } from '@/shared/types'
 
 const attendanceStatusLabel: Record<AttendanceStatus, string> = {
   PRESENT: 'Đúng giờ',
@@ -36,8 +40,34 @@ const formatTime = (date: string) =>
     timeZone: 'Asia/Bangkok',
   }).format(new Date(date))
 
+const getAttendanceErrorMessage = (
+  error: unknown,
+  action: 'check-in' | 'check-out',
+) => {
+  if (error instanceof AxiosError) {
+    const message = (error.response?.data as ApiErrorResponse | undefined)
+      ?.message
+
+    if (message === 'Already checked in today') {
+      return 'Bạn đã check in hôm nay rồi'
+    }
+
+    if (message === 'Already checked out today') {
+      return 'Bạn đã check out hôm nay rồi'
+    }
+  }
+
+  return action === 'check-in' ? 'Không thể check in' : 'Không thể check out'
+}
+
 export function AttendanceHistoryPage() {
   const [page, setPage] = useState(1)
+  const [feedback, setFeedback] = useState<{
+    type: 'success' | 'error'
+    message: string
+  } | null>(null)
+  const checkInMutation = useCheckInMutation()
+  const checkOutMutation = useCheckOutMutation()
   const attendanceQuery = useAttendanceHistoryQuery({
     page,
     limit: 10,
@@ -48,17 +78,78 @@ export function AttendanceHistoryPage() {
   const attendanceRecords = attendanceQuery.data?.data ?? []
   const meta = attendanceQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
+  const isUpdating = checkInMutation.isPending || checkOutMutation.isPending
+
+  const handleCheckIn = async () => {
+    setFeedback(null)
+
+    try {
+      await checkInMutation.mutateAsync()
+      setFeedback({ type: 'success', message: 'Check in thành công' })
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: getAttendanceErrorMessage(error, 'check-in'),
+      })
+    }
+  }
+
+  const handleCheckOut = async () => {
+    setFeedback(null)
+
+    try {
+      await checkOutMutation.mutateAsync()
+      setFeedback({ type: 'success', message: 'Check out thành công' })
+    } catch (error) {
+      setFeedback({
+        type: 'error',
+        message: getAttendanceErrorMessage(error, 'check-out'),
+      })
+    }
+  }
 
   return (
     <section className="grid gap-5">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Lịch sử chấm công
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theo dõi thời gian vào, ra và trạng thái chấm công của bạn.
-        </p>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">
+            Lịch sử chấm công
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Theo dõi thời gian vào, ra và trạng thái chấm công của bạn.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            disabled={isUpdating}
+            onClick={handleCheckIn}
+          >
+            {checkInMutation.isPending ? 'Đang check in...' : 'Check in'}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isUpdating}
+            onClick={handleCheckOut}
+          >
+            {checkOutMutation.isPending ? 'Đang check out...' : 'Check out'}
+          </Button>
+        </div>
       </div>
+
+      {feedback ? (
+        <p
+          className={
+            feedback.type === 'success'
+              ? 'rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary'
+              : 'rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive'
+          }
+        >
+          {feedback.message}
+        </p>
+      ) : null}
 
       <Card>
         <CardHeader>

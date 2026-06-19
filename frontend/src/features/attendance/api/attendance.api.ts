@@ -4,6 +4,7 @@ import { axiosInstance } from '@/shared/api'
 import type {
   AttendanceHistoryQueryParams,
   AttendanceHistoryResponse,
+  AttendanceRecordResponse,
 } from '../types/attendance.types'
 
 const getAuthHeaders = () => {
@@ -28,4 +29,28 @@ export const getAttendanceHistory = async (
   )
 
   return response.data
+}
+
+export const checkIn = async () => {
+  const response = await axiosInstance.post<AttendanceRecordResponse>(
+    '/attendance/check-in',
+    undefined,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const checkOut = async () => {
+  const response = await axiosInstance.post<AttendanceRecordResponse>(
+    '/attendance/check-out',
+    undefined,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
 }
