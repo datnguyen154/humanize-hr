@@ -2,6 +2,7 @@ import cors from "cors";
 import express from "express";
 
 import { env } from "./config/env";
+import { attendanceRoutes } from "./modules/attendance/attendance.routes";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { departmentRoutes } from "./modules/department/department.routes";
 import { employeeRoutes } from "./modules/employee/employee.routes";
@@ -27,5 +28,6 @@ app.use("/api/auth", authRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/leave-requests", leaveRequestRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 export default app;
