@@ -1,6 +1,20 @@
 import { AxiosError } from "axios";
-import { ArrowLeft, Ban, Pencil, UserCog } from "lucide-react";
-import { useState } from "react";
+import {
+    ArrowLeft,
+    Ban,
+    Briefcase,
+    CalendarDays,
+    CalendarPlus,
+    CircleDot,
+    History,
+    IdCard,
+    Mail,
+    Pencil,
+    Phone,
+    UserCog,
+    type LucideIcon,
+} from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +35,32 @@ const employeeStatusTone: Record<EmployeeStatus, StatusBadgeTone> = {
     ACTIVE: "success",
     INACTIVE: "warning",
 };
+
+type ProfileInformationFieldProps = {
+    icon: LucideIcon;
+    label: string;
+    children: ReactNode;
+};
+
+function ProfileInformationField({
+    icon: Icon,
+    label,
+    children,
+}: ProfileInformationFieldProps) {
+    return (
+        <div className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                <Icon className="size-4" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+                <dt className="text-xs text-muted-foreground">{label}</dt>
+                <dd className="mt-1 break-words text-sm font-medium text-foreground">
+                    {children}
+                </dd>
+            </div>
+        </div>
+    );
+}
 
 export function EmployeeDetailPage() {
     const { id } = useParams();
@@ -204,32 +244,26 @@ export function EmployeeDetailPage() {
                             </CardHeader>
                             <CardContent>
                                 <dl className="divide-y divide-border">
-                                    <div className="grid gap-1 py-4 first:pt-0 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Email
-                                        </dt>
-                                        <dd className="break-all text-sm font-medium text-foreground">
+                                    <ProfileInformationField
+                                        icon={Mail}
+                                        label="Email"
+                                    >
+                                        <span className="break-all">
                                             {employee.email}
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Số điện thoại
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {employee.phone}
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-1 py-4 last:pb-0 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Ngày vào làm
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {formatEmployeeDate(
-                                                employee.joinedAt,
-                                            )}
-                                        </dd>
-                                    </div>
+                                        </span>
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={Phone}
+                                        label="Số điện thoại"
+                                    >
+                                        {employee.phone}
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={CalendarDays}
+                                        label="Ngày vào làm"
+                                    >
+                                        {formatEmployeeDate(employee.joinedAt)}
+                                    </ProfileInformationField>
                                 </dl>
                             </CardContent>
                         </Card>
@@ -242,61 +276,47 @@ export function EmployeeDetailPage() {
                             </CardHeader>
                             <CardContent>
                                 <dl className="divide-y divide-border">
-                                    <div className="grid gap-1 py-4 first:pt-0 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Mã nhân viên
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {employee.employeeCode}
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Chức vụ
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {employee.position}
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-2 py-4 sm:grid-cols-[10rem_1fr] sm:items-center sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Trạng thái
-                                        </dt>
-                                        <dd>
-                                            <StatusBadge
-                                                label={
-                                                    employeeStatusLabel[
-                                                        employee.status
-                                                    ]
-                                                }
-                                                tone={
-                                                    employeeStatusTone[
-                                                        employee.status
-                                                    ]
-                                                }
-                                            />
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-1 py-4 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Ngày tạo
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {formatEmployeeDate(
-                                                employee.createdAt,
-                                            )}
-                                        </dd>
-                                    </div>
-                                    <div className="grid gap-1 py-4 last:pb-0 sm:grid-cols-[10rem_1fr] sm:gap-4">
-                                        <dt className="text-sm text-muted-foreground">
-                                            Ngày cập nhật
-                                        </dt>
-                                        <dd className="text-sm font-medium text-foreground">
-                                            {formatEmployeeDate(
-                                                employee.updatedAt,
-                                            )}
-                                        </dd>
-                                    </div>
+                                    <ProfileInformationField
+                                        icon={IdCard}
+                                        label="Mã nhân viên"
+                                    >
+                                        {employee.employeeCode}
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={Briefcase}
+                                        label="Chức vụ"
+                                    >
+                                        {employee.position}
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={CircleDot}
+                                        label="Trạng thái"
+                                    >
+                                        <StatusBadge
+                                            label={
+                                                employeeStatusLabel[
+                                                    employee.status
+                                                ]
+                                            }
+                                            tone={
+                                                employeeStatusTone[
+                                                    employee.status
+                                                ]
+                                            }
+                                        />
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={CalendarPlus}
+                                        label="Ngày tạo"
+                                    >
+                                        {formatEmployeeDate(employee.createdAt)}
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={History}
+                                        label="Ngày cập nhật"
+                                    >
+                                        {formatEmployeeDate(employee.updatedAt)}
+                                    </ProfileInformationField>
                                 </dl>
                             </CardContent>
                         </Card>
