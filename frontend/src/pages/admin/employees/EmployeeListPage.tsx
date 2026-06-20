@@ -1,4 +1,13 @@
-import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Plus, Search } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -65,6 +74,10 @@ export function EmployeeListPage() {
   const employees = employeesQuery.data?.data ?? []
   const meta = employeesQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
+  const pageSize = meta?.limit ?? 10
+  const totalItems = meta?.totalItems ?? 0
+  const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const toItem = Math.min(page * pageSize, totalItems)
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -270,26 +283,43 @@ export function EmployeeListPage() {
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasPreviousPage}
-                  onClick={() => setPage((current) => Math.max(current - 1, 1))}
-                >
-                  Trước
-                </Button>
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Trang {page} / {totalPages}
+                  Hiển thị {fromItem} đến {toItem} trong tổng số {totalItems}{' '}
+                  nhân viên
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasNextPage}
-                  onClick={() => setPage((current) => current + 1)}
-                >
-                  Sau
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasPreviousPage}
+                    aria-label="Trang trước"
+                    title="Trang trước"
+                    onClick={() =>
+                      setPage((current) => Math.max(current - 1, 1))
+                    }
+                  >
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </Button>
+                  <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+                    Trang {page} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasNextPage}
+                    aria-label="Trang sau"
+                    title="Trang sau"
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : null}
