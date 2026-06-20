@@ -2,7 +2,13 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -118,18 +124,14 @@ export function AttendanceListPage() {
 
   return (
     <section className="grid gap-5">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Quản lý chấm công
-        </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Theo dõi lịch sử vào, ra và trạng thái chấm công của nhân viên.
-        </p>
-      </div>
-
       <Card>
         <CardHeader className="gap-4">
-          <CardTitle className="text-lg">Danh sách chấm công</CardTitle>
+          <div className="grid gap-1.5">
+            <CardTitle className="text-lg">Danh sách chấm công</CardTitle>
+            <CardDescription>
+              Theo dõi lịch sử vào, ra và trạng thái chấm công của nhân viên.
+            </CardDescription>
+          </div>
 
           <div className="grid gap-4">
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">

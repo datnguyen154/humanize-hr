@@ -3,7 +3,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -97,16 +103,7 @@ export function DepartmentListPage() {
 
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Quản lý phòng ban
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi danh sách và trạng thái phòng ban trong hệ thống.
-          </p>
-        </div>
-
+      <div className="flex justify-end">
         <Button
           type="button"
           onClick={() => navigate('/admin/departments/create')}
@@ -117,7 +114,12 @@ export function DepartmentListPage() {
 
       <Card>
         <CardHeader className="gap-4">
-          <CardTitle className="text-lg">Danh sách phòng ban</CardTitle>
+          <div className="grid gap-1.5">
+            <CardTitle className="text-lg">Danh sách phòng ban</CardTitle>
+            <CardDescription>
+              Theo dõi thông tin cơ bản và trạng thái hoạt động của phòng ban.
+            </CardDescription>
+          </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Input

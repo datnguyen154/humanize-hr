@@ -3,7 +3,13 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   Table,
@@ -128,21 +134,14 @@ export function LeaveRequestListPage() {
 
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Quản lý đơn nghỉ phép
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi danh sách và trạng thái đơn nghỉ phép trong hệ thống.
-          </p>
-        </div>
-
-      </div>
-
       <Card>
         <CardHeader className="gap-4">
-          <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
+          <div className="grid gap-1.5">
+            <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
+            <CardDescription>
+              Theo dõi, lọc và xử lý các đơn nghỉ phép trong hệ thống.
+            </CardDescription>
+          </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <Input
