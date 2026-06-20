@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Plus, Search } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -96,32 +96,40 @@ export function EmployeeListPage() {
   }
 
   return (
-    <section className="grid gap-5">
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          onClick={() => navigate('/admin/employees/create')}
-        >
-          Thêm nhân viên
-        </Button>
-      </div>
-
+    <section>
       <Card>
         <CardHeader className="gap-4">
-          <div className="grid gap-1.5">
-            <CardTitle className="text-lg">Danh sách nhân viên</CardTitle>
-            <CardDescription>
-              Theo dõi thông tin cơ bản và trạng thái làm việc của nhân viên.
-            </CardDescription>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="grid gap-1.5">
+              <CardTitle className="text-lg">Danh sách nhân viên</CardTitle>
+              <CardDescription>
+                Theo dõi thông tin cơ bản và trạng thái làm việc của nhân viên.
+              </CardDescription>
+            </div>
+
+            <Button
+              type="button"
+              className="w-full shrink-0 gap-2 sm:w-auto"
+              onClick={() => navigate('/admin/employees/create')}
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Thêm nhân viên
+            </Button>
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Input
-              value={search}
-              placeholder="Tìm theo tên hoặc email"
-              className="h-10 md:max-w-sm"
-              onChange={(event) => handleSearchChange(event.target.value)}
-            />
+            <div className="relative w-full md:max-w-sm">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                value={search}
+                placeholder="Tìm theo tên hoặc email..."
+                className="h-10 pl-10"
+                onChange={(event) => handleSearchChange(event.target.value)}
+              />
+            </div>
 
             <div className="flex flex-wrap gap-2">
               {statusOptions.map((option) => (
@@ -199,6 +207,7 @@ export function EmployeeListPage() {
                         {renderSortIcon('joinedAt')}
                       </Button>
                     </TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -228,6 +237,22 @@ export function EmployeeListPage() {
                         {employeeStatusLabel[employee.status]}
                       </TableCell>
                       <TableCell>{formatEmployeeDate(employee.joinedAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-muted-foreground hover:text-primary"
+                          aria-label="Xem chi tiết nhân viên"
+                          title="Xem chi tiết nhân viên"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(employee.id)
+                          }}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
