@@ -12,6 +12,10 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
+import {
   Table,
   TableBody,
   TableCell,
@@ -35,6 +39,11 @@ const statusOptions: Array<{ label: string; value: StatusFilter }> = [
   { label: 'Đang làm việc', value: 'ACTIVE' },
   { label: 'Tạm ngưng', value: 'INACTIVE' },
 ]
+
+const employeeStatusTone: Record<EmployeeStatus, StatusBadgeTone> = {
+  ACTIVE: 'success',
+  INACTIVE: 'warning',
+}
 
 export function EmployeeListPage() {
   const navigate = useNavigate()
@@ -195,7 +204,7 @@ export function EmployeeListPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Số điện thoại</TableHead>
                     <TableHead>Chức vụ</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-center">Trạng thái</TableHead>
                     <TableHead>
                       <Button
                         type="button"
@@ -233,8 +242,11 @@ export function EmployeeListPage() {
                       <TableCell>{employee.email}</TableCell>
                       <TableCell>{employee.phone}</TableCell>
                       <TableCell>{employee.position}</TableCell>
-                      <TableCell>
-                        {employeeStatusLabel[employee.status]}
+                      <TableCell className="text-center">
+                        <StatusBadge
+                          label={employeeStatusLabel[employee.status]}
+                          tone={employeeStatusTone[employee.status]}
+                        />
                       </TableCell>
                       <TableCell>{formatEmployeeDate(employee.joinedAt)}</TableCell>
                       <TableCell className="text-right">
