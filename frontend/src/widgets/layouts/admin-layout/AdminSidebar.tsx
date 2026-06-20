@@ -1,36 +1,80 @@
 import { Link, useLocation } from 'react-router-dom'
+import { Building2, LogOut, Settings } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { useAuthStore } from '@/features/auth'
 
 import { adminNavigationItems } from './admin-navigation.config'
 
 export function AdminSidebar() {
   const { pathname } = useLocation()
+  const logout = useAuthStore((state) => state.logout)
 
   return (
-    <aside className="hidden w-64 shrink-0 border-r border-border bg-card px-4 py-5 md:block">
-      <div className="mb-6">
-        <p className="text-sm font-semibold text-primary">Humanize HR</p>
-        <p className="mt-1 text-xs text-muted-foreground">Quản trị hệ thống</p>
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-5 md:flex">
+      <div className="mb-8 flex items-center gap-3 px-2">
+        <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
+          <Building2 className="size-5" />
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            Humanize HR
+          </p>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            Phần mềm nhân sự
+          </p>
+        </div>
       </div>
 
-      <nav className="grid gap-1" aria-label="Menu quản trị">
+      <nav className="grid gap-1" aria-label="Điều hướng quản trị">
         {adminNavigationItems.map((item) => {
-          const isActive = pathname === item.path
+          const isActive =
+            pathname === item.path || pathname.startsWith(`${item.path}/`)
+          const Icon = item.icon
 
           return (
             <Button
               key={item.path}
               asChild
               type="button"
-              variant={isActive ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
+              variant="ghost"
+              className={`relative w-full justify-start gap-3 px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-primary ${
+                isActive ? 'bg-accent font-medium text-primary' : ''
+              }`}
             >
-              <Link to={item.path}>{item.label}</Link>
+              <Link to={item.path} aria-current={isActive ? 'page' : undefined}>
+                {isActive && (
+                  <span className="absolute left-0 h-5 w-0.5 rounded-r-full bg-primary" />
+                )}
+                <Icon className="size-4" />
+                <span>{item.label}</span>
+              </Link>
             </Button>
           )
         })}
       </nav>
+
+      <div className="mt-auto grid gap-1 border-t border-border pt-4">
+        <Button
+          type="button"
+          variant="ghost"
+          disabled
+          className="w-full justify-start gap-3 px-3 text-muted-foreground"
+          title="Tính năng đang được phát triển"
+        >
+          <Settings className="size-4" />
+          <span>Cài đặt</span>
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          className="w-full justify-start gap-3 px-3 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          onClick={logout}
+        >
+          <LogOut className="size-4" />
+          <span>Đăng xuất</span>
+        </Button>
+      </div>
     </aside>
   )
 }
