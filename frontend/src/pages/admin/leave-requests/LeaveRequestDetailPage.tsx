@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Label } from '@/components/ui/label'
 import { useAuthStore } from '@/features/auth'
 import { useLeaveRequestDetailQuery } from '@/features/leave-request/hooks/useLeaveRequestsQuery'
@@ -69,6 +70,8 @@ export function LeaveRequestDetailPage({
   const updateStatusMutation = useUpdateLeaveRequestStatusMutation()
   const [reviewNote, setReviewNote] = useState('')
   const [approvalError, setApprovalError] = useState<string | null>(null)
+  const [pendingReviewStatus, setPendingReviewStatus] =
+    useState<LeaveRequestReviewStatus | null>(null)
   const leaveRequest = leaveRequestQuery.data
   const canReview = user?.role === 'ADMIN' && leaveRequest?.status === 'PENDING'
 
@@ -88,6 +91,7 @@ export function LeaveRequestDetailPage({
         },
       })
       setReviewNote('')
+      setPendingReviewStatus(null)
     } catch {
       setApprovalError('Cập nhật trạng thái đơn nghỉ phép thất bại')
     }
@@ -231,7 +235,7 @@ export function LeaveRequestDetailPage({
               <Button
                 type="button"
                 disabled={updateStatusMutation.isPending}
-                onClick={() => handleReview('APPROVED')}
+                onClick={() => setPendingReviewStatus('APPROVED')}
               >
                 Duyệt đơn
               </Button>
@@ -239,13 +243,40 @@ export function LeaveRequestDetailPage({
                 type="button"
                 variant="destructive"
                 disabled={updateStatusMutation.isPending}
-                onClick={() => handleReview('REJECTED')}
+                onClick={() => setPendingReviewStatus('REJECTED')}
               >
                 Từ chối
               </Button>
             </div>
           </CardContent>
         </Card>
+      ) : null}
+
+      {pendingReviewStatus ? (
+        <ConfirmDialog
+          open
+          title={
+            pendingReviewStatus === 'APPROVED'
+              ? 'Xác nhận duyệt đơn'
+              : 'Xác nhận từ chối đơn'
+          }
+          description={
+            pendingReviewStatus === 'APPROVED'
+              ? 'Đơn nghỉ phép sẽ được chuyển sang trạng thái đã duyệt.'
+              : 'Hành động này không thể hoàn tác.'
+          }
+          actionLabel={
+            pendingReviewStatus === 'APPROVED' ? 'Duyệt đơn' : 'Từ chối'
+          }
+          variant={pendingReviewStatus === 'APPROVED' ? 'success' : 'danger'}
+          isPending={updateStatusMutation.isPending}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPendingReviewStatus(null)
+            }
+          }}
+          onConfirm={() => void handleReview(pendingReviewStatus)}
+        />
       ) : null}
     </section>
   )

@@ -19,6 +19,7 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
     StatusBadge,
     type StatusBadgeTone,
@@ -68,6 +69,7 @@ export function EmployeeDetailPage() {
     const employeeQuery = useEmployeeDetailQuery(id ?? "");
     const updateEmployeeStatusMutation = useUpdateEmployeeStatusMutation();
     const [statusError, setStatusError] = useState<string | null>(null);
+    const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
     const employee = employeeQuery.data;
     const nextStatus: EmployeeStatus =
         employee?.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
@@ -86,15 +88,6 @@ export function EmployeeDetailPage() {
             return;
         }
 
-        const confirmMessage =
-            employee.status === "ACTIVE"
-                ? "Bạn có chắc muốn tạm ngưng nhân viên này?"
-                : "Bạn có chắc muốn kích hoạt lại nhân viên này?";
-
-        if (!window.confirm(confirmMessage)) {
-            return;
-        }
-
         setStatusError(null);
 
         try {
@@ -102,6 +95,7 @@ export function EmployeeDetailPage() {
                 id,
                 status: nextStatus,
             });
+            setIsStatusDialogOpen(false);
         } catch (error) {
             if (error instanceof AxiosError) {
                 setStatusError("Cập nhật trạng thái nhân viên thất bại");
@@ -213,7 +207,9 @@ export function EmployeeDetailPage() {
                                         disabled={
                                             updateEmployeeStatusMutation.isPending
                                         }
-                                        onClick={handleStatusUpdate}
+                                        onClick={() =>
+                                            setIsStatusDialogOpen(true)
+                                        }
                                     >
                                         {employee.status === "ACTIVE" ? (
                                             <Ban
@@ -321,6 +317,27 @@ export function EmployeeDetailPage() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    <ConfirmDialog
+                        open={isStatusDialogOpen}
+                        title="Xác nhận cập nhật trạng thái"
+                        description="Bạn có chắc chắn muốn thực hiện hành động này?"
+                        actionLabel={
+                            employee.status === "ACTIVE"
+                                ? "Tạm ngưng"
+                                : "Kích hoạt lại"
+                        }
+                        variant={
+                            employee.status === "ACTIVE"
+                                ? "warning"
+                                : "success"
+                        }
+                        isPending={
+                            updateEmployeeStatusMutation.isPending
+                        }
+                        onOpenChange={setIsStatusDialogOpen}
+                        onConfirm={() => void handleStatusUpdate()}
+                    />
                 </>
             ) : null}
         </section>

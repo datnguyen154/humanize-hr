@@ -16,6 +16,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -69,21 +70,13 @@ export function DepartmentDetailPage() {
   const departmentQuery = useDepartmentDetailQuery(id ?? '')
   const updateDepartmentStatusMutation = useUpdateDepartmentStatusMutation()
   const [statusError, setStatusError] = useState<string | null>(null)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const department = departmentQuery.data
   const nextStatus: DepartmentStatus =
     department?.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
 
   const handleStatusUpdate = async () => {
     if (!id || !department) {
-      return
-    }
-
-    const confirmMessage =
-      department.status === 'ACTIVE'
-        ? 'Bạn có chắc muốn tạm ngưng phòng ban này?'
-        : 'Bạn có chắc muốn kích hoạt lại phòng ban này?'
-
-    if (!window.confirm(confirmMessage)) {
       return
     }
 
@@ -94,6 +87,7 @@ export function DepartmentDetailPage() {
         id,
         status: nextStatus,
       })
+      setIsStatusDialogOpen(false)
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 400) {
@@ -187,7 +181,7 @@ export function DepartmentDetailPage() {
                       department.status === 'ACTIVE' ? 'destructive' : 'default'
                     }
                     disabled={updateDepartmentStatusMutation.isPending}
-                    onClick={handleStatusUpdate}
+                    onClick={() => setIsStatusDialogOpen(true)}
                   >
                     {department.status === 'ACTIVE' ? (
                       <Ban className="size-4" aria-hidden="true" />
@@ -254,6 +248,21 @@ export function DepartmentDetailPage() {
               </CardContent>
             </Card>
           </div>
+
+          <ConfirmDialog
+            open={isStatusDialogOpen}
+            title="Xác nhận cập nhật trạng thái"
+            description="Bạn có chắc chắn muốn thực hiện hành động này?"
+            actionLabel={
+              department.status === 'ACTIVE' ? 'Tạm ngưng' : 'Kích hoạt lại'
+            }
+            variant={
+              department.status === 'ACTIVE' ? 'warning' : 'success'
+            }
+            isPending={updateDepartmentStatusMutation.isPending}
+            onOpenChange={setIsStatusDialogOpen}
+            onConfirm={() => void handleStatusUpdate()}
+          />
         </>
       ) : null}
     </section>
