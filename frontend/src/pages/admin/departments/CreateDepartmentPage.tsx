@@ -16,6 +16,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateDepartmentMutation } from '@/features/department/hooks/useCreateDepartmentMutation'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const createDepartmentSchema = z.object({
@@ -69,9 +70,11 @@ export function CreateDepartmentPage() {
         status: values.status,
       })
 
+      showSuccessToast('Phòng ban mới đã được tạo.')
       navigate('/admin/departments')
     } catch (error) {
       setFormError(getCreateDepartmentErrorMessage(error))
+      showErrorToast()
     }
   }
 

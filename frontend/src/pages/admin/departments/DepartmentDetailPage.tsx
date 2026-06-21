@@ -24,6 +24,7 @@ import {
 import { useDepartmentDetailQuery } from '@/features/department/hooks/useDepartmentsQuery'
 import { useUpdateDepartmentStatusMutation } from '@/features/department/hooks/useUpdateDepartmentStatusMutation'
 import type { DepartmentStatus } from '@/features/department/types/department.types'
+import { showErrorToast, showWarningToast } from '@/lib/toast'
 
 const departmentStatusLabel: Record<DepartmentStatus, string> = {
   ACTIVE: 'Đang hoạt động',
@@ -87,21 +88,29 @@ export function DepartmentDetailPage() {
         id,
         status: nextStatus,
       })
+      showWarningToast(
+        department.status === 'ACTIVE'
+          ? 'Phòng ban đã được chuyển sang trạng thái tạm ngưng.'
+          : 'Phòng ban đã được kích hoạt lại.',
+      )
       setIsStatusDialogOpen(false)
     } catch (error) {
       if (error instanceof AxiosError) {
         if (error.response?.status === 400) {
           setStatusError('Trạng thái không hợp lệ')
+          showErrorToast()
           return
         }
 
         if (error.response?.status === 404) {
           setStatusError('Không tìm thấy phòng ban')
+          showErrorToast()
           return
         }
       }
 
       setStatusError('Cập nhật trạng thái phòng ban thất bại')
+      showErrorToast()
     }
   }
 

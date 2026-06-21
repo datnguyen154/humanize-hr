@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateEmployeeMutation } from '@/features/employee'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const createEmployeeSchema = z.object({
@@ -73,9 +74,11 @@ export function CreateEmployeePage() {
         joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
       })
 
+      showSuccessToast('Nhân viên mới đã được tạo.')
       navigate('/admin/employees')
     } catch (error) {
       setFormError(getCreateEmployeeErrorMessage(error))
+      showErrorToast()
     }
   }
 

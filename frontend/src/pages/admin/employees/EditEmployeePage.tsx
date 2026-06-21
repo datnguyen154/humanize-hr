@@ -14,6 +14,7 @@ import {
   useEmployeeDetailQuery,
   useUpdateEmployeeMutation,
 } from '@/features/employee'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const editEmployeeSchema = z.object({
@@ -103,9 +104,11 @@ export function EditEmployeePage() {
         },
       })
 
+      showSuccessToast('Thông tin nhân viên đã được cập nhật.')
       navigate(`/admin/employees/${id}`)
     } catch (error) {
       setFormError(getEditEmployeeErrorMessage(error))
+      showErrorToast()
     }
   }
 

@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useDepartmentDetailQuery } from '@/features/department/hooks/useDepartmentsQuery'
 import { useUpdateDepartmentMutation } from '@/features/department/hooks/useUpdateDepartmentMutation'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const editDepartmentSchema = z.object({
@@ -96,9 +97,11 @@ export function EditDepartmentPage() {
         },
       })
 
+      showSuccessToast('Thông tin phòng ban đã được cập nhật.')
       navigate(`/admin/departments/${id}`)
     } catch (error) {
       setFormError(getEditDepartmentErrorMessage(error))
+      showErrorToast()
     }
   }
 

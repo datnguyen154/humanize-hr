@@ -13,6 +13,11 @@ import type {
   LeaveRequestStatus,
   LeaveType,
 } from '@/features/leave-request/types/leaveRequest.types'
+import {
+  showErrorToast,
+  showSuccessToast,
+  showWarningToast,
+} from '@/lib/toast'
 
 const leaveTypeLabel: Record<LeaveType, string> = {
   ANNUAL: 'Nghỉ phép năm',
@@ -90,10 +95,16 @@ export function LeaveRequestDetailPage({
           reviewNote: reviewNote.trim(),
         },
       })
+      if (status === 'APPROVED') {
+        showSuccessToast('Đơn nghỉ phép đã được duyệt.')
+      } else {
+        showWarningToast('Đơn nghỉ phép đã bị từ chối.')
+      }
       setReviewNote('')
       setPendingReviewStatus(null)
     } catch {
       setApprovalError('Cập nhật trạng thái đơn nghỉ phép thất bại')
+      showErrorToast()
     }
   }
 

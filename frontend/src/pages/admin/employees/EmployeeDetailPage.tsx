@@ -31,6 +31,7 @@ import {
     useUpdateEmployeeStatusMutation,
     type EmployeeStatus,
 } from "@/features/employee";
+import { showErrorToast, showWarningToast } from "@/lib/toast";
 
 const employeeStatusTone: Record<EmployeeStatus, StatusBadgeTone> = {
     ACTIVE: "success",
@@ -95,14 +96,21 @@ export function EmployeeDetailPage() {
                 id,
                 status: nextStatus,
             });
+            showWarningToast(
+                employee.status === "ACTIVE"
+                    ? "Nhân viên đã được chuyển sang trạng thái tạm ngưng."
+                    : "Nhân viên đã được kích hoạt lại.",
+            );
             setIsStatusDialogOpen(false);
         } catch (error) {
             if (error instanceof AxiosError) {
                 setStatusError("Cập nhật trạng thái nhân viên thất bại");
+                showErrorToast();
                 return;
             }
 
             setStatusError("Cập nhật trạng thái nhân viên thất bại");
+            showErrorToast();
         }
     };
 
