@@ -6,7 +6,13 @@ import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateDepartmentMutation } from '@/features/department/hooks/useCreateDepartmentMutation'
@@ -70,91 +76,89 @@ export function CreateDepartmentPage() {
   }
 
   return (
-    <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Thêm phòng ban
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Tạo phòng ban mới trong hệ thống.
-          </p>
-        </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/admin/departments')}
-        >
-          Quay lại danh sách
-        </Button>
-      </div>
-
+    <section className="mx-auto w-full max-w-4xl">
       <Card>
-        <CardHeader>
+        <CardHeader className="gap-1.5 border-b border-border">
           <CardTitle className="text-lg">Thông tin phòng ban</CardTitle>
+          <CardDescription>
+            Nhập thông tin cơ bản của phòng ban.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)}>
+        <CardContent className="pt-6">
+          <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)}>
             {formError ? (
               <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {formError}
               </p>
             ) : null}
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Tên phòng ban</Label>
-                <Input id="name" {...register('name')} />
+            <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-2.5">
+                <Label htmlFor="name" className="text-sm font-medium">
+                  Tên phòng ban <span className="text-destructive/80">*</span>
+                </Label>
+                <Input id="name" className="h-10" {...register('name')} />
                 {errors.name ? (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs text-destructive">
                     {errors.name.message}
                   </p>
                 ) : null}
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="status">Trạng thái</Label>
+              <div className="grid gap-2.5">
+                <Label htmlFor="status" className="text-sm font-medium">
+                  Trạng thái
+                </Label>
                 <select
                   id="status"
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   {...register('status')}
                 >
+                  <option value="" disabled>
+                    Chọn trạng thái
+                  </option>
                   <option value="ACTIVE">Đang hoạt động</option>
                   <option value="INACTIVE">Tạm ngưng</option>
                 </select>
                 {errors.status ? (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs text-destructive">
                     {errors.status.message}
                   </p>
                 ) : null}
               </div>
 
-              <div className="grid gap-2 md:col-span-2">
-                <Label htmlFor="description">Mô tả</Label>
+              <div className="grid gap-2.5 md:col-span-2">
+                <Label
+                  htmlFor="description"
+                  className="text-sm font-medium"
+                >
+                  Mô tả
+                </Label>
                 <textarea
                   id="description"
-                  className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  className="min-h-32 resize-y rounded-md border border-input bg-background px-3 py-2.5 text-sm text-foreground shadow-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                   {...register('description')}
                 />
                 {errors.description ? (
-                  <p className="text-sm text-destructive">
+                  <p className="text-xs text-destructive">
                     {errors.description.message}
                   </p>
                 ) : null}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 onClick={() => navigate('/admin/departments')}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
+                className="w-full sm:w-auto"
                 disabled={createDepartmentMutation.isPending}
               >
                 {createDepartmentMutation.isPending
