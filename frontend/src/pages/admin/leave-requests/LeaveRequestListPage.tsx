@@ -1,4 +1,13 @@
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Eye,
+  Search,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -11,6 +20,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
 import {
   Table,
   TableBody,
@@ -49,10 +62,16 @@ const statusLabel: Record<LeaveRequestStatus, string> = {
   REJECTED: 'Từ chối',
 }
 
-const statusClassName: Record<LeaveRequestStatus, string> = {
-  PENDING: 'border-border bg-secondary text-secondary-foreground',
-  APPROVED: 'border-primary/20 bg-primary/10 text-primary',
-  REJECTED: 'border-destructive/20 bg-destructive/10 text-destructive',
+const statusTone: Record<LeaveRequestStatus, StatusBadgeTone> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+}
+
+const statusRingClassName: Record<LeaveRequestStatus, string> = {
+  PENDING: 'ring-amber-200',
+  APPROVED: 'ring-emerald-200',
+  REJECTED: 'ring-red-200',
 }
 
 const formatDate = (date: string) =>
@@ -78,6 +97,10 @@ export function LeaveRequestListPage() {
   const leaveRequests = leaveRequestsQuery.data?.data ?? []
   const meta = leaveRequestsQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
+  const pageSize = meta?.limit ?? 10
+  const totalItems = meta?.totalItems ?? 0
+  const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const toItem = Math.min(page * pageSize, totalItems)
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -133,23 +156,29 @@ export function LeaveRequestListPage() {
   }
 
   return (
-    <section className="grid gap-5">
+    <section>
       <Card>
         <CardHeader className="gap-4">
           <div className="grid gap-1.5">
             <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
             <CardDescription>
-              Theo dõi, lọc và xử lý các đơn nghỉ phép trong hệ thống.
+              Theo dõi và xử lý các yêu cầu nghỉ phép của nhân viên.
             </CardDescription>
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <Input
-              value={search}
-              placeholder="Tìm theo mã hoặc tên nhân viên"
-              className="h-10 md:max-w-sm"
-              onChange={(event) => handleSearchChange(event.target.value)}
-            />
+            <div className="relative w-full md:max-w-sm">
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                aria-hidden="true"
+              />
+              <Input
+                value={search}
+                placeholder="Tìm theo mã hoặc tên nhân viên..."
+                className="h-10 pl-10"
+                onChange={(event) => handleSearchChange(event.target.value)}
+              />
+            </div>
 
             <div className="flex flex-wrap gap-2">
               {statusOptions.map((option) => (
@@ -180,9 +209,17 @@ export function LeaveRequestListPage() {
           ) : null}
 
           {leaveRequestsQuery.isSuccess && leaveRequests.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Chưa có đơn nghỉ phép nào
-            </p>
+            <div className="flex flex-col items-center py-12 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <ClipboardList className="size-5" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-sm font-semibold text-foreground">
+                Chưa có đơn nghỉ phép
+              </h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Các yêu cầu nghỉ phép sẽ xuất hiện tại đây.
+              </p>
+            </div>
           ) : null}
 
           {leaveRequests.length > 0 ? (
@@ -199,10 +236,11 @@ export function LeaveRequestListPage() {
                     <TableHead>
                       {renderSortableHeader('Ngày kết thúc', 'endDate')}
                     </TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-center">Trạng thái</TableHead>
                     <TableHead>
                       {renderSortableHeader('Ngày tạo', 'createdAt')}
                     </TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -230,39 +268,71 @@ export function LeaveRequestListPage() {
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.startDate)}</TableCell>
                       <TableCell>{formatDate(leaveRequest.endDate)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${statusClassName[leaveRequest.status]}`}
-                        >
-                          {statusLabel[leaveRequest.status]}
-                        </span>
+                      <TableCell className="text-center">
+                        <StatusBadge
+                          label={statusLabel[leaveRequest.status]}
+                          tone={statusTone[leaveRequest.status]}
+                          className={`font-semibold ring-1 ring-inset ${statusRingClassName[leaveRequest.status]}`}
+                        />
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-muted-foreground hover:text-primary"
+                          aria-label="Xem chi tiết đơn nghỉ phép"
+                          title="Xem chi tiết đơn nghỉ phép"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(leaveRequest.id)
+                          }}
+                        >
+                          <Eye className="size-4" aria-hidden="true" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasPreviousPage}
-                  onClick={() => setPage((current) => Math.max(current - 1, 1))}
-                >
-                  Trước
-                </Button>
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Trang {page} / {totalPages}
+                  Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} đơn
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasNextPage}
-                  onClick={() => setPage((current) => current + 1)}
-                >
-                  Sau
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasPreviousPage}
+                    aria-label="Trang trước"
+                    title="Trang trước"
+                    onClick={() =>
+                      setPage((current) => Math.max(current - 1, 1))
+                    }
+                  >
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </Button>
+                  <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+                    Trang {page} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasNextPage}
+                    aria-label="Trang sau"
+                    title="Trang sau"
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : null}
