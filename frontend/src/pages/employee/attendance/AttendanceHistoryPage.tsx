@@ -1,8 +1,19 @@
 import { AxiosError } from 'axios'
+import { ChevronLeft, ChevronRight, Clock3, LogIn, LogOut } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
 import {
   Table,
   TableBody,
@@ -22,9 +33,9 @@ const attendanceStatusLabel: Record<AttendanceStatus, string> = {
   LATE: 'Đi muộn',
 }
 
-const attendanceStatusClassName: Record<AttendanceStatus, string> = {
-  PRESENT: 'border-primary/20 bg-primary/10 text-primary',
-  LATE: 'border-destructive/20 bg-destructive/10 text-destructive',
+const attendanceStatusTone: Record<AttendanceStatus, StatusBadgeTone> = {
+  PRESENT: 'success',
+  LATE: 'warning',
 }
 
 const formatDate = (date: string) =>
@@ -78,6 +89,10 @@ export function AttendanceHistoryPage() {
   const attendanceRecords = attendanceQuery.data?.data ?? []
   const meta = attendanceQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
+  const pageSize = meta?.limit ?? 10
+  const totalItems = meta?.totalItems ?? 0
+  const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const toItem = Math.min(page * pageSize, totalItems)
   const isUpdating = checkInMutation.isPending || checkOutMutation.isPending
 
   const handleCheckIn = async () => {
@@ -110,35 +125,6 @@ export function AttendanceHistoryPage() {
 
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Lịch sử chấm công
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi thời gian vào, ra và trạng thái chấm công của bạn.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          <Button
-            type="button"
-            disabled={isUpdating}
-            onClick={handleCheckIn}
-          >
-            {checkInMutation.isPending ? 'Đang check in...' : 'Check in'}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isUpdating}
-            onClick={handleCheckOut}
-          >
-            {checkOutMutation.isPending ? 'Đang check out...' : 'Check out'}
-          </Button>
-        </div>
-      </div>
-
       {feedback ? (
         <p
           className={
@@ -152,8 +138,39 @@ export function AttendanceHistoryPage() {
       ) : null}
 
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Danh sách chấm công</CardTitle>
+        <CardHeader className="gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="grid gap-1.5">
+              <CardTitle className="text-lg">Lịch sử chấm công</CardTitle>
+              <CardDescription>
+                Theo dõi thời gian vào, ra và trạng thái chấm công của bạn.
+              </CardDescription>
+            </div>
+
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                disabled={isUpdating}
+                onClick={handleCheckIn}
+              >
+                <LogIn className="size-4" aria-hidden="true" />
+                {checkInMutation.isPending ? 'Đang check in...' : 'Check in'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                disabled={isUpdating}
+                onClick={handleCheckOut}
+              >
+                <LogOut className="size-4" aria-hidden="true" />
+                {checkOutMutation.isPending
+                  ? 'Đang check out...'
+                  : 'Check out'}
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {attendanceQuery.isLoading ? (
@@ -169,9 +186,17 @@ export function AttendanceHistoryPage() {
           ) : null}
 
           {attendanceQuery.isSuccess && attendanceRecords.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Chưa có dữ liệu chấm công
-            </p>
+            <div className="flex flex-col items-center py-12 text-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <Clock3 className="size-5" aria-hidden="true" />
+              </div>
+              <h3 className="mt-4 text-sm font-semibold text-foreground">
+                Chưa có dữ liệu chấm công
+              </h3>
+              <p className="mt-1 max-w-md text-sm text-muted-foreground">
+                Thông tin chấm công sẽ xuất hiện sau khi bạn thực hiện check-in.
+              </p>
+            </div>
           ) : null}
 
           {attendanceRecords.length > 0 ? (
@@ -182,7 +207,7 @@ export function AttendanceHistoryPage() {
                     <TableHead>Ngày</TableHead>
                     <TableHead>Giờ vào</TableHead>
                     <TableHead>Giờ ra</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-center">Trạng thái</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -197,38 +222,53 @@ export function AttendanceHistoryPage() {
                           ? formatTime(attendance.checkOutTime)
                           : 'Chưa chấm công ra'}
                       </TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${attendanceStatusClassName[attendance.status]}`}
-                        >
-                          {attendanceStatusLabel[attendance.status]}
-                        </span>
+                      <TableCell className="text-center">
+                        <StatusBadge
+                          label={attendanceStatusLabel[attendance.status]}
+                          tone={attendanceStatusTone[attendance.status]}
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasPreviousPage}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                >
-                  Trước
-                </Button>
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Trang {page} / {totalPages}
+                  Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} bản ghi
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasNextPage}
-                  onClick={() => setPage((current) => current + 1)}
-                >
-                  Sau
-                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasPreviousPage}
+                    aria-label="Trang trước"
+                    title="Trang trước"
+                    onClick={() =>
+                      setPage((current) => Math.max(1, current - 1))
+                    }
+                  >
+                    <ChevronLeft className="size-4" aria-hidden="true" />
+                  </Button>
+                  <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+                    Trang {page} / {totalPages}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    disabled={!meta?.hasNextPage}
+                    aria-label="Trang sau"
+                    title="Trang sau"
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
               </div>
             </>
           ) : null}
