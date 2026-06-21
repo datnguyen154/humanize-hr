@@ -26,6 +26,7 @@ import { useCheckInMutation } from '@/features/attendance/hooks/useCheckInMutati
 import { useCheckOutMutation } from '@/features/attendance/hooks/useCheckOutMutation'
 import { useAttendanceHistoryQuery } from '@/features/attendance/hooks/useAttendanceHistoryQuery'
 import type { AttendanceStatus } from '@/features/attendance/types/attendance.types'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const attendanceStatusLabel: Record<AttendanceStatus, string> = {
@@ -73,10 +74,6 @@ const getAttendanceErrorMessage = (
 
 export function AttendanceHistoryPage() {
   const [page, setPage] = useState(1)
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'error'
-    message: string
-  } | null>(null)
   const checkInMutation = useCheckInMutation()
   const checkOutMutation = useCheckOutMutation()
   const attendanceQuery = useAttendanceHistoryQuery({
@@ -96,47 +93,45 @@ export function AttendanceHistoryPage() {
   const isUpdating = checkInMutation.isPending || checkOutMutation.isPending
 
   const handleCheckIn = async () => {
-    setFeedback(null)
-
     try {
       await checkInMutation.mutateAsync()
-      setFeedback({ type: 'success', message: 'Check in thành công' })
+      showSuccessToast(
+        'Thời gian vào làm đã được ghi nhận.',
+        'Check in thành công',
+      )
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message: getAttendanceErrorMessage(error, 'check-in'),
-      })
+      const message = getAttendanceErrorMessage(error, 'check-in')
+
+      if (message === 'Bạn đã check in hôm nay rồi') {
+        showErrorToast('Bạn đã check in hôm nay rồi.', 'Không thể check in')
+        return
+      }
+
+      showErrorToast()
     }
   }
 
   const handleCheckOut = async () => {
-    setFeedback(null)
-
     try {
       await checkOutMutation.mutateAsync()
-      setFeedback({ type: 'success', message: 'Check out thành công' })
+      showSuccessToast(
+        'Thời gian ra về đã được ghi nhận.',
+        'Check out thành công',
+      )
     } catch (error) {
-      setFeedback({
-        type: 'error',
-        message: getAttendanceErrorMessage(error, 'check-out'),
-      })
+      const message = getAttendanceErrorMessage(error, 'check-out')
+
+      if (message === 'Bạn đã check out hôm nay rồi') {
+        showErrorToast('Bạn đã check out hôm nay rồi.', 'Không thể check out')
+        return
+      }
+
+      showErrorToast()
     }
   }
 
   return (
     <section className="grid gap-5">
-      {feedback ? (
-        <p
-          className={
-            feedback.type === 'success'
-              ? 'rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary'
-              : 'rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive'
-          }
-        >
-          {feedback.message}
-        </p>
-      ) : null}
-
       <Card>
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -147,27 +142,25 @@ export function AttendanceHistoryPage() {
               </CardDescription>
             </div>
 
-            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
               <Button
                 type="button"
-                className="w-full sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 sm:w-[148px] sm:min-w-[148px]"
                 disabled={isUpdating}
                 onClick={handleCheckIn}
               >
-                <LogIn className="size-4" aria-hidden="true" />
-                {checkInMutation.isPending ? 'Đang check in...' : 'Check in'}
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+                Chấm công vào
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                className="w-full sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 sm:w-[148px] sm:min-w-[148px]"
                 disabled={isUpdating}
                 onClick={handleCheckOut}
               >
-                <LogOut className="size-4" aria-hidden="true" />
-                {checkOutMutation.isPending
-                  ? 'Đang check out...'
-                  : 'Check out'}
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                Chấm công ra
               </Button>
             </div>
           </div>
@@ -194,7 +187,8 @@ export function AttendanceHistoryPage() {
                 Chưa có dữ liệu chấm công
               </h3>
               <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Thông tin chấm công sẽ xuất hiện sau khi bạn thực hiện check-in.
+                Thông tin chấm công sẽ xuất hiện sau khi bạn thực hiện chấm công
+                vào.
               </p>
             </div>
           ) : null}
