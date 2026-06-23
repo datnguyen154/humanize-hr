@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Label } from '@/components/ui/label'
+import { DetailPageSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -143,11 +144,11 @@ export function LeaveRequestDetailPage({
       </Button>
 
       {leaveRequestQuery.isLoading ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Đang tải thông tin đơn nghỉ phép...
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton
+          cards={3}
+          fieldsPerCard={4}
+          columnsClassName="xl:grid-cols-3"
+        />
       ) : null}
 
       {leaveRequestQuery.isError ? (

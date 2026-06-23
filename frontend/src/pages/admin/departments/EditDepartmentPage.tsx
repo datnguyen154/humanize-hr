@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useDepartmentDetailQuery } from '@/features/department/hooks/useDepartmentsQuery'
 import { useUpdateDepartmentMutation } from '@/features/department/hooks/useUpdateDepartmentMutation'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
@@ -107,9 +108,26 @@ export function EditDepartmentPage() {
 
   if (departmentQuery.isLoading) {
     return (
-      <p className="py-8 text-center text-muted-foreground">
-        Đang tải thông tin phòng ban...
-      </p>
+      <Card>
+        <CardHeader className="gap-2">
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="h-4 w-72 max-w-full" />
+        </CardHeader>
+        <CardContent className="grid gap-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="grid gap-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-between gap-3 border-t pt-5">
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

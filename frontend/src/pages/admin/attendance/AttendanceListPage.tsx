@@ -21,6 +21,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -231,8 +232,16 @@ export function AttendanceListPage() {
 
         <CardContent>
           {attendanceQuery.isLoading ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Đang tải dữ liệu chấm công...
+            <Table>
+              <TableBody>
+                <TableRowsSkeleton columns={6} />
+              </TableBody>
+            </Table>
+          ) : null}
+
+          {attendanceQuery.isFetching && !attendanceQuery.isLoading ? (
+            <p className="mb-3 text-right text-xs text-muted-foreground">
+              Đang cập nhật dữ liệu...
             </p>
           ) : null}
 

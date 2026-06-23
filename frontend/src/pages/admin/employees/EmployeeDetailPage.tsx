@@ -20,6 +20,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { DetailPageSkeleton } from "@/components/ui/skeleton";
 import {
     StatusBadge,
     type StatusBadgeTone,
@@ -134,11 +135,7 @@ export function EmployeeDetailPage() {
             ) : null}
 
             {employeeQuery.isLoading ? (
-                <Card>
-                    <CardContent className="py-12 text-center text-muted-foreground">
-                        Đang tải thông tin nhân viên...
-                    </CardContent>
-                </Card>
+                <DetailPageSkeleton />
             ) : null}
 
             {employeeQuery.isError ? (

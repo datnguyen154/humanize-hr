@@ -5,6 +5,7 @@ import { ClipboardList } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
+import { TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -84,8 +85,16 @@ export function EmployeeLeaveRequestListPage() {
         </CardHeader>
         <CardContent>
           {leaveRequestsQuery.isLoading ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Đang tải danh sách đơn nghỉ phép...
+            <Table>
+              <TableBody>
+                <TableRowsSkeleton columns={5} />
+              </TableBody>
+            </Table>
+          ) : null}
+
+          {leaveRequestsQuery.isFetching && !leaveRequestsQuery.isLoading ? (
+            <p className="mb-3 text-right text-xs text-muted-foreground">
+              Đang cập nhật dữ liệu...
             </p>
           ) : null}
 

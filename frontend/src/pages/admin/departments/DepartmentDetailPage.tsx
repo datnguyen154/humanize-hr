@@ -17,6 +17,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
+import { DetailPageSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -134,11 +135,7 @@ export function DepartmentDetailPage() {
       ) : null}
 
       {departmentQuery.isLoading ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Đang tải thông tin phòng ban...
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton />
       ) : null}
 
       {departmentQuery.isError ? (

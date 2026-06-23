@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   toDateInputValue,
   useEmployeeDetailQuery,
@@ -114,9 +115,25 @@ export function EditEmployeePage() {
 
   if (employeeQuery.isLoading) {
     return (
-      <p className="py-8 text-center text-muted-foreground">
-        Đang tải thông tin nhân viên...
-      </p>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-5 w-44" />
+        </CardHeader>
+        <CardContent className="grid gap-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="grid gap-2">
+                <Skeleton className="h-4 w-28" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))}
+          </div>
+          <div className="flex justify-end gap-3 border-t pt-5">
+            <Skeleton className="h-10 w-24" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 

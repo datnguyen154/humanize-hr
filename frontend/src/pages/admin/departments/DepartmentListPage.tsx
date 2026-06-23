@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
+import { TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -178,8 +179,16 @@ export function DepartmentListPage() {
 
         <CardContent>
           {departmentsQuery.isLoading ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Đang tải danh sách phòng ban...
+            <Table>
+              <TableBody>
+                <TableRowsSkeleton columns={5} />
+              </TableBody>
+            </Table>
+          ) : null}
+
+          {departmentsQuery.isFetching && !departmentsQuery.isLoading ? (
+            <p className="mb-3 text-right text-xs text-muted-foreground">
+              Đang cập nhật dữ liệu...
             </p>
           ) : null}
 
