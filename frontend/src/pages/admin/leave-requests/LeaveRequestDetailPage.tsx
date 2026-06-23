@@ -1,10 +1,29 @@
-import { useState } from 'react'
+import {
+  ArrowLeft,
+  CalendarDays,
+  CalendarPlus,
+  CheckCircle2,
+  CircleDot,
+  Clock,
+  FileText,
+  History,
+  IdCard,
+  MessageSquareText,
+  User,
+  XCircle,
+  type LucideIcon,
+} from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Label } from '@/components/ui/label'
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
 import { useAuthStore } from '@/features/auth'
 import { useLeaveRequestDetailQuery } from '@/features/leave-request/hooks/useLeaveRequestsQuery'
 import { useUpdateLeaveRequestStatusMutation } from '@/features/leave-request/hooks/useUpdateLeaveRequestStatusMutation'
@@ -32,32 +51,34 @@ const statusLabel: Record<LeaveRequestStatus, string> = {
   REJECTED: 'Từ chối',
 }
 
+const statusTone: Record<LeaveRequestStatus, StatusBadgeTone> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
+}
+
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
-type DetailItem = {
+type DetailFieldProps = {
+  icon: LucideIcon
   label: string
-  value: string
+  children: ReactNode
 }
 
-type DetailSectionProps = {
-  title: string
-  items: DetailItem[]
-}
-
-function DetailSection({ title, items }: DetailSectionProps) {
+function DetailField({ icon: Icon, label, children }: DetailFieldProps) {
   return (
-    <section className="grid gap-3 border-b border-border py-5 first:pt-0 last:border-b-0 last:pb-0">
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      <dl className="grid gap-4 md:grid-cols-2">
-        {items.map((item) => (
-          <div key={item.label}>
-            <dt className="text-sm text-muted-foreground">{item.label}</dt>
-            <dd className="mt-1 font-medium text-foreground">{item.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+    <div className="flex items-start gap-3 py-4 first:pt-0 last:pb-0">
+      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        <Icon className="size-4" aria-hidden="true" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <dt className="text-xs text-muted-foreground">{label}</dt>
+        <dd className="mt-1 break-words text-sm font-medium text-foreground">
+          {children}
+        </dd>
+      </div>
+    </div>
   )
 }
 
@@ -108,186 +129,239 @@ export function LeaveRequestDetailPage({
     }
   }
 
-  const sections: DetailSectionProps[] = leaveRequest
-    ? [
-        {
-          title: 'Thông tin nhân viên',
-          items: [
-            {
-              label: 'Mã nhân viên',
-              value: leaveRequest.employee.employeeCode,
-            },
-            { label: 'Họ tên', value: leaveRequest.employee.fullName },
-          ],
-        },
-        {
-          title: 'Thông tin nghỉ phép',
-          items: [
-            {
-              label: 'Loại nghỉ phép',
-              value: leaveTypeLabel[leaveRequest.leaveType],
-            },
-            {
-              label: 'Ngày bắt đầu',
-              value: formatDate(leaveRequest.startDate),
-            },
-            {
-              label: 'Ngày kết thúc',
-              value: formatDate(leaveRequest.endDate),
-            },
-            { label: 'Lý do', value: leaveRequest.reason },
-            {
-              label: 'Trạng thái',
-              value: statusLabel[leaveRequest.status],
-            },
-          ],
-        },
-        {
-          title: 'Thông tin duyệt',
-          items: [
-            {
-              label: 'Người duyệt',
-              value: leaveRequest.reviewer?.fullName ?? 'Chưa có',
-            },
-            {
-              label: 'Ngày duyệt',
-              value: leaveRequest.reviewedAt
-                ? formatDate(leaveRequest.reviewedAt)
-                : 'Chưa duyệt',
-            },
-            {
-              label: 'Ghi chú duyệt',
-              value: leaveRequest.reviewNote ?? 'Không có ghi chú',
-            },
-          ],
-        },
-        {
-          title: 'Thông tin hệ thống',
-          items: [
-            {
-              label: 'Ngày tạo',
-              value: formatDate(leaveRequest.createdAt),
-            },
-            {
-              label: 'Ngày cập nhật',
-              value: formatDate(leaveRequest.updatedAt),
-            },
-          ],
-        },
-      ]
-    : []
-
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Chi tiết đơn nghỉ phép
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Xem thông tin đơn nghỉ phép và kết quả duyệt.
-          </p>
-        </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        onClick={() => navigate(backPath)}
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Danh sách đơn nghỉ phép
+      </Button>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate(backPath)}
-        >
-          Quay lại danh sách
-        </Button>
-      </div>
-
-      <Card>
-        <CardContent>
-          {leaveRequestQuery.isLoading ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Đang tải thông tin đơn nghỉ phép...
-            </p>
-          ) : null}
-
-          {leaveRequestQuery.isError ? (
-            <p className="py-8 text-center text-destructive">
-              Không thể tải thông tin đơn nghỉ phép
-            </p>
-          ) : null}
-
-          {leaveRequest
-            ? sections.map((section) => (
-                <DetailSection key={section.title} {...section} />
-              ))
-            : null}
-        </CardContent>
-      </Card>
-
-      {canReview ? (
+      {leaveRequestQuery.isLoading ? (
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Duyệt đơn nghỉ phép</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            {approvalError ? (
-              <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {approvalError}
-              </p>
-            ) : null}
-
-            <div className="grid gap-2">
-              <Label htmlFor="reviewNote">Ghi chú duyệt</Label>
-              <textarea
-                id="reviewNote"
-                value={reviewNote}
-                className="min-h-28 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                onChange={(event) => setReviewNote(event.target.value)}
-              />
-            </div>
-
-            <div className="flex flex-wrap justify-end gap-3">
-              <Button
-                type="button"
-                disabled={updateStatusMutation.isPending}
-                onClick={() => setPendingReviewStatus('APPROVED')}
-              >
-                Duyệt đơn
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                disabled={updateStatusMutation.isPending}
-                onClick={() => setPendingReviewStatus('REJECTED')}
-              >
-                Từ chối
-              </Button>
-            </div>
+          <CardContent className="py-12 text-center text-muted-foreground">
+            Đang tải thông tin đơn nghỉ phép...
           </CardContent>
         </Card>
       ) : null}
 
-      {pendingReviewStatus ? (
-        <ConfirmDialog
-          open
-          title={
-            pendingReviewStatus === 'APPROVED'
-              ? 'Xác nhận duyệt đơn'
-              : 'Xác nhận từ chối đơn'
-          }
-          description={
-            pendingReviewStatus === 'APPROVED'
-              ? 'Đơn nghỉ phép sẽ được chuyển sang trạng thái đã duyệt.'
-              : 'Hành động này không thể hoàn tác.'
-          }
-          actionLabel={
-            pendingReviewStatus === 'APPROVED' ? 'Duyệt đơn' : 'Từ chối'
-          }
-          variant={pendingReviewStatus === 'APPROVED' ? 'success' : 'danger'}
-          isPending={updateStatusMutation.isPending}
-          onOpenChange={(open) => {
-            if (!open) {
-              setPendingReviewStatus(null)
+      {leaveRequestQuery.isError ? (
+        <Card>
+          <CardContent className="py-12 text-center text-destructive">
+            Không thể tải thông tin đơn nghỉ phép
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {leaveRequest ? (
+        <>
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+                <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                  <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary ring-4 ring-primary/5">
+                    <FileText className="size-9" aria-hidden="true" />
+                  </div>
+
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                        {leaveRequest.employee.fullName}
+                      </h2>
+                      <StatusBadge
+                        label={statusLabel[leaveRequest.status]}
+                        tone={statusTone[leaveRequest.status]}
+                        className="ring-1 ring-current/10"
+                      />
+                    </div>
+                    <p className="mt-1 text-sm font-medium text-muted-foreground">
+                      {leaveTypeLabel[leaveRequest.leaveType]}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                      <span>
+                        Mã nhân viên:{' '}
+                        <span className="font-medium text-foreground">
+                          {leaveRequest.employee.employeeCode}
+                        </span>
+                      </span>
+                      <span>
+                        Thời gian nghỉ:{' '}
+                        <span className="font-medium text-foreground">
+                          {formatDate(leaveRequest.startDate)} -{' '}
+                          {formatDate(leaveRequest.endDate)}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {canReview ? (
+                  <div className="flex flex-wrap gap-2 xl:justify-end">
+                    <Button
+                      type="button"
+                      disabled={updateStatusMutation.isPending}
+                      onClick={() => setPendingReviewStatus('APPROVED')}
+                    >
+                      <CheckCircle2 className="size-4" aria-hidden="true" />
+                      Duyệt đơn
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={updateStatusMutation.isPending}
+                      onClick={() => setPendingReviewStatus('REJECTED')}
+                    >
+                      <XCircle className="size-4" aria-hidden="true" />
+                      Từ chối
+                    </Button>
+                  </div>
+                ) : leaveRequest.status !== 'PENDING' ? (
+                  <p className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
+                    Đơn này đã được xử lý.
+                  </p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid gap-5 xl:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">
+                  Thông tin đơn nghỉ phép
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                  <DetailField icon={FileText} label="Loại nghỉ phép">
+                    {leaveTypeLabel[leaveRequest.leaveType]}
+                  </DetailField>
+                  <DetailField icon={CalendarDays} label="Ngày bắt đầu">
+                    {formatDate(leaveRequest.startDate)}
+                  </DetailField>
+                  <DetailField icon={CalendarDays} label="Ngày kết thúc">
+                    {formatDate(leaveRequest.endDate)}
+                  </DetailField>
+                  <DetailField icon={MessageSquareText} label="Lý do">
+                    {leaveRequest.reason}
+                  </DetailField>
+                </dl>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Thông tin nhân viên</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                  <DetailField icon={User} label="Họ tên">
+                    {leaveRequest.employee.fullName}
+                  </DetailField>
+                  <DetailField icon={IdCard} label="Mã nhân viên">
+                    {leaveRequest.employee.employeeCode}
+                  </DetailField>
+                </dl>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Thông tin xử lý</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                  <DetailField icon={CircleDot} label="Trạng thái">
+                    <StatusBadge
+                      label={statusLabel[leaveRequest.status]}
+                      tone={statusTone[leaveRequest.status]}
+                      className="ring-1 ring-current/10"
+                    />
+                  </DetailField>
+                  <DetailField icon={User} label="Người duyệt">
+                    {leaveRequest.reviewer?.fullName ?? 'Chưa có'}
+                  </DetailField>
+                  <DetailField icon={Clock} label="Ngày duyệt">
+                    {leaveRequest.reviewedAt
+                      ? formatDate(leaveRequest.reviewedAt)
+                      : 'Chưa duyệt'}
+                  </DetailField>
+                  <DetailField icon={CalendarPlus} label="Ngày tạo">
+                    {formatDate(leaveRequest.createdAt)}
+                  </DetailField>
+                  <DetailField icon={History} label="Ngày cập nhật">
+                    {formatDate(leaveRequest.updatedAt)}
+                  </DetailField>
+                  <DetailField icon={MessageSquareText} label="Ghi chú">
+                    {leaveRequest.reviewNote ?? 'Không có ghi chú'}
+                  </DetailField>
+                </dl>
+              </CardContent>
+            </Card>
+          </div>
+
+          {canReview ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Ghi chú xử lý</CardTitle>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                {approvalError ? (
+                  <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                    {approvalError}
+                  </p>
+                ) : null}
+
+                <div className="grid gap-2">
+                  <Label htmlFor="reviewNote" className="text-sm font-medium">
+                    Ghi chú duyệt/từ chối
+                  </Label>
+                  <textarea
+                    id="reviewNote"
+                    value={reviewNote}
+                    placeholder="Nhập ghi chú xử lý nếu cần..."
+                    className="min-h-28 resize-y rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground shadow-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    onChange={(event) => setReviewNote(event.target.value)}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          <ConfirmDialog
+            open={Boolean(pendingReviewStatus)}
+            title={
+              pendingReviewStatus === 'APPROVED'
+                ? 'Xác nhận duyệt đơn'
+                : 'Xác nhận từ chối đơn'
             }
-          }}
-          onConfirm={() => void handleReview(pendingReviewStatus)}
-        />
+            description={
+              pendingReviewStatus === 'APPROVED'
+                ? 'Đơn nghỉ phép sẽ được chuyển sang trạng thái đã duyệt.'
+                : 'Hành động này không thể hoàn tác.'
+            }
+            actionLabel={
+              pendingReviewStatus === 'APPROVED' ? 'Duyệt đơn' : 'Từ chối'
+            }
+            variant={pendingReviewStatus === 'APPROVED' ? 'success' : 'danger'}
+            isPending={updateStatusMutation.isPending}
+            onOpenChange={(open) => {
+              if (!open) {
+                setPendingReviewStatus(null)
+              }
+            }}
+            onConfirm={() => {
+              if (pendingReviewStatus) {
+                void handleReview(pendingReviewStatus)
+              }
+            }}
+          />
+        </>
       ) : null}
     </section>
   )
