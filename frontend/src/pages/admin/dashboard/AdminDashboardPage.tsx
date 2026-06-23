@@ -8,6 +8,17 @@ import {
     Users,
     type LucideIcon,
 } from "lucide-react";
+import { useMemo } from "react";
+import {
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Legend,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 
 import { Link } from "react-router-dom";
 
@@ -21,6 +32,7 @@ import {
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
+import type { AttendanceRecord } from "@/features/attendance/types/attendance.types";
 
 type KpiCard = {
     label: string;
@@ -40,6 +52,14 @@ type DashboardKpiValues = {
     totalDepartments: number;
     totalLeaveRequests: number;
     totalAttendance: number;
+};
+
+type AttendanceTrendItem = {
+    dateKey: string;
+    dateLabel: string;
+    total: number;
+    present: number;
+    late: number;
 };
 
 const createKpiCards = ({
@@ -97,6 +117,52 @@ const quickActions: QuickAction[] = [
     },
 ];
 
+const formatAttendanceDateLabel = (date: string) =>
+    new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Asia/Bangkok",
+    }).format(new Date(date));
+
+const buildAttendanceTrendData = (
+    records: AttendanceRecord[],
+): AttendanceTrendItem[] => {
+    const groupedRecords = new Map<string, AttendanceTrendItem>();
+
+    records.forEach((record) => {
+        const dateKey = record.attendanceDate.slice(0, 10);
+        const existingItem = groupedRecords.get(dateKey) ?? {
+            dateKey,
+            dateLabel: formatAttendanceDateLabel(record.attendanceDate),
+            total: 0,
+            present: 0,
+            late: 0,
+        };
+
+        existingItem.total += 1;
+
+        if (record.status === "PRESENT") {
+            existingItem.present += 1;
+        }
+
+        if (record.status === "LATE") {
+            existingItem.late += 1;
+        }
+
+        groupedRecords.set(dateKey, existingItem);
+    });
+
+    return Array.from(groupedRecords.values()).sort((a, b) =>
+        a.dateKey.localeCompare(b.dateKey),
+    );
+};
+
+const attendanceChartLabels: Record<string, string> = {
+    total: "Tổng lượt",
+    present: "Đúng giờ",
+    late: "Đi muộn",
+};
+
 export function AdminDashboardPage() {
     const {
         employees,
@@ -111,6 +177,10 @@ export function AdminDashboardPage() {
     const totalDepartments = departments.data?.meta.totalItems ?? 0;
     const totalLeaveRequests = leaveRequests.data?.meta.totalItems ?? 0;
     const totalAttendance = attendance.data?.meta.totalItems ?? 0;
+    const attendanceTrendData = useMemo(
+        () => buildAttendanceTrendData(attendance.data?.data ?? []),
+        [attendance.data?.data],
+    );
 
     const kpiCards = createKpiCards({
         totalEmployees,
@@ -232,38 +302,98 @@ export function AdminDashboardPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-lg">
-                            Hoạt động gần đây
+                            Xu hướng chấm công
                         </CardTitle>
                         <CardDescription>
-                            Các cập nhật mới nhất sẽ được hiển thị tại đây khi
-                            hệ thống có dữ liệu.
+                            Tổng hợp lượt chấm công đúng giờ và đi muộn theo
+                            ngày.
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="rounded-xl border border-dashed border-border bg-muted/30 p-5">
-                            <div className="flex items-start gap-3">
-                                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-card text-muted-foreground">
-                                    <Clock3
-                                        className="size-5"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-foreground">
-                                        Chưa có hoạt động mới
-                                    </p>
-                                    <p className="mt-1 text-sm text-muted-foreground">
-                                        Khi có API hoạt động gần đây, nội dung
-                                        sẽ được cập nhật tại khu vực này.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="mt-5 grid gap-3">
+                        {attendance.isLoading ? (
+                            <div className="grid h-72 content-end gap-3">
+                                <Skeleton className="h-40 w-full" />
                                 <Skeleton className="h-3 w-2/3" />
                                 <Skeleton className="h-3 w-1/2" />
-                                <Skeleton className="h-3 w-3/4" />
                             </div>
-                        </div>
+                        ) : attendanceTrendData.length > 0 ? (
+                            <div className="h-72">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart
+                                        data={attendanceTrendData}
+                                        margin={{
+                                            top: 8,
+                                            right: 8,
+                                            left: -16,
+                                            bottom: 0,
+                                        }}
+                                    >
+                                        <CartesianGrid
+                                            stroke="var(--border)"
+                                            vertical={false}
+                                        />
+                                        <XAxis
+                                            dataKey="dateLabel"
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tick={{
+                                                fill: "var(--muted-foreground)",
+                                                fontSize: 12,
+                                            }}
+                                        />
+                                        <YAxis
+                                            allowDecimals={false}
+                                            tickLine={false}
+                                            axisLine={false}
+                                            tick={{
+                                                fill: "var(--muted-foreground)",
+                                                fontSize: 12,
+                                            }}
+                                        />
+                                        <Tooltip
+                                            cursor={{
+                                                fill: "var(--muted)",
+                                            }}
+                                            formatter={(value, name) => [
+                                                value,
+                                                attendanceChartLabels[
+                                                    String(name)
+                                                ] ?? name,
+                                            ]}
+                                            labelFormatter={(label) =>
+                                                `Ngày ${label}`
+                                            }
+                                        />
+                                        <Legend
+                                            formatter={(value) =>
+                                                attendanceChartLabels[
+                                                    String(value)
+                                                ] ?? value
+                                            }
+                                        />
+                                        <Bar
+                                            dataKey="total"
+                                            fill="var(--secondary)"
+                                            radius={[4, 4, 0, 0]}
+                                        />
+                                        <Bar
+                                            dataKey="present"
+                                            fill="var(--primary)"
+                                            radius={[4, 4, 0, 0]}
+                                        />
+                                        <Bar
+                                            dataKey="late"
+                                            fill="var(--destructive)"
+                                            radius={[4, 4, 0, 0]}
+                                        />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        ) : (
+                            <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
+                                Chưa có dữ liệu chấm công để hiển thị
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
