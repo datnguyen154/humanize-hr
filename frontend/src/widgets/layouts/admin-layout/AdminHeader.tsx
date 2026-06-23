@@ -1,4 +1,4 @@
-import { Bell, CircleHelp } from 'lucide-react'
+import { Bell, CircleHelp, Menu } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
@@ -33,7 +33,11 @@ const adminPageMetadata = [
   },
 ]
 
-export function AdminHeader() {
+type AdminHeaderProps = {
+  onMenuClick?: () => void
+}
+
+export function AdminHeader({ onMenuClick }: AdminHeaderProps) {
   const user = useAuthStore((state) => state.user)
   const { pathname } = useLocation()
   const pageMetadata = adminPageMetadata.find(
@@ -60,13 +64,27 @@ export function AdminHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex min-h-20 items-center justify-between gap-4 border-b border-border bg-card/95 px-4 backdrop-blur md:px-6">
-      <div className="min-w-0 py-3">
-        <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
-          {pageMetadata.title}
-        </h1>
-        <p className="mt-1 hidden truncate text-sm text-muted-foreground sm:block">
-          {pageMetadata.description}
-        </p>
+      <div className="flex min-w-0 items-center gap-3 py-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          className="shrink-0 text-muted-foreground hover:text-primary md:hidden"
+          aria-label="Mở menu"
+          title="Mở menu"
+          onClick={onMenuClick}
+        >
+          <Menu className="size-5" />
+        </Button>
+
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold tracking-tight text-foreground">
+            {pageMetadata.title}
+          </h1>
+          <p className="mt-1 hidden truncate text-sm text-muted-foreground sm:block">
+            {pageMetadata.description}
+          </p>
+        </div>
       </div>
 
       <div className="flex shrink-0 items-center gap-1 sm:gap-2">
