@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -179,18 +180,11 @@ export function AttendanceHistoryPage() {
           ) : null}
 
           {attendanceQuery.isSuccess && attendanceRecords.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <Clock3 className="size-5" aria-hidden="true" />
-              </div>
-              <h3 className="mt-4 text-sm font-semibold text-foreground">
-                Chưa có dữ liệu chấm công
-              </h3>
-              <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                Thông tin chấm công sẽ xuất hiện sau khi bạn thực hiện chấm công
-                vào.
-              </p>
-            </div>
+            <EmptyState
+              icon={Clock3}
+              title="Chưa có dữ liệu chấm công"
+              description="Thông tin chấm công sẽ xuất hiện sau khi nhân viên thực hiện check-in."
+            />
           ) : null}
 
           {attendanceRecords.length > 0 ? (

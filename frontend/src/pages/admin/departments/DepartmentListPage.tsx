@@ -2,6 +2,7 @@ import {
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
+  Building2,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -19,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import {
   StatusBadge,
@@ -188,9 +190,11 @@ export function DepartmentListPage() {
           ) : null}
 
           {departmentsQuery.isSuccess && departments.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Chưa có phòng ban nào
-            </p>
+            <EmptyState
+              icon={Building2}
+              title="Chưa có phòng ban"
+              description="Tạo phòng ban đầu tiên để tổ chức nhân sự hiệu quả hơn."
+            />
           ) : null}
 
           {departments.length > 0 ? (

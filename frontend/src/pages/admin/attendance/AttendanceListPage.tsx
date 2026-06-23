@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   Search,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -17,6 +18,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -241,9 +243,11 @@ export function AttendanceListPage() {
           ) : null}
 
           {attendanceQuery.isSuccess && attendanceRecords.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Chưa có dữ liệu chấm công
-            </p>
+            <EmptyState
+              icon={Clock3}
+              title="Chưa có dữ liệu chấm công"
+              description="Thông tin chấm công sẽ xuất hiện sau khi nhân viên thực hiện check-in."
+            />
           ) : null}
 
           {attendanceRecords.length > 0 ? (

@@ -7,6 +7,7 @@ import {
   Eye,
   Plus,
   Search,
+  Users,
 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -19,6 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import {
   StatusBadge,
@@ -182,9 +184,11 @@ export function EmployeeListPage() {
           ) : null}
 
           {employeesQuery.isSuccess && employees.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Không có nhân viên nào
-            </p>
+            <EmptyState
+              icon={Users}
+              title="Chưa có nhân viên"
+              description="Hãy tạo nhân viên đầu tiên để bắt đầu quản lý nhân sự."
+            />
           ) : null}
 
           {employees.length > 0 ? (

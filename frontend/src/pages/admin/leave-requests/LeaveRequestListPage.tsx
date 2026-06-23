@@ -19,6 +19,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import {
   StatusBadge,
@@ -209,17 +210,11 @@ export function LeaveRequestListPage() {
           ) : null}
 
           {leaveRequestsQuery.isSuccess && leaveRequests.length === 0 ? (
-            <div className="flex flex-col items-center py-12 text-center">
-              <div className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <ClipboardList className="size-5" aria-hidden="true" />
-              </div>
-              <h3 className="mt-4 text-sm font-semibold text-foreground">
-                Chưa có đơn nghỉ phép
-              </h3>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Các yêu cầu nghỉ phép sẽ xuất hiện tại đây.
-              </p>
-            </div>
+            <EmptyState
+              icon={ClipboardList}
+              title="Chưa có đơn nghỉ phép"
+              description="Các yêu cầu nghỉ phép sẽ xuất hiện tại đây."
+            />
           ) : null}
 
           {leaveRequests.length > 0 ? (

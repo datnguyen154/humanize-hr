@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ClipboardList } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   Table,
   TableBody,
@@ -94,9 +96,11 @@ export function EmployeeLeaveRequestListPage() {
           ) : null}
 
           {leaveRequestsQuery.isSuccess && leaveRequests.length === 0 ? (
-            <p className="py-8 text-center text-muted-foreground">
-              Chưa có đơn nghỉ phép nào
-            </p>
+            <EmptyState
+              icon={ClipboardList}
+              title="Chưa có đơn nghỉ phép"
+              description="Các yêu cầu nghỉ phép sẽ xuất hiện tại đây."
+            />
           ) : null}
 
           {leaveRequests.length > 0 ? (
