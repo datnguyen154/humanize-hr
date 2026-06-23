@@ -29,8 +29,12 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import type { AttendanceRecord } from "@/features/attendance/types/attendance.types";
+import {
+    DashboardActivitySkeleton,
+    DashboardChartSkeleton,
+    DashboardKPISkeleton,
+} from "@/features/dashboard/components/DashboardLoadingSkeletons";
 import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
 import { mapDashboardActivities } from "@/features/dashboard/lib/dashboard-activity.mapper";
 import type { DashboardActivityType } from "@/features/dashboard/types/dashboard.types";
@@ -189,6 +193,11 @@ export function AdminDashboardPage() {
         isLoading,
         isError,
     } = useDashboardQueries();
+    const isRetrying =
+        employees.isFetching ||
+        departments.isFetching ||
+        attendance.isFetching ||
+        leaveRequests.isFetching;
 
     const totalEmployees = employees.data?.meta.totalItems ?? 0;
     const totalDepartments = departments.data?.meta.totalItems ?? 0;
@@ -215,6 +224,15 @@ export function AdminDashboardPage() {
         totalAttendance,
     });
 
+    const handleRetryDashboardQueries = () => {
+        void Promise.all([
+            employees.refetch(),
+            departments.refetch(),
+            attendance.refetch(),
+            leaveRequests.refetch(),
+        ]);
+    };
+
     return (
         <section className="grid gap-6">
             <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-card to-card">
@@ -235,46 +253,59 @@ export function AdminDashboardPage() {
                                 Theo dõi tổng quan tình hình nhân sự và hoạt
                                 động hệ thống.
                             </p>
-                            {isError ? (
-                                <p className="mt-3 text-sm font-medium text-destructive">
-                                    Không thể tải dữ liệu bảng điều khiển
-                                </p>
-                            ) : null}
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
-                {kpiCards.map((item) => {
-                    const Icon = item.icon;
+            {isError ? (
+                <Card className="border-destructive/30">
+                    <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm font-medium text-destructive">
+                            Không thể tải dữ liệu dashboard
+                        </p>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleRetryDashboardQueries}
+                            disabled={isRetrying}
+                        >
+                            Thử lại
+                        </Button>
+                    </CardContent>
+                </Card>
+            ) : null}
 
-                    return (
-                        <Card key={item.label}>
-                            <CardContent className="flex items-center justify-between gap-4 p-5">
-                                <div className="min-w-0">
-                                    <p className="text-sm text-muted-foreground">
-                                        {item.label}
-                                    </p>
-                                    {isLoading ? (
-                                        <Skeleton className="mt-2 h-9 w-20" />
-                                    ) : (
+            {isLoading ? (
+                <DashboardKPISkeleton />
+            ) : (
+                <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-4">
+                    {kpiCards.map((item) => {
+                        const Icon = item.icon;
+
+                        return (
+                            <Card key={item.label}>
+                                <CardContent className="flex items-center justify-between gap-4 p-5">
+                                    <div className="min-w-0">
+                                        <p className="text-sm text-muted-foreground">
+                                            {item.label}
+                                        </p>
                                         <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
                                             {item.value}
                                         </p>
-                                    )}
-                                </div>
-                                <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                    <Icon
-                                        className="size-5"
-                                        aria-hidden="true"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    );
-                })}
-            </div>
+                                    </div>
+                                    <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                        <Icon
+                                            className="size-5"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
+                </div>
+            )}
 
             <div className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
                 <Card>
@@ -336,12 +367,8 @@ export function AdminDashboardPage() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {attendance.isLoading ? (
-                            <div className="grid h-72 content-end gap-3">
-                                <Skeleton className="h-40 w-full" />
-                                <Skeleton className="h-3 w-2/3" />
-                                <Skeleton className="h-3 w-1/2" />
-                            </div>
+                        {isLoading ? (
+                            <DashboardChartSkeleton />
                         ) : attendanceTrendData.length > 0 ? (
                             <div className="h-72">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -417,7 +444,7 @@ export function AdminDashboardPage() {
                             </div>
                         ) : (
                             <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
-                                Chưa có dữ liệu chấm công để hiển thị
+                                Chưa có dữ liệu chấm công
                             </div>
                         )}
                     </CardContent>
@@ -434,11 +461,7 @@ export function AdminDashboardPage() {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="grid gap-3">
-                            <Skeleton className="h-14 w-full" />
-                            <Skeleton className="h-14 w-full" />
-                            <Skeleton className="h-14 w-full" />
-                        </div>
+                        <DashboardActivitySkeleton />
                     ) : recentActivities.length > 0 ? (
                         <div className="grid gap-3">
                             {recentActivities.map((activity) => {
