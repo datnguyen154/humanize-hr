@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { getAttendanceHistory } from '../api/attendance.api'
-import type { AttendanceHistoryQueryParams } from '../types/attendance.types'
-import type { AttendanceListQueryParams } from '../types/attendance.types'
+import type {
+  AttendanceHistoryQueryParams,
+  AttendanceListQueryParams,
+} from '../types/attendance.types'
 
 export const attendanceQueryKeys = {
   all: ['attendance'] as const,
