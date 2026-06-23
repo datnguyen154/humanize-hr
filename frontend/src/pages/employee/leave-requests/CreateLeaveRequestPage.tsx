@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useCreateLeaveRequestMutation } from '@/features/leave-request/hooks/useCreateLeaveRequestMutation'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
 const createLeaveRequestSchema = z
@@ -97,9 +98,20 @@ export function CreateLeaveRequestPage() {
         reason: values.reason,
       })
 
+      showSuccessToast(
+        'Đơn nghỉ phép của bạn đã được gửi để chờ phê duyệt.',
+        'Gửi đơn thành công',
+      )
       navigate('/employee/leave-requests')
     } catch (error) {
-      setFormError(getCreateLeaveRequestErrorMessage(error))
+      const errorMessage = getCreateLeaveRequestErrorMessage(error)
+      setFormError(errorMessage)
+      showErrorToast(
+        errorMessage === 'Không thể tạo đơn nghỉ phép'
+          ? 'Vui lòng kiểm tra thông tin và thử lại.'
+          : errorMessage,
+        'Gửi đơn thất bại',
+      )
     }
   }
 
