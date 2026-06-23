@@ -8,7 +8,7 @@ import {
     Users,
     type LucideIcon,
 } from "lucide-react";
-import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
+
 import { Link } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
 
 type KpiCard = {
     label: string;
@@ -34,25 +35,37 @@ type QuickAction = {
     icon: LucideIcon;
 };
 
-const kpiCards: KpiCard[] = [
+type DashboardKpiValues = {
+    totalEmployees: number;
+    totalDepartments: number;
+    totalLeaveRequests: number;
+    totalAttendance: number;
+};
+
+const createKpiCards = ({
+    totalEmployees,
+    totalDepartments,
+    totalLeaveRequests,
+    totalAttendance,
+}: DashboardKpiValues): KpiCard[] => [
     {
         label: "Tổng nhân viên",
-        value: "—",
+        value: totalEmployees.toLocaleString("vi-VN"),
         icon: Users,
     },
     {
         label: "Tổng phòng ban",
-        value: "—",
+        value: totalDepartments.toLocaleString("vi-VN"),
         icon: Building2,
     },
     {
         label: "Đơn nghỉ phép",
-        value: "—",
+        value: totalLeaveRequests.toLocaleString("vi-VN"),
         icon: ClipboardList,
     },
     {
         label: "Chấm công hôm nay",
-        value: "—",
+        value: totalAttendance.toLocaleString("vi-VN"),
         icon: Clock3,
     },
 ];
@@ -85,15 +98,27 @@ const quickActions: QuickAction[] = [
 ];
 
 export function AdminDashboardPage() {
-    const { employees, departments, attendance, leaveRequests } =
-        useDashboardQueries();
+    const {
+        employees,
+        departments,
+        attendance,
+        leaveRequests,
+        isLoading,
+        isError,
+    } = useDashboardQueries();
 
-    console.log("Dashboard Queries", {
-        employees: employees.data,
-        departments: departments.data,
-        attendance: attendance.data,
-        leaveRequests: leaveRequests.data,
+    const totalEmployees = employees.data?.meta.totalItems ?? 0;
+    const totalDepartments = departments.data?.meta.totalItems ?? 0;
+    const totalLeaveRequests = leaveRequests.data?.meta.totalItems ?? 0;
+    const totalAttendance = attendance.data?.meta.totalItems ?? 0;
+
+    const kpiCards = createKpiCards({
+        totalEmployees,
+        totalDepartments,
+        totalLeaveRequests,
+        totalAttendance,
     });
+
     return (
         <section className="grid gap-6">
             <Card className="overflow-hidden border-primary/10 bg-gradient-to-br from-primary/10 via-card to-card">
@@ -114,6 +139,11 @@ export function AdminDashboardPage() {
                                 Theo dõi tổng quan tình hình nhân sự và hoạt
                                 động hệ thống.
                             </p>
+                            {isError ? (
+                                <p className="mt-3 text-sm font-medium text-destructive">
+                                    Không thể tải dữ liệu bảng điều khiển
+                                </p>
+                            ) : null}
                         </div>
                     </div>
                 </CardContent>
@@ -130,9 +160,13 @@ export function AdminDashboardPage() {
                                     <p className="text-sm text-muted-foreground">
                                         {item.label}
                                     </p>
-                                    <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
-                                        {item.value}
-                                    </p>
+                                    {isLoading ? (
+                                        <Skeleton className="mt-2 h-9 w-20" />
+                                    ) : (
+                                        <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
+                                            {item.value}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                                     <Icon
