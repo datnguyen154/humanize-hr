@@ -3,7 +3,6 @@ import {
     Building2,
     ClipboardList,
     Clock3,
-    Plus,
     Sparkles,
     Users,
     type LucideIcon,
@@ -31,8 +30,10 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
 import type { AttendanceRecord } from "@/features/attendance/types/attendance.types";
+import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
+import { mapDashboardActivities } from "@/features/dashboard/lib/dashboard-activity.mapper";
+import type { DashboardActivityType } from "@/features/dashboard/types/dashboard.types";
 
 type KpiCard = {
     label: string;
@@ -163,6 +164,22 @@ const attendanceChartLabels: Record<string, string> = {
     late: "Đi muộn",
 };
 
+const activityIconMap: Record<DashboardActivityType, LucideIcon> = {
+    attendance: Clock3,
+    "leave-request": ClipboardList,
+    department: Building2,
+};
+
+const formatActivityTime = (date: string) =>
+    new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Bangkok",
+    }).format(new Date(date));
+
 export function AdminDashboardPage() {
     const {
         employees,
@@ -180,6 +197,15 @@ export function AdminDashboardPage() {
     const attendanceTrendData = useMemo(
         () => buildAttendanceTrendData(attendance.data?.data ?? []),
         [attendance.data?.data],
+    );
+    const recentActivities = useMemo(
+        () =>
+            mapDashboardActivities({
+                attendanceRecords: attendance.data?.data ?? [],
+                leaveRequests: leaveRequests.data?.data ?? [],
+                departments: departments.data?.data ?? [],
+            }),
+        [attendance.data?.data, departments.data?.data, leaveRequests.data?.data],
     );
 
     const kpiCards = createKpiCards({
@@ -400,49 +426,55 @@ export function AdminDashboardPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-lg">Gợi ý vận hành</CardTitle>
+                    <CardTitle className="text-lg">Hoạt động gần đây</CardTitle>
                     <CardDescription>
-                        Một vài bước cơ bản để hoàn thiện dữ liệu nhân sự trong
-                        hệ thống.
+                        Các cập nhật mới nhất từ chấm công, nghỉ phép và phòng
+                        ban.
                     </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-3 md:grid-cols-3">
-                    <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-muted text-primary">
-                            <Plus className="size-4" aria-hidden="true" />
+                <CardContent>
+                    {isLoading ? (
+                        <div className="grid gap-3">
+                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-14 w-full" />
+                            <Skeleton className="h-14 w-full" />
                         </div>
-                        <p className="text-sm font-medium text-foreground">
-                            Khởi tạo dữ liệu nhân sự
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Thêm nhân viên và phòng ban để bắt đầu quản lý.
-                        </p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-muted text-primary">
-                            <ClipboardList
-                                className="size-4"
-                                aria-hidden="true"
-                            />
+                    ) : recentActivities.length > 0 ? (
+                        <div className="grid gap-3">
+                            {recentActivities.map((activity) => {
+                                const ActivityIcon =
+                                    activityIconMap[activity.type];
+
+                                return (
+                                    <div
+                                        key={activity.id}
+                                        className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+                                    >
+                                        <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+                                            <ActivityIcon
+                                                className="size-5"
+                                                aria-hidden="true"
+                                            />
+                                        </div>
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-medium text-foreground">
+                                                {activity.message}
+                                            </p>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {formatActivityTime(
+                                                    activity.createdAt,
+                                                )}
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
-                        <p className="text-sm font-medium text-foreground">
-                            Theo dõi nghỉ phép
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Kiểm tra trạng thái đơn nghỉ phép để xử lý kịp thời.
-                        </p>
-                    </div>
-                    <div className="rounded-xl border border-border bg-card p-4">
-                        <div className="mb-3 flex size-9 items-center justify-center rounded-lg bg-muted text-primary">
-                            <Clock3 className="size-4" aria-hidden="true" />
+                    ) : (
+                        <div className="flex min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
+                            Chưa có hoạt động nào
                         </div>
-                        <p className="text-sm font-medium text-foreground">
-                            Kiểm tra chấm công
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            Theo dõi dữ liệu chấm công hằng ngày của nhân viên.
-                        </p>
-                    </div>
+                    )}
                 </CardContent>
             </Card>
         </section>
