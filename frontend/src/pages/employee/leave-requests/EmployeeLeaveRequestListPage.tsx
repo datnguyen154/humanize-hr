@@ -151,26 +151,32 @@ export function EmployeeLeaveRequestListPage() {
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasPreviousPage}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                >
-                  Trước
-                </Button>
+              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
                   Trang {page} / {totalPages}
                 </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!meta?.hasNextPage}
-                  onClick={() => setPage((current) => current + 1)}
-                >
-                  Sau
-                </Button>
+                <div className="flex w-full items-center gap-2 sm:w-auto sm:justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    disabled={!meta?.hasPreviousPage}
+                    onClick={() =>
+                      setPage((current) => Math.max(1, current - 1))
+                    }
+                  >
+                    Trước
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="flex-1 sm:flex-none"
+                    disabled={!meta?.hasNextPage}
+                    onClick={() => setPage((current) => current + 1)}
+                  >
+                    Sau
+                  </Button>
+                </div>
               </div>
             </>
           ) : null}

@@ -172,9 +172,10 @@ export function DepartmentDetailPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                   <Button
                     type="button"
+                    className="w-full sm:w-auto"
                     onClick={() => navigate(`/admin/departments/${id}/edit`)}
                     disabled={!department}
                   >
@@ -183,6 +184,7 @@ export function DepartmentDetailPage() {
                   </Button>
                   <Button
                     type="button"
+                    className="w-full sm:w-auto"
                     variant={
                       department.status === 'ACTIVE' ? 'destructive' : 'default'
                     }

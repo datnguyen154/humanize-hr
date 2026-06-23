@@ -202,9 +202,10 @@ export function LeaveRequestDetailPage({
                 </div>
 
                 {canReview ? (
-                  <div className="flex flex-wrap gap-2 xl:justify-end">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap xl:justify-end">
                     <Button
                       type="button"
+                      className="w-full sm:w-auto"
                       disabled={updateStatusMutation.isPending}
                       onClick={() => setPendingReviewStatus('APPROVED')}
                     >
@@ -214,6 +215,7 @@ export function LeaveRequestDetailPage({
                     <Button
                       type="button"
                       variant="destructive"
+                      className="w-full sm:w-auto"
                       disabled={updateStatusMutation.isPending}
                       onClick={() => setPendingReviewStatus('REJECTED')}
                     >

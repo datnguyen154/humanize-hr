@@ -186,9 +186,10 @@ export function EmployeeDetailPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2">
+                                <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
                                     <Button
                                         type="button"
+                                        className="w-full sm:w-auto"
                                         disabled={!id}
                                         onClick={() =>
                                             navigate(
@@ -204,6 +205,7 @@ export function EmployeeDetailPage() {
                                     </Button>
                                     <Button
                                         type="button"
+                                        className="w-full sm:w-auto"
                                         variant={
                                             employee.status === "ACTIVE"
                                                 ? "destructive"
