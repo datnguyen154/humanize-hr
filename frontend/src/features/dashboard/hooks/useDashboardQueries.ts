@@ -14,6 +14,15 @@ import { leaveRequestQueryKeys } from '../../leave-request/hooks/useLeaveRequest
 import type { LeaveRequestsQueryParams } from '../../leave-request/types/leaveRequest.types'
 import type { DashboardQueriesResult } from '../types/dashboard.types'
 
+const DASHBOARD_QUERY_STALE_TIME = 5 * 60 * 1000
+const DASHBOARD_QUERY_GC_TIME = 10 * 60 * 1000
+
+const dashboardQueryOptions = {
+  staleTime: DASHBOARD_QUERY_STALE_TIME,
+  gcTime: DASHBOARD_QUERY_GC_TIME,
+  refetchOnWindowFocus: false,
+}
+
 const dashboardEmployeesParams: EmployeesQueryParams = {
   page: 1,
   limit: 10,
@@ -48,14 +57,17 @@ export function useDashboardQueries(): DashboardQueriesResult {
       {
         queryKey: employeeQueryKeys.list(dashboardEmployeesParams),
         queryFn: () => getEmployees(dashboardEmployeesParams),
+        ...dashboardQueryOptions,
       },
       {
         queryKey: departmentQueryKeys.list(dashboardDepartmentsParams),
         queryFn: () => getDepartments(dashboardDepartmentsParams),
+        ...dashboardQueryOptions,
       },
       {
         queryKey: attendanceQueryKeys.list(dashboardAttendanceParams),
         queryFn: () => getAttendanceList(dashboardAttendanceParams),
+        ...dashboardQueryOptions,
       },
       {
         queryKey: leaveRequestQueryKeys.list(
@@ -63,6 +75,7 @@ export function useDashboardQueries(): DashboardQueriesResult {
           'dashboard',
         ),
         queryFn: () => getLeaveRequests(dashboardLeaveRequestsParams),
+        ...dashboardQueryOptions,
       },
     ],
   })
