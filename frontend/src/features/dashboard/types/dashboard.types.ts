@@ -4,8 +4,10 @@ import type {
   AttendanceListResponse,
   AttendanceRecord,
 } from '../../attendance/types/attendance.types'
-import type { Department } from '../../department/types/department.types'
-import type { DepartmentsResponse } from '../../department/types/department.types'
+import type {
+  Department,
+  DepartmentsResponse,
+} from '../../department/types/department.types'
 import type { EmployeesResponse } from '../../employee/types/employee.types'
 import type {
   LeaveRequest,

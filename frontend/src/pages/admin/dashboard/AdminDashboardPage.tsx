@@ -67,6 +67,21 @@ type AttendanceTrendItem = {
     late: number;
 };
 
+const attendanceDateFormatter = new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Bangkok",
+});
+
+const activityTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Asia/Bangkok",
+});
+
 const createKpiCards = ({
     totalEmployees,
     totalDepartments,
@@ -123,11 +138,7 @@ const quickActions: QuickAction[] = [
 ];
 
 const formatAttendanceDateLabel = (date: string) =>
-    new Intl.DateTimeFormat("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        timeZone: "Asia/Bangkok",
-    }).format(new Date(date));
+    attendanceDateFormatter.format(new Date(date));
 
 const buildAttendanceTrendData = (
     records: AttendanceRecord[],
@@ -175,14 +186,7 @@ const activityIconMap: Record<DashboardActivityType, LucideIcon> = {
 };
 
 const formatActivityTime = (date: string) =>
-    new Intl.DateTimeFormat("vi-VN", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Bangkok",
-    }).format(new Date(date));
+    activityTimeFormatter.format(new Date(date));
 
 export function AdminDashboardPage() {
     const {
@@ -193,28 +197,32 @@ export function AdminDashboardPage() {
         isLoading,
         isError,
     } = useDashboardQueries();
+    const employeeData = employees.data;
+    const departmentData = departments.data;
+    const attendanceData = attendance.data;
+    const leaveRequestData = leaveRequests.data;
     const isRetrying =
         employees.isFetching ||
         departments.isFetching ||
         attendance.isFetching ||
         leaveRequests.isFetching;
 
-    const totalEmployees = employees.data?.meta.totalItems ?? 0;
-    const totalDepartments = departments.data?.meta.totalItems ?? 0;
-    const totalLeaveRequests = leaveRequests.data?.meta.totalItems ?? 0;
-    const totalAttendance = attendance.data?.meta.totalItems ?? 0;
+    const totalEmployees = employeeData?.meta.totalItems ?? 0;
+    const totalDepartments = departmentData?.meta.totalItems ?? 0;
+    const totalLeaveRequests = leaveRequestData?.meta.totalItems ?? 0;
+    const totalAttendance = attendanceData?.meta.totalItems ?? 0;
     const attendanceTrendData = useMemo(
-        () => buildAttendanceTrendData(attendance.data?.data ?? []),
-        [attendance.data?.data],
+        () => buildAttendanceTrendData(attendanceData?.data ?? []),
+        [attendanceData?.data],
     );
     const recentActivities = useMemo(
         () =>
             mapDashboardActivities({
-                attendanceRecords: attendance.data?.data ?? [],
-                leaveRequests: leaveRequests.data?.data ?? [],
-                departments: departments.data?.data ?? [],
+                attendanceRecords: attendanceData?.data ?? [],
+                leaveRequests: leaveRequestData?.data ?? [],
+                departments: departmentData?.data ?? [],
             }),
-        [attendance.data?.data, departments.data?.data, leaveRequests.data?.data],
+        [attendanceData?.data, departmentData?.data, leaveRequestData?.data],
     );
 
     const kpiCards = createKpiCards({
