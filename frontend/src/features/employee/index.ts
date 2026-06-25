@@ -9,6 +9,7 @@ export {
   useEmployeeDetailQuery,
   useEmployeesQuery,
 } from './hooks/useEmployeesQuery'
+export { useMyEmployeeProfileQuery } from './hooks/useMyEmployeeProfileQuery'
 export { useUpdateEmployeeMutation } from './hooks/useUpdateEmployeeMutation'
 export { useUpdateEmployeeStatusMutation } from './hooks/useUpdateEmployeeStatusMutation'
 export type {
@@ -21,6 +22,7 @@ export type {
   EmployeesMeta,
   EmployeesQueryParams,
   EmployeesResponse,
+  MyEmployeeProfile,
   UpdateEmployeeRequest,
   UpdateEmployeeStatusResponse,
 } from './types/employee.types'

@@ -16,6 +16,7 @@ import { AttendanceHistoryPage } from '../pages/employee/attendance/AttendanceHi
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { CreateLeaveRequestPage } from '../pages/employee/leave-requests/CreateLeaveRequestPage'
 import { EmployeeLeaveRequestListPage } from '../pages/employee/leave-requests/EmployeeLeaveRequestListPage'
+import { EmployeeProfilePage } from '../pages/employee/profile/EmployeeProfilePage'
 import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
 import { EmployeeLayout } from '../widgets/layouts/employee-layout/EmployeeLayout'
@@ -108,6 +109,10 @@ export const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <EmployeeDashboardPage />,
+      },
+      {
+        path: 'profile',
+        element: <EmployeeProfilePage />,
       },
       {
         path: 'attendance',

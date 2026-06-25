@@ -7,6 +7,7 @@ import type {
   EmployeeStatus,
   EmployeesQueryParams,
   EmployeesResponse,
+  MyEmployeeProfile,
   UpdateEmployeeRequest,
   UpdateEmployeeStatusResponse,
 } from '../types/employee.types'
@@ -44,6 +45,14 @@ export const createEmployee = async (payload: CreateEmployeeRequest) => {
 
 export const getEmployeeById = async (id: string) => {
   const response = await axiosInstance.get<EmployeeDetail>(`/employees/${id}`, {
+    headers: getAuthHeaders(),
+  })
+
+  return response.data
+}
+
+export const getMyEmployeeProfile = async () => {
+  const response = await axiosInstance.get<MyEmployeeProfile>('/employees/me', {
     headers: getAuthHeaders(),
   })
 

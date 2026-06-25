@@ -24,6 +24,16 @@ export type EmployeeDetail = Employee & {
   updatedAt: string
 }
 
+export type EmployeeDepartment = {
+  id: string
+  name: string
+}
+
+export type MyEmployeeProfile = EmployeeDetail & {
+  departmentId: string
+  department: EmployeeDepartment
+}
+
 export type CreateEmployeeRequest = {
   employeeCode: string
   fullName: string

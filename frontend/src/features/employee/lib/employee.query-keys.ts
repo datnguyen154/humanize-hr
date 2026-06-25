@@ -7,4 +7,5 @@ export const employeeQueryKeys = {
     [...employeeQueryKeys.lists(), params] as const,
   details: () => [...employeeQueryKeys.all, 'detail'] as const,
   detail: (id: string) => [...employeeQueryKeys.details(), id] as const,
+  me: () => [...employeeQueryKeys.all, 'me'] as const,
 }
