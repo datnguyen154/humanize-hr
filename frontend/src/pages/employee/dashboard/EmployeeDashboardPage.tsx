@@ -1,11 +1,19 @@
+import dayjs from 'dayjs'
+import 'dayjs/locale/vi'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
 import { Card, CardContent } from '@/components/ui/card'
 import { useEmployeeDashboardQuery } from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
+import { getActivityIcon } from '@/features/dashboard/lib/employee-dashboard-activity'
 import type {
   EmployeeDashboardAttendanceSummary,
   EmployeeDashboardLeaveSummary,
   EmployeeDashboardTodayAttendance,
   EmployeeDashboardWorkingStatus,
 } from '@/features/dashboard/types/employee-dashboard.types'
+
+dayjs.extend(relativeTime)
+dayjs.locale('vi')
 
 type EmployeeDashboardKpi = {
   label: string
@@ -112,6 +120,7 @@ export function EmployeeDashboardPage() {
     todayAttendance,
     attendanceSummary,
     leaveSummary,
+    recentActivities,
     isLoading,
     isError,
   } = useEmployeeDashboardQuery()
@@ -185,6 +194,51 @@ export function EmployeeDashboardPage() {
                 </span>
               </p>
             </div>
+          </CardContent>
+        </Card>
+      ) : null}
+
+      {!isError ? (
+        <Card>
+          <CardContent className="grid gap-3 p-4">
+            <h3 className="text-base font-semibold text-foreground">
+              Hoạt động gần đây
+            </h3>
+
+            {isLoading ? (
+              <p className="text-sm text-muted-foreground">
+                Đang tải hoạt động gần đây...
+              </p>
+            ) : recentActivities?.length ? (
+              <div className="grid gap-3">
+                {recentActivities.map((activity) => {
+                  const ActivityIcon = getActivityIcon(activity.type)
+
+                  return (
+                    <div
+                      key={`${activity.type}-${activity.createdAt}`}
+                      className="flex items-center gap-3"
+                    >
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+                        <ActivityIcon className="size-4" aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-foreground">
+                          {activity.message}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {dayjs(activity.createdAt).fromNow()}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Chưa có hoạt động gần đây
+              </p>
+            )}
           </CardContent>
         </Card>
       ) : null}
