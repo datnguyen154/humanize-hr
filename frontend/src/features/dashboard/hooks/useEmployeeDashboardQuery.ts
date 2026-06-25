@@ -18,5 +18,9 @@ export function useEmployeeDashboardQuery(): EmployeeDashboardQueryResult {
     recentActivities: employeeDashboardQuery.data?.recentActivities,
     isLoading: employeeDashboardQuery.isLoading,
     isError: employeeDashboardQuery.isError,
+    isFetching: employeeDashboardQuery.isFetching,
+    refetch: () => {
+      void employeeDashboardQuery.refetch()
+    },
   }
 }

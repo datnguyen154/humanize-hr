@@ -37,7 +37,7 @@ export type EmployeeDashboardRecentActivity = {
 }
 
 export type EmployeeDashboard = {
-  todayAttendance: EmployeeDashboardTodayAttendance
+  todayAttendance: EmployeeDashboardTodayAttendance | null
   attendanceSummary: EmployeeDashboardAttendanceSummary
   leaveSummary: EmployeeDashboardLeaveSummary
   recentActivities: EmployeeDashboardRecentActivity[]
@@ -48,10 +48,12 @@ export type EmployeeDashboardResponse = {
 }
 
 export type EmployeeDashboardQueryResult = {
-  todayAttendance: EmployeeDashboardTodayAttendance | undefined
+  todayAttendance: EmployeeDashboardTodayAttendance | null | undefined
   attendanceSummary: EmployeeDashboardAttendanceSummary | undefined
   leaveSummary: EmployeeDashboardLeaveSummary | undefined
   recentActivities: EmployeeDashboardRecentActivity[] | undefined
   isLoading: boolean
   isError: boolean
+  isFetching: boolean
+  refetch: () => void
 }

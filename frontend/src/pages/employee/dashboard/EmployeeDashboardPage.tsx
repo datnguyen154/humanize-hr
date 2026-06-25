@@ -3,7 +3,9 @@ import 'dayjs/locale/vi'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { Link } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useEmployeeDashboardQuery } from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
 import { getActivityIcon } from '@/features/dashboard/lib/employee-dashboard-activity'
 import type {
@@ -77,7 +79,7 @@ const formatTime = (date: string | null | undefined) => {
 }
 
 const getTodayAttendanceLabel = (
-  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+  todayAttendance: EmployeeDashboardTodayAttendance | null | undefined,
 ) => {
   if (!todayAttendance?.status) {
     return 'Chưa có trạng thái'
@@ -87,7 +89,7 @@ const getTodayAttendanceLabel = (
 }
 
 const resolveWorkingStatus = (
-  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+  todayAttendance: EmployeeDashboardTodayAttendance | null | undefined,
 ): EmployeeDashboardWorkingStatus => {
   if (todayAttendance?.workingStatus) {
     return todayAttendance.workingStatus
@@ -101,7 +103,7 @@ const resolveWorkingStatus = (
 }
 
 const createTodayAttendanceCardViewModel = (
-  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+  todayAttendance: EmployeeDashboardTodayAttendance | null | undefined,
 ): TodayAttendanceCardViewModel => {
   const workingStatus = resolveWorkingStatus(todayAttendance)
 
@@ -118,7 +120,7 @@ const createEmployeeDashboardKpis = ({
   attendanceSummary,
   leaveSummary,
 }: {
-  todayAttendance: EmployeeDashboardTodayAttendance | undefined
+  todayAttendance: EmployeeDashboardTodayAttendance | null | undefined
   attendanceSummary: EmployeeDashboardAttendanceSummary | undefined
   leaveSummary: EmployeeDashboardLeaveSummary | undefined
 }): EmployeeDashboardKpi[] => [
@@ -140,6 +142,56 @@ const createEmployeeDashboardKpis = ({
   },
 ]
 
+function EmployeeDashboardKpiSkeleton() {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <Card key={index}>
+          <CardContent className="p-4">
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="mt-2 h-8 w-20" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  )
+}
+
+function TodayAttendanceSkeleton() {
+  return (
+    <Card>
+      <CardContent className="grid gap-3 p-4">
+        <Skeleton className="h-4 w-36" />
+        <Skeleton className="h-7 w-40" />
+        <div className="grid gap-2 sm:grid-cols-3">
+          <Skeleton className="h-4 w-32" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-4 w-24" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function RecentActivitiesSkeleton() {
+  return (
+    <Card>
+      <CardContent className="grid gap-3 p-4">
+        <Skeleton className="h-5 w-36" />
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="flex items-center gap-3">
+            <Skeleton className="size-9 shrink-0 rounded-lg" />
+            <div className="grid flex-1 gap-2">
+              <Skeleton className="h-4 w-full max-w-56" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
 export function EmployeeDashboardPage() {
   const {
     todayAttendance,
@@ -148,6 +200,8 @@ export function EmployeeDashboardPage() {
     recentActivities,
     isLoading,
     isError,
+    isFetching,
+    refetch,
   } = useEmployeeDashboardQuery()
   const kpiCards = createEmployeeDashboardKpis({
     todayAttendance,
@@ -163,26 +217,34 @@ export function EmployeeDashboardPage() {
         Bảng điều khiển nhân viên
       </h2>
 
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">
-          Đang tải dữ liệu bảng điều khiển...
-        </p>
-      ) : null}
-
       {isError ? (
-        <p className="text-sm text-destructive">
-          Không thể tải dữ liệu bảng điều khiển
-        </p>
+        <Card>
+          <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-destructive">
+              Không thể tải dữ liệu bảng điều khiển nhân viên
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={refetch}
+              disabled={isFetching}
+            >
+              Thử lại
+            </Button>
+          </CardContent>
+        </Card>
       ) : null}
 
-      {!isError ? (
+      {isLoading ? (
+        <EmployeeDashboardKpiSkeleton />
+      ) : !isError ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {kpiCards.map((item) => (
             <Card key={item.label}>
               <CardContent className="p-4">
                 <p className="text-sm text-muted-foreground">{item.label}</p>
                 <p className="mt-2 text-2xl font-semibold text-foreground">
-                  {isLoading ? 'Đang tải...' : item.value}
+                  {item.value}
                 </p>
               </CardContent>
             </Card>
@@ -190,32 +252,34 @@ export function EmployeeDashboardPage() {
         </div>
       ) : null}
 
-      {!isError ? (
+      {isLoading ? (
+        <TodayAttendanceSkeleton />
+      ) : !isError ? (
         <Card>
           <CardContent className="grid gap-3 p-4 text-sm">
             <div>
               <p className="text-muted-foreground">Chấm công hôm nay</p>
               <p className="mt-1 text-xl font-semibold text-foreground">
-                {isLoading ? 'Đang tải...' : todayAttendanceCard.workingStatus}
+                {todayAttendanceCard.workingStatus}
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3">
               <p>
                 <span className="text-muted-foreground">Trạng thái: </span>
                 <span className="font-medium text-foreground">
-                  {isLoading ? 'Đang tải...' : todayAttendanceCard.attendanceStatus}
+                  {todayAttendanceCard.attendanceStatus}
                 </span>
               </p>
               <p>
                 <span className="text-muted-foreground">Giờ vào: </span>
                 <span className="font-medium text-foreground">
-                  {isLoading ? '--:--' : todayAttendanceCard.checkInTime}
+                  {todayAttendanceCard.checkInTime}
                 </span>
               </p>
               <p>
                 <span className="text-muted-foreground">Giờ ra: </span>
                 <span className="font-medium text-foreground">
-                  {isLoading ? '--:--' : todayAttendanceCard.checkOutTime}
+                  {todayAttendanceCard.checkOutTime}
                 </span>
               </p>
             </div>
@@ -242,18 +306,16 @@ export function EmployeeDashboardPage() {
         </CardContent>
       </Card>
 
-      {!isError ? (
+      {isLoading ? (
+        <RecentActivitiesSkeleton />
+      ) : !isError ? (
         <Card>
           <CardContent className="grid gap-3 p-4">
             <h3 className="text-base font-semibold text-foreground">
               Hoạt động gần đây
             </h3>
 
-            {isLoading ? (
-              <p className="text-sm text-muted-foreground">
-                Đang tải hoạt động gần đây...
-              </p>
-            ) : recentActivities?.length ? (
+            {recentActivities?.length ? (
               <div className="grid gap-3">
                 {recentActivities.map((activity) => {
                   const ActivityIcon = getActivityIcon(activity.type)
