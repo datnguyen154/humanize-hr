@@ -1,9 +1,15 @@
 import type { AttendanceStatus } from '../../attendance/types/attendance.types'
 
+export type EmployeeDashboardWorkingStatus =
+  | 'NOT_CHECKED_IN'
+  | 'WORKING'
+  | 'CHECKED_OUT'
+
 export type EmployeeDashboardTodayAttendance = {
   status: AttendanceStatus | null
   checkInTime: string | null
   checkOutTime: string | null
+  workingStatus?: EmployeeDashboardWorkingStatus
 }
 
 export type EmployeeDashboardAttendanceSummary = {

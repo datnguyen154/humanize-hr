@@ -4,6 +4,7 @@ import type {
   EmployeeDashboardAttendanceSummary,
   EmployeeDashboardLeaveSummary,
   EmployeeDashboardTodayAttendance,
+  EmployeeDashboardWorkingStatus,
 } from '@/features/dashboard/types/employee-dashboard.types'
 
 type EmployeeDashboardKpi = {
@@ -11,19 +12,72 @@ type EmployeeDashboardKpi = {
   value: string
 }
 
+type TodayAttendanceCardViewModel = {
+  workingStatus: string
+  attendanceStatus: string
+  checkInTime: string
+  checkOutTime: string
+}
+
 const todayAttendanceStatusLabel: Record<string, string> = {
   PRESENT: 'Đúng giờ',
   LATE: 'Đi muộn',
+}
+
+const workingStatusLabel: Record<EmployeeDashboardWorkingStatus, string> = {
+  NOT_CHECKED_IN: 'Chưa chấm công',
+  WORKING: 'Đang làm việc',
+  CHECKED_OUT: 'Đã hoàn thành ca làm',
+}
+
+const formatTime = (date: string | null | undefined) => {
+  if (!date) {
+    return '--:--'
+  }
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Bangkok',
+  }).format(new Date(date))
 }
 
 const getTodayAttendanceLabel = (
   todayAttendance: EmployeeDashboardTodayAttendance | undefined,
 ) => {
   if (!todayAttendance?.status) {
-    return 'Chưa chấm công'
+    return 'Chưa có trạng thái'
   }
 
   return todayAttendanceStatusLabel[todayAttendance.status] ?? todayAttendance.status
+}
+
+const resolveWorkingStatus = (
+  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+): EmployeeDashboardWorkingStatus => {
+  if (todayAttendance?.workingStatus) {
+    return todayAttendance.workingStatus
+  }
+
+  if (todayAttendance?.checkInTime) {
+    return todayAttendance.checkOutTime ? 'CHECKED_OUT' : 'WORKING'
+  }
+
+  return 'NOT_CHECKED_IN'
+}
+
+const createTodayAttendanceCardViewModel = (
+  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+): TodayAttendanceCardViewModel => {
+  const workingStatus = resolveWorkingStatus(todayAttendance)
+
+  return {
+    workingStatus: workingStatusLabel[workingStatus],
+    attendanceStatus: getTodayAttendanceLabel(todayAttendance),
+    checkInTime: formatTime(todayAttendance?.checkInTime),
+    checkOutTime: formatTime(todayAttendance?.checkOutTime),
+  }
 }
 
 const createEmployeeDashboardKpis = ({
@@ -66,6 +120,8 @@ export function EmployeeDashboardPage() {
     attendanceSummary,
     leaveSummary,
   })
+  const todayAttendanceCard =
+    createTodayAttendanceCardViewModel(todayAttendance)
 
   return (
     <section className="grid gap-4">
@@ -98,6 +154,39 @@ export function EmployeeDashboardPage() {
             </Card>
           ))}
         </div>
+      ) : null}
+
+      {!isError ? (
+        <Card>
+          <CardContent className="grid gap-3 p-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Chấm công hôm nay</p>
+              <p className="mt-1 text-xl font-semibold text-foreground">
+                {isLoading ? 'Đang tải...' : todayAttendanceCard.workingStatus}
+              </p>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              <p>
+                <span className="text-muted-foreground">Trạng thái: </span>
+                <span className="font-medium text-foreground">
+                  {isLoading ? 'Đang tải...' : todayAttendanceCard.attendanceStatus}
+                </span>
+              </p>
+              <p>
+                <span className="text-muted-foreground">Giờ vào: </span>
+                <span className="font-medium text-foreground">
+                  {isLoading ? '--:--' : todayAttendanceCard.checkInTime}
+                </span>
+              </p>
+              <p>
+                <span className="text-muted-foreground">Giờ ra: </span>
+                <span className="font-medium text-foreground">
+                  {isLoading ? '--:--' : todayAttendanceCard.checkOutTime}
+                </span>
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       ) : null}
     </section>
   )
