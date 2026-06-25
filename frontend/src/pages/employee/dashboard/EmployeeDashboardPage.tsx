@@ -1,14 +1,71 @@
+import { Card, CardContent } from '@/components/ui/card'
 import { useEmployeeDashboardQuery } from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
+import type {
+  EmployeeDashboardAttendanceSummary,
+  EmployeeDashboardLeaveSummary,
+  EmployeeDashboardTodayAttendance,
+} from '@/features/dashboard/types/employee-dashboard.types'
+
+type EmployeeDashboardKpi = {
+  label: string
+  value: string
+}
+
+const todayAttendanceStatusLabel: Record<string, string> = {
+  PRESENT: 'Đúng giờ',
+  LATE: 'Đi muộn',
+}
+
+const getTodayAttendanceLabel = (
+  todayAttendance: EmployeeDashboardTodayAttendance | undefined,
+) => {
+  if (!todayAttendance?.status) {
+    return 'Chưa chấm công'
+  }
+
+  return todayAttendanceStatusLabel[todayAttendance.status] ?? todayAttendance.status
+}
+
+const createEmployeeDashboardKpis = ({
+  todayAttendance,
+  attendanceSummary,
+  leaveSummary,
+}: {
+  todayAttendance: EmployeeDashboardTodayAttendance | undefined
+  attendanceSummary: EmployeeDashboardAttendanceSummary | undefined
+  leaveSummary: EmployeeDashboardLeaveSummary | undefined
+}): EmployeeDashboardKpi[] => [
+  {
+    label: 'Trạng thái hôm nay',
+    value: getTodayAttendanceLabel(todayAttendance),
+  },
+  {
+    label: 'Đi làm đúng giờ',
+    value: String(attendanceSummary?.present ?? 0),
+  },
+  {
+    label: 'Đi muộn',
+    value: String(attendanceSummary?.late ?? 0),
+  },
+  {
+    label: 'Đơn chờ duyệt',
+    value: String(leaveSummary?.pendingLeaveRequests ?? 0),
+  },
+]
 
 export function EmployeeDashboardPage() {
   const {
     todayAttendance,
     attendanceSummary,
     leaveSummary,
-    recentActivities,
     isLoading,
     isError,
   } = useEmployeeDashboardQuery()
+  const kpiCards = createEmployeeDashboardKpis({
+    todayAttendance,
+    attendanceSummary,
+    leaveSummary,
+  })
 
   return (
     <section className="grid gap-4">
@@ -28,38 +85,18 @@ export function EmployeeDashboardPage() {
         </p>
       ) : null}
 
-      {!isLoading && !isError ? (
-        <div className="grid gap-2 text-sm text-muted-foreground">
-          <p>
-            Chấm công hôm nay:{' '}
-            <span className="font-medium text-foreground">
-              {todayAttendance?.status ?? 'Chưa chấm công'}
-            </span>
-          </p>
-          <p>
-            Đi làm đúng giờ:{' '}
-            <span className="font-medium text-foreground">
-              {attendanceSummary?.present ?? 0}
-            </span>
-          </p>
-          <p>
-            Đi muộn:{' '}
-            <span className="font-medium text-foreground">
-              {attendanceSummary?.late ?? 0}
-            </span>
-          </p>
-          <p>
-            Đơn nghỉ phép chờ duyệt:{' '}
-            <span className="font-medium text-foreground">
-              {leaveSummary?.pendingLeaveRequests ?? 0}
-            </span>
-          </p>
-          <p>
-            Hoạt động gần đây:{' '}
-            <span className="font-medium text-foreground">
-              {recentActivities?.length ?? 0}
-            </span>
-          </p>
+      {!isError ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {kpiCards.map((item) => (
+            <Card key={item.label}>
+              <CardContent className="p-4">
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+                <p className="mt-2 text-2xl font-semibold text-foreground">
+                  {isLoading ? 'Đang tải...' : item.value}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : null}
     </section>
