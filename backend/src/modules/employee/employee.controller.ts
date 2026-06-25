@@ -85,6 +85,18 @@ const handleError = (error: unknown, res: Response): Response => {
 };
 
 export const employeeController = {
+    async getMyProfile(req: Request, res: Response): Promise<Response> {
+        try {
+            const employee = await employeeService.getMyProfile(
+                req.user?.userId,
+            );
+
+            return res.status(200).json(employee);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getEmployees(req: Request, res: Response): Promise<Response> {
         try {
             const result = await employeeService.getEmployees({

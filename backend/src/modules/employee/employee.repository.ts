@@ -22,6 +22,19 @@ export type EmployeeQueryParams = {
 export type CreateEmployeeData = Prisma.EmployeeUncheckedCreateInput;
 export type UpdateEmployeeData = Prisma.EmployeeUncheckedUpdateInput;
 
+const employeeProfileDepartmentRelation = {
+    department: {
+        select: {
+            id: true,
+            name: true,
+        },
+    },
+} satisfies Prisma.EmployeeInclude;
+
+export type EmployeeProfileWithDepartment = Prisma.EmployeeGetPayload<{
+    include: typeof employeeProfileDepartmentRelation;
+}>;
+
 const buildEmployeeWhere = (
     params: EmployeeQueryParams,
 ): Prisma.EmployeeWhereInput => {
@@ -88,6 +101,15 @@ export const employeeRepository = {
     findEmployeeByUserId(userId: string): Promise<Employee | null> {
         return prisma.employee.findUnique({
             where: { userId },
+        });
+    },
+
+    findEmployeeProfileByUserId(
+        userId: string,
+    ): Promise<EmployeeProfileWithDepartment | null> {
+        return prisma.employee.findUnique({
+            where: { userId },
+            include: employeeProfileDepartmentRelation,
         });
     },
 

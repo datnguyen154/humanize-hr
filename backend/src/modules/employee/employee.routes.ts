@@ -6,6 +6,8 @@ import { employeeController } from "./employee.controller";
 
 export const employeeRoutes = Router();
 
+employeeRoutes.get("/me", authenticate, employeeController.getMyProfile);
+
 employeeRoutes.get(
     "/",
     authenticate,

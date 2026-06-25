@@ -2,6 +2,7 @@ import { EmployeeStatus, Gender, type Employee } from "@prisma/client";
 
 import {
     employeeRepository,
+    type EmployeeProfileWithDepartment,
     type EmployeeSortBy,
     type EmployeeSortOrder,
 } from "./employee.repository";
@@ -71,6 +72,26 @@ type CreatedEmployee = Pick<
 
 type EmployeeStatusResult = Pick<Employee, "id" | "status">;
 
+type EmployeeSelfProfile = Pick<
+    Employee,
+    | "id"
+    | "employeeCode"
+    | "fullName"
+    | "email"
+    | "phone"
+    | "position"
+    | "status"
+    | "joinedAt"
+    | "departmentId"
+    | "createdAt"
+    | "updatedAt"
+> & {
+    department: {
+        id: string;
+        name: string;
+    } | null;
+};
+
 export class EmployeeServiceError extends Error {
     constructor(
         message: string,
@@ -137,6 +158,23 @@ const toCreatedEmployee = (employee: Employee): CreatedEmployee => ({
     updatedAt: employee.updatedAt,
 });
 
+const toEmployeeSelfProfile = (
+    employee: EmployeeProfileWithDepartment,
+): EmployeeSelfProfile => ({
+    id: employee.id,
+    employeeCode: employee.employeeCode,
+    fullName: employee.fullName,
+    email: employee.email,
+    phone: employee.phone,
+    position: employee.position,
+    status: employee.status,
+    joinedAt: employee.joinedAt,
+    departmentId: employee.departmentId,
+    department: employee.department,
+    createdAt: employee.createdAt,
+    updatedAt: employee.updatedAt,
+});
+
 const parsePositiveInteger = (
     value: number | string | undefined,
     defaultValue: number,
@@ -179,6 +217,23 @@ const normalizePagination = (
 };
 
 export const employeeService = {
+    async getMyProfile(
+        userId: string | undefined,
+    ): Promise<EmployeeSelfProfile> {
+        if (!userId) {
+            throw new EmployeeServiceError("Unauthorized", 401);
+        }
+
+        const employee =
+            await employeeRepository.findEmployeeProfileByUserId(userId);
+
+        if (!employee) {
+            throw new EmployeeServiceError("Employee profile not found", 404);
+        }
+
+        return toEmployeeSelfProfile(employee);
+    },
+
     async getEmployees(query: GetEmployeesQuery): Promise<GetEmployeesResult> {
         const { page, limit, skip, take } = normalizePagination(
             query.page,
