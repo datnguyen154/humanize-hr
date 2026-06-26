@@ -5,17 +5,15 @@ type EmployeeDashboardHeaderProps = {
 export function EmployeeDashboardHeader({
   fullName,
 }: EmployeeDashboardHeaderProps) {
-  const displayName = fullName || 'Nhân viên'
+  const displayName = fullName?.trim() || 'Nhân viên'
 
   return (
     <header className="mb-4">
-      <p className="text-sm font-semibold text-primary">Humanize HR</p>
-      <h2 className="mt-2 text-3xl font-bold tracking-tight text-foreground">
-        Không gian nhân viên
+      <h2 className="text-3xl font-bold tracking-tight text-foreground">
+        👋 Chào mừng trở lại, {displayName}
       </h2>
-      <p className="mt-3 max-w-2xl text-base text-muted-foreground">
-        Xin chào, {displayName}. Theo dõi chấm công, nghỉ phép và hồ sơ cá nhân
-        của bạn.
+      <p className="mt-2 max-w-2xl text-base text-muted-foreground">
+        Theo dõi chấm công, nghỉ phép và hồ sơ cá nhân của bạn.
       </p>
     </header>
   )
