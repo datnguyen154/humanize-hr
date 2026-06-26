@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useEmployeeDashboardQuery } from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
+import { useMyEmployeeProfileQuery } from '@/features/employee'
 
 import { EmployeeDashboardHeader } from './components/EmployeeDashboardHeader'
 import {
@@ -14,6 +15,7 @@ import { RecentActivitiesCard } from './components/RecentActivitiesCard'
 import { TodayAttendanceCard } from './components/TodayAttendanceCard'
 
 export function EmployeeDashboardPage() {
+  const employeeProfileQuery = useMyEmployeeProfileQuery()
   const {
     todayAttendance,
     attendanceSummary,
@@ -27,7 +29,7 @@ export function EmployeeDashboardPage() {
 
   return (
     <section className="grid gap-4">
-      <EmployeeDashboardHeader />
+      <EmployeeDashboardHeader fullName={employeeProfileQuery.data?.fullName} />
 
       {isError ? (
         <Card>
