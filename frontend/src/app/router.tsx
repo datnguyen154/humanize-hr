@@ -13,6 +13,7 @@ import { EmployeeListPage } from '../pages/admin/employees/EmployeeListPage'
 import { LeaveRequestDetailPage } from '../pages/admin/leave-requests/LeaveRequestDetailPage'
 import { LeaveRequestListPage } from '../pages/admin/leave-requests/LeaveRequestListPage'
 import { AttendanceHistoryPage } from '../pages/employee/attendance/AttendanceHistoryPage'
+import { EmployeeChangePasswordPage } from '../pages/employee/change-password/EmployeeChangePasswordPage'
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { CreateLeaveRequestPage } from '../pages/employee/leave-requests/CreateLeaveRequestPage'
 import { EmployeeLeaveRequestListPage } from '../pages/employee/leave-requests/EmployeeLeaveRequestListPage'
@@ -113,6 +114,10 @@ export const router = createBrowserRouter([
       {
         path: 'profile',
         element: <EmployeeProfilePage />,
+      },
+      {
+        path: 'change-password',
+        element: <EmployeeChangePasswordPage />,
       },
       {
         path: 'attendance',

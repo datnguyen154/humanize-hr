@@ -1,7 +1,13 @@
 import { axiosInstance } from '../../../shared/api'
 import type { ApiResponse } from '../../../shared/types'
 import { authStorage } from '../model/auth.storage'
-import type { AuthUser, LoginRequest, LoginResponse } from '../types/auth.types'
+import type {
+  AuthUser,
+  ChangePasswordRequest,
+  ChangePasswordResponse,
+  LoginRequest,
+  LoginResponse,
+} from '../types/auth.types'
 
 export const login = async (payload: LoginRequest) => {
   const response = await axiosInstance.post<ApiResponse<LoginResponse>>(
@@ -24,4 +30,22 @@ export const getMe = async () => {
   })
 
   return response.data.data
+}
+
+export const changePassword = async (payload: ChangePasswordRequest) => {
+  const accessToken = authStorage.getAccessToken()
+
+  const response = await axiosInstance.patch<ChangePasswordResponse>(
+    '/auth/change-password',
+    payload,
+    {
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
+    },
+  )
+
+  return response.data
 }

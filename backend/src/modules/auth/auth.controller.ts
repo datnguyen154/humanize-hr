@@ -107,4 +107,43 @@ export const authController = {
             return handleError(error, res);
         }
     },
+
+    async changePassword(req: Request, res: Response): Promise<Response> {
+        try {
+            const authenticatedUser = req.user;
+
+            if (!authenticatedUser) {
+                return res.status(401).json({
+                    message: "Unauthorized",
+                });
+            }
+
+            const { currentPassword, newPassword } = req.body as {
+                currentPassword?: unknown;
+                newPassword?: unknown;
+            };
+
+            if (!isNonEmptyString(currentPassword)) {
+                return res.status(400).json({
+                    message: "currentPassword is required",
+                });
+            }
+
+            if (!isNonEmptyString(newPassword)) {
+                return res.status(400).json({
+                    message: "newPassword is required",
+                });
+            }
+
+            const result = await authService.changePassword(
+                authenticatedUser.userId,
+                currentPassword,
+                newPassword,
+            );
+
+            return res.status(200).json(result);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };

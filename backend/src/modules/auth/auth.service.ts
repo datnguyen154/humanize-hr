@@ -22,6 +22,10 @@ type RefreshAccessTokenResult = {
     accessToken: string;
 };
 
+type ChangePasswordResult = {
+    message: string;
+};
+
 export class AuthServiceError extends Error {
     constructor(
         message: string,
@@ -126,6 +130,9 @@ const createRefreshToken = (user: AuthUser): string =>
         env.refreshTokenExpiresIn as SignOptions["expiresIn"],
     );
 
+const isStrongPassword = (password: string): boolean =>
+    password.length >= 8 && /[a-zA-Z]/.test(password) && /\d/.test(password);
+
 export const authService = {
     async login(email: string, password: string): Promise<LoginResult> {
         const user = await authRepository.findUserByEmail(email);
@@ -215,5 +222,48 @@ export const authService = {
 
     async logout(refreshToken: string): Promise<void> {
         await authRepository.deleteRefreshToken(refreshToken);
+    },
+
+    async changePassword(
+        userId: string,
+        currentPassword: string,
+        newPassword: string,
+    ): Promise<ChangePasswordResult> {
+        const user = await authRepository.findUserById(userId);
+
+        if (!user) {
+            throw new AuthServiceError("Unauthorized", 401);
+        }
+
+        const isCurrentPasswordValid = await bcrypt.compare(
+            currentPassword,
+            user.passwordHash,
+        );
+
+        if (!isCurrentPasswordValid) {
+            throw new AuthServiceError("Current password is incorrect", 400);
+        }
+
+        if (newPassword === currentPassword) {
+            throw new AuthServiceError(
+                "New password must be different from current password",
+                400,
+            );
+        }
+
+        if (!isStrongPassword(newPassword)) {
+            throw new AuthServiceError(
+                "Password must contain at least 8 characters, one letter and one number",
+                400,
+            );
+        }
+
+        const passwordHash = await bcrypt.hash(newPassword, 10);
+
+        await authRepository.updateUserPassword(userId, passwordHash);
+
+        return {
+            message: "Password changed successfully",
+        };
     },
 };
