@@ -13,8 +13,8 @@ type TodayAttendanceCardProps = {
   todayAttendance: EmployeeDashboardTodayAttendance | null | undefined
 }
 
-const getWorkingStatusTone = (status: string): StatusBadgeTone => {
-  if (status === 'Đang làm việc' || status === 'Đã hoàn thành') {
+const getCheckInStatusTone = (status: string): StatusBadgeTone => {
+  if (status === 'Đã chấm công') {
     return 'success'
   }
 
@@ -43,10 +43,14 @@ export function TodayAttendanceCard({
   const todayAttendanceCard =
     createTodayAttendanceCardViewModel(todayAttendance)
 
-  const workingStatusLabel =
-    todayAttendanceCard.workingStatus === 'Đã hoàn thành ca làm'
-      ? 'Đã hoàn thành'
-      : todayAttendanceCard.workingStatus
+  const hasCheckedIn = Boolean(todayAttendance?.checkInTime)
+  const hasCheckedOut = Boolean(todayAttendance?.checkOutTime)
+  const checkInStatusLabel = hasCheckedIn ? 'Đã chấm công' : 'Chưa chấm công'
+  const attendanceNote = hasCheckedOut
+    ? 'Bạn đã hoàn tất chấm công hôm nay.'
+    : hasCheckedIn
+      ? 'Bạn đang trong giờ làm việc. Vui lòng chấm công ra khi tan làm.'
+      : 'Bạn chưa chấm công hôm nay.'
 
   const attendanceItems = [
     {
@@ -54,8 +58,8 @@ export function TodayAttendanceCard({
       value: (
         <div className="grid gap-2">
           <StatusBadge
-            label={workingStatusLabel}
-            tone={getWorkingStatusTone(workingStatusLabel)}
+            label={checkInStatusLabel}
+            tone={getCheckInStatusTone(checkInStatusLabel)}
           />
           <div className="flex flex-wrap gap-2">
             <StatusBadge
@@ -82,8 +86,8 @@ export function TodayAttendanceCard({
   ]
 
   return (
-    <Card className="rounded-xl border border-border shadow-sm transition-all duration-200 hover:shadow-md">
-      <CardContent className="p-6">
+    <Card className="h-full rounded-xl border border-border bg-card shadow-sm transition-all duration-200 hover:shadow-md">
+      <CardContent className="flex h-full flex-col p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <h3 className="text-lg font-semibold tracking-tight text-foreground">
@@ -95,7 +99,7 @@ export function TodayAttendanceCard({
           </div>
         </div>
 
-        <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border sm:grid-cols-2 xl:grid-cols-3">
           {attendanceItems.map((item, index) => {
             const Icon = item.icon
             const isStatusItem = item.label === 'Trạng thái'
@@ -109,7 +113,7 @@ export function TodayAttendanceCard({
                   index === 1
                     ? 'sm:border-l sm:border-border lg:border-l'
                     : ''
-                } ${index === 2 ? 'sm:col-span-2 lg:col-span-1 lg:border-l lg:border-border' : ''}`}
+                } ${index === 2 ? 'sm:col-span-2 xl:col-span-1 xl:border-l xl:border-border' : ''}`}
               >
                 <div className="rounded-lg bg-muted p-2 text-muted-foreground">
                   <Icon className="size-5" aria-hidden="true" />
@@ -132,6 +136,10 @@ export function TodayAttendanceCard({
             )
           })}
         </div>
+
+        <p className="mt-4 rounded-lg bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+          {attendanceNote}
+        </p>
       </CardContent>
     </Card>
   )

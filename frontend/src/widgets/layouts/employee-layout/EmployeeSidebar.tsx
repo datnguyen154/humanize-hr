@@ -6,7 +6,6 @@ const employeeMenuItems = [
   { label: 'Tổng quan', path: '/employee/dashboard' },
   { label: 'Hồ sơ cá nhân', path: '/employee/profile' },
   { label: 'Đổi mật khẩu', path: '/employee/change-password' },
-  { label: 'Chấm công', path: '/employee/attendance' },
   { label: 'Đơn nghỉ phép', path: '/employee/leave-requests' },
 ]
 

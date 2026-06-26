@@ -59,13 +59,18 @@ export function EmployeeDashboardPage() {
         />
       ) : null}
 
-      {isLoading ? (
-        <TodayAttendanceSkeleton />
-      ) : !isError ? (
-        <TodayAttendanceCard todayAttendance={todayAttendance} />
-      ) : null}
-
-      <EmployeeQuickActions />
+      <div className="grid gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-4">
+          <EmployeeQuickActions />
+        </div>
+        <div className="lg:col-span-8">
+          {isLoading ? (
+            <TodayAttendanceSkeleton />
+          ) : !isError ? (
+            <TodayAttendanceCard todayAttendance={todayAttendance} />
+          ) : null}
+        </div>
+      </div>
 
       {isLoading ? (
         <RecentActivitiesSkeleton />

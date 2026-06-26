@@ -17,7 +17,10 @@ import type {
   EmployeeDashboardTodayAttendance,
 } from '@/features/dashboard/types/employee-dashboard.types'
 
-import { createEmployeeDashboardKpis } from './employee-dashboard.mappers'
+import {
+  createEmployeeDashboardKpis,
+  createTodayAttendanceCardViewModel,
+} from './employee-dashboard.mappers'
 
 type EmployeeKpiCardsProps = {
   todayAttendance: EmployeeDashboardTodayAttendance | null | undefined
@@ -54,6 +57,12 @@ export function EmployeeKpiCards({
     attendanceSummary,
     leaveSummary,
   })
+  const todayAttendanceCard =
+    createTodayAttendanceCardViewModel(todayAttendance)
+  const todayWorkingStatus =
+    todayAttendanceCard.workingStatus === 'Đã hoàn thành ca làm'
+      ? 'Đã hoàn thành'
+      : todayAttendanceCard.workingStatus
 
   return (
     <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -77,8 +86,8 @@ export function EmployeeKpiCards({
               </div>
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                <p className="text-3xl font-bold tracking-tight text-foreground">
-                  {item.value}
+                <p className="text-4xl font-bold tracking-tight text-foreground">
+                  {isTodayStatus ? todayWorkingStatus : item.value}
                 </p>
                 {isTodayStatus ? (
                   <StatusBadge
