@@ -1,6 +1,14 @@
 import { AxiosError } from 'axios'
-import { ChevronLeft, ChevronRight, Clock3, LogIn, LogOut } from 'lucide-react'
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Clock3,
+  LogIn,
+  LogOut,
+} from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -134,6 +142,14 @@ export function AttendanceHistoryPage() {
 
   return (
     <section className="grid gap-5">
+      <Link
+        to="/employee/dashboard"
+        className="inline-flex w-fit items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Quay lại tổng quan
+      </Link>
+
       <Card>
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
