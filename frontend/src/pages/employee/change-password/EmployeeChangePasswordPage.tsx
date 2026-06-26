@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 import {
   useForm,
@@ -136,9 +136,10 @@ export function EmployeeChangePasswordPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ChangePasswordFormValues>({
     resolver: zodResolver(changePasswordSchema),
+    mode: 'onChange',
     defaultValues: {
       currentPassword: '',
       newPassword: '',
@@ -209,10 +210,18 @@ export function EmployeeChangePasswordPage() {
             />
 
             <div className="flex justify-end border-t border-border pt-5">
-              <Button type="submit" disabled={changePasswordMutation.isPending}>
-                {changePasswordMutation.isPending
-                  ? 'Đang đổi mật khẩu...'
-                  : 'Đổi mật khẩu'}
+              <Button
+                type="submit"
+                disabled={changePasswordMutation.isPending || !isValid}
+              >
+                {changePasswordMutation.isPending ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    Đang đổi mật khẩu...
+                  </>
+                ) : (
+                  'Đổi mật khẩu'
+                )}
               </Button>
             </div>
           </form>
