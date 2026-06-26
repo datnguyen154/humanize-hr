@@ -13,17 +13,25 @@ type TodayAttendanceCardProps = {
   todayAttendance: EmployeeDashboardTodayAttendance | null | undefined
 }
 
-const getStatusTone = (status: string): StatusBadgeTone => {
-  if (
-    status === 'Đúng giờ' ||
-    status === 'Đang làm việc' ||
-    status === 'Đã hoàn thành ca làm'
-  ) {
+const getWorkingStatusTone = (status: string): StatusBadgeTone => {
+  if (status === 'Đang làm việc' || status === 'Đã hoàn thành') {
+    return 'success'
+  }
+
+  return 'neutral'
+}
+
+const getAttendanceResultTone = (status: string): StatusBadgeTone => {
+  if (status === 'Đúng giờ') {
     return 'success'
   }
 
   if (status === 'Đi muộn') {
     return 'warning'
+  }
+
+  if (status === 'Vắng mặt') {
+    return 'danger'
   }
 
   return 'neutral'
@@ -35,16 +43,29 @@ export function TodayAttendanceCard({
   const todayAttendanceCard =
     createTodayAttendanceCardViewModel(todayAttendance)
 
-  const statusLabel =
-    todayAttendanceCard.workingStatus === 'Chưa chấm công'
-      ? todayAttendanceCard.workingStatus
-      : todayAttendanceCard.attendanceStatus
+  const workingStatusLabel =
+    todayAttendanceCard.workingStatus === 'Đã hoàn thành ca làm'
+      ? 'Đã hoàn thành'
+      : todayAttendanceCard.workingStatus
 
   const attendanceItems = [
     {
       label: 'Trạng thái',
       value: (
-        <StatusBadge label={statusLabel} tone={getStatusTone(statusLabel)} />
+        <div className="grid gap-2">
+          <StatusBadge
+            label={workingStatusLabel}
+            tone={getWorkingStatusTone(workingStatusLabel)}
+          />
+          <div className="flex flex-wrap gap-2">
+            <StatusBadge
+              label={todayAttendanceCard.attendanceStatus}
+              tone={getAttendanceResultTone(
+                todayAttendanceCard.attendanceStatus,
+              )}
+            />
+          </div>
+        </div>
       ),
       icon: CircleDot,
     },
@@ -77,6 +98,7 @@ export function TodayAttendanceCard({
         <div className="mt-6 grid gap-0 overflow-hidden rounded-xl border border-border sm:grid-cols-2 lg:grid-cols-3">
           {attendanceItems.map((item, index) => {
             const Icon = item.icon
+            const isStatusItem = item.label === 'Trạng thái'
 
             return (
               <div
@@ -96,7 +118,13 @@ export function TodayAttendanceCard({
                   <p className="text-sm font-medium text-muted-foreground">
                     {item.label}
                   </p>
-                  <div className="mt-2 text-3xl font-bold tracking-tight text-foreground">
+                  <div
+                    className={
+                      isStatusItem
+                        ? 'mt-2'
+                        : 'mt-2 text-3xl font-bold tracking-tight text-foreground'
+                    }
+                  >
                     {item.value}
                   </div>
                 </div>
