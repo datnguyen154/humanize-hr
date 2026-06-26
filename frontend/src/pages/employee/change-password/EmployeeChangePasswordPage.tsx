@@ -1,6 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { useForm } from 'react-hook-form'
+import { Eye, EyeOff } from 'lucide-react'
+import { useState } from 'react'
+import {
+  useForm,
+  type FieldError,
+  type UseFormRegisterReturn,
+} from 'react-hook-form'
 import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
@@ -32,6 +38,54 @@ const changePasswordSchema = z
   })
 
 type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
+
+type PasswordFieldProps = {
+  id: string
+  label: string
+  autoComplete: string
+  isVisible: boolean
+  error?: FieldError
+  registration: UseFormRegisterReturn
+  onToggleVisibility: () => void
+}
+
+function PasswordField({
+  id,
+  label,
+  autoComplete,
+  isVisible,
+  error,
+  registration,
+  onToggleVisibility,
+}: PasswordFieldProps) {
+  const ToggleIcon = isVisible ? EyeOff : Eye
+
+  return (
+    <div className="grid gap-2.5">
+      <Label htmlFor={id}>{label}</Label>
+      <div className="relative">
+        <Input
+          id={id}
+          type={isVisible ? 'text' : 'password'}
+          autoComplete={autoComplete}
+          className="pr-10"
+          {...registration}
+        />
+        <button
+          type="button"
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+          onClick={onToggleVisibility}
+          aria-label={isVisible ? `Ẩn ${label}` : `Hiện ${label}`}
+        >
+          <ToggleIcon className="size-4" aria-hidden="true" />
+        </button>
+      </div>
+      {error ? (
+        <p className="text-xs text-destructive">{error.message}</p>
+      ) : null}
+    </div>
+  )
+}
 
 const getChangePasswordErrorMessage = (error: unknown) => {
   if (error instanceof AxiosError) {
@@ -72,6 +126,11 @@ const getChangePasswordErrorMessage = (error: unknown) => {
 
 export function EmployeeChangePasswordPage() {
   const changePasswordMutation = useChangePasswordMutation()
+  const [visibleFields, setVisibleFields] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  })
 
   const {
     register,
@@ -97,6 +156,13 @@ export function EmployeeChangePasswordPage() {
     }
   }
 
+  const togglePasswordVisibility = (field: keyof ChangePasswordFormValues) => {
+    setVisibleFields((current) => ({
+      ...current,
+      [field]: !current[field],
+    }))
+  }
+
   return (
     <section className="mx-auto w-full max-w-2xl">
       <Card>
@@ -108,50 +174,39 @@ export function EmployeeChangePasswordPage() {
         </CardHeader>
         <CardContent className="pt-6">
           <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-2.5">
-              <Label htmlFor="currentPassword">Mật khẩu hiện tại</Label>
-              <Input
-                id="currentPassword"
-                type="password"
-                autoComplete="current-password"
-                {...register('currentPassword')}
-              />
-              {errors.currentPassword ? (
-                <p className="text-xs text-destructive">
-                  {errors.currentPassword.message}
-                </p>
-              ) : null}
-            </div>
+            <PasswordField
+              id="currentPassword"
+              label="Mật khẩu hiện tại"
+              autoComplete="current-password"
+              isVisible={visibleFields.currentPassword}
+              error={errors.currentPassword}
+              registration={register('currentPassword')}
+              onToggleVisibility={() =>
+                togglePasswordVisibility('currentPassword')
+              }
+            />
 
-            <div className="grid gap-2.5">
-              <Label htmlFor="newPassword">Mật khẩu mới</Label>
-              <Input
-                id="newPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register('newPassword')}
-              />
-              {errors.newPassword ? (
-                <p className="text-xs text-destructive">
-                  {errors.newPassword.message}
-                </p>
-              ) : null}
-            </div>
+            <PasswordField
+              id="newPassword"
+              label="Mật khẩu mới"
+              autoComplete="new-password"
+              isVisible={visibleFields.newPassword}
+              error={errors.newPassword}
+              registration={register('newPassword')}
+              onToggleVisibility={() => togglePasswordVisibility('newPassword')}
+            />
 
-            <div className="grid gap-2.5">
-              <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                autoComplete="new-password"
-                {...register('confirmPassword')}
-              />
-              {errors.confirmPassword ? (
-                <p className="text-xs text-destructive">
-                  {errors.confirmPassword.message}
-                </p>
-              ) : null}
-            </div>
+            <PasswordField
+              id="confirmPassword"
+              label="Xác nhận mật khẩu mới"
+              autoComplete="new-password"
+              isVisible={visibleFields.confirmPassword}
+              error={errors.confirmPassword}
+              registration={register('confirmPassword')}
+              onToggleVisibility={() =>
+                togglePasswordVisibility('confirmPassword')
+              }
+            />
 
             <div className="flex justify-end border-t border-border pt-5">
               <Button type="submit" disabled={changePasswordMutation.isPending}>
