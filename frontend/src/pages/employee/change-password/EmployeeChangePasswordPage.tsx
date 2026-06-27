@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import {
   useForm,
@@ -42,6 +42,7 @@ type ChangePasswordFormValues = z.infer<typeof changePasswordSchema>
 type PasswordFieldProps = {
   id: string
   label: string
+  placeholder: string
   autoComplete: string
   isVisible: boolean
   error?: FieldError
@@ -52,6 +53,7 @@ type PasswordFieldProps = {
 function PasswordField({
   id,
   label,
+  placeholder,
   autoComplete,
   isVisible,
   error,
@@ -61,19 +63,22 @@ function PasswordField({
   const ToggleIcon = isVisible ? EyeOff : Eye
 
   return (
-    <div className="grid gap-2.5">
-      <Label htmlFor={id}>{label}</Label>
+    <div className="grid gap-2">
+      <Label htmlFor={id} className="text-sm font-medium">
+        {label}
+      </Label>
       <div className="relative">
         <Input
           id={id}
           type={isVisible ? 'text' : 'password'}
+          placeholder={placeholder}
           autoComplete={autoComplete}
-          className="pr-10"
+          className="h-10 pr-10"
           {...registration}
         />
         <button
           type="button"
-          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+          className="absolute inset-y-0 right-0 flex w-10 items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
           onClick={onToggleVisibility}
           aria-label={isVisible ? `Ẩn ${label}` : `Hiện ${label}`}
         >
@@ -81,7 +86,7 @@ function PasswordField({
         </button>
       </div>
       {error ? (
-        <p className="text-xs text-destructive">{error.message}</p>
+        <p className="text-sm text-destructive">{error.message}</p>
       ) : null}
     </div>
   )
@@ -165,19 +170,35 @@ export function EmployeeChangePasswordPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-2xl">
-      <Card>
+    <section className="mx-auto w-full max-w-xl">
+      <Card className="border-border shadow-sm">
         <CardHeader className="gap-1.5 border-b border-border">
-          <CardTitle className="text-lg">Đổi mật khẩu</CardTitle>
+          <CardTitle className="text-xl">Đổi mật khẩu</CardTitle>
           <CardDescription>
-            Cập nhật mật khẩu đăng nhập cho tài khoản của bạn.
+            Cập nhật mật khẩu định kỳ để bảo vệ tài khoản của bạn.
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-6">
-          <form className="grid gap-5" onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-6 flex items-start gap-3 rounded-lg border border-border bg-muted/50 p-4">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-background text-primary">
+              <ShieldCheck className="size-5" aria-hidden="true" />
+            </div>
+            <div className="min-w-0">
+              <h3 className="text-sm font-semibold text-foreground">
+                Bảo mật tài khoản
+              </h3>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                Không chia sẻ mật khẩu với bất kỳ ai. Hãy sử dụng mật khẩu
+                mạnh và khác với mật khẩu cũ.
+              </p>
+            </div>
+          </div>
+
+          <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)}>
             <PasswordField
               id="currentPassword"
               label="Mật khẩu hiện tại"
+              placeholder="Nhập mật khẩu hiện tại"
               autoComplete="current-password"
               isVisible={visibleFields.currentPassword}
               error={errors.currentPassword}
@@ -190,6 +211,7 @@ export function EmployeeChangePasswordPage() {
             <PasswordField
               id="newPassword"
               label="Mật khẩu mới"
+              placeholder="Nhập mật khẩu mới"
               autoComplete="new-password"
               isVisible={visibleFields.newPassword}
               error={errors.newPassword}
@@ -200,6 +222,7 @@ export function EmployeeChangePasswordPage() {
             <PasswordField
               id="confirmPassword"
               label="Xác nhận mật khẩu mới"
+              placeholder="Nhập lại mật khẩu mới"
               autoComplete="new-password"
               isVisible={visibleFields.confirmPassword}
               error={errors.confirmPassword}
@@ -209,18 +232,23 @@ export function EmployeeChangePasswordPage() {
               }
             />
 
-            <div className="flex justify-end border-t border-border pt-5">
+            <p className="text-sm text-muted-foreground">
+              Mật khẩu mới nên có ít nhất 8 ký tự và khác mật khẩu hiện tại.
+            </p>
+
+            <div className="flex justify-end border-t border-border pt-6">
               <Button
                 type="submit"
+                className="min-w-[190px]"
                 disabled={changePasswordMutation.isPending || !isValid}
               >
                 {changePasswordMutation.isPending ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Đang đổi mật khẩu...
+                    Đang cập nhật...
                   </>
                 ) : (
-                  'Đổi mật khẩu'
+                  'Cập nhật mật khẩu'
                 )}
               </Button>
             </div>
