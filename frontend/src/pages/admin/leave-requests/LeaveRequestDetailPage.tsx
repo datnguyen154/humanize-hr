@@ -100,6 +100,7 @@ export function LeaveRequestDetailPage({
   const [pendingReviewStatus, setPendingReviewStatus] =
     useState<LeaveRequestReviewStatus | null>(null)
   const leaveRequest = leaveRequestQuery.data
+  const isEmployeeView = backPath.startsWith('/employee/')
   const canReview = user?.role === 'ADMIN' && leaveRequest?.status === 'PENDING'
 
   const handleReview = async (status: LeaveRequestReviewStatus) => {
@@ -140,7 +141,9 @@ export function LeaveRequestDetailPage({
         onClick={() => navigate(backPath)}
       >
         <ArrowLeft className="size-4" aria-hidden="true" />
-        Danh sách đơn nghỉ phép
+        {isEmployeeView
+          ? 'Quay lại danh sách đơn'
+          : 'Danh sách đơn nghỉ phép'}
       </Button>
 
       {leaveRequestQuery.isLoading ? (
@@ -172,7 +175,9 @@ export function LeaveRequestDetailPage({
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <h2 className="text-2xl font-semibold tracking-tight text-foreground">
-                        {leaveRequest.employee.fullName}
+                        {isEmployeeView
+                          ? leaveTypeLabel[leaveRequest.leaveType]
+                          : leaveRequest.employee.fullName}
                       </h2>
                       <StatusBadge
                         label={statusLabel[leaveRequest.status]}
@@ -181,7 +186,9 @@ export function LeaveRequestDetailPage({
                       />
                     </div>
                     <p className="mt-1 text-sm font-medium text-muted-foreground">
-                      {leaveTypeLabel[leaveRequest.leaveType]}
+                      {isEmployeeView
+                        ? `Đơn của ${leaveRequest.employee.fullName}`
+                        : leaveTypeLabel[leaveRequest.leaveType]}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground">
                       <span>
@@ -232,7 +239,11 @@ export function LeaveRequestDetailPage({
             </CardContent>
           </Card>
 
-          <div className="grid gap-5 xl:grid-cols-3">
+          <div
+            className={`grid gap-5 ${
+              isEmployeeView ? 'lg:grid-cols-2' : 'xl:grid-cols-3'
+            }`}
+          >
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">
@@ -257,21 +268,23 @@ export function LeaveRequestDetailPage({
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Thông tin nhân viên</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="divide-y divide-border">
-                  <DetailField icon={User} label="Họ tên">
-                    {leaveRequest.employee.fullName}
-                  </DetailField>
-                  <DetailField icon={IdCard} label="Mã nhân viên">
-                    {leaveRequest.employee.employeeCode}
-                  </DetailField>
-                </dl>
-              </CardContent>
-            </Card>
+            {!isEmployeeView ? (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Thông tin nhân viên</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="divide-y divide-border">
+                    <DetailField icon={User} label="Họ tên">
+                      {leaveRequest.employee.fullName}
+                    </DetailField>
+                    <DetailField icon={IdCard} label="Mã nhân viên">
+                      {leaveRequest.employee.employeeCode}
+                    </DetailField>
+                  </dl>
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card>
               <CardHeader>

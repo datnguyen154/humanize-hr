@@ -1,11 +1,27 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ClipboardList } from 'lucide-react'
+import {
+  CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Eye,
+} from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { TableRowsSkeleton } from '@/components/ui/skeleton'
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
 import {
   Table,
   TableBody,
@@ -33,10 +49,10 @@ const statusLabel: Record<LeaveRequestStatus, string> = {
   REJECTED: 'Từ chối',
 }
 
-const statusClassName: Record<LeaveRequestStatus, string> = {
-  PENDING: 'border-border bg-secondary text-secondary-foreground',
-  APPROVED: 'border-primary/20 bg-primary/10 text-primary',
-  REJECTED: 'border-destructive/20 bg-destructive/10 text-destructive',
+const statusTone: Record<LeaveRequestStatus, StatusBadgeTone> = {
+  PENDING: 'warning',
+  APPROVED: 'success',
+  REJECTED: 'danger',
 }
 
 const formatDate = (date: string) =>
@@ -58,36 +74,59 @@ export function EmployeeLeaveRequestListPage() {
   const leaveRequests = leaveRequestsQuery.data?.data ?? []
   const meta = leaveRequestsQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
+  const pageSize = meta?.limit ?? 10
+  const totalItems = meta?.totalItems ?? 0
+  const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
+  const toItem = Math.min(page * pageSize, totalItems)
+
+  const navigateToDetail = (id: string) => {
+    navigate(`/employee/leave-requests/${id}`)
+  }
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Đơn nghỉ phép của tôi
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">
+            Đơn nghỉ phép
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Theo dõi các đơn nghỉ phép và trạng thái xét duyệt.
+            Theo dõi trạng thái các yêu cầu nghỉ phép của bạn.
           </p>
         </div>
 
         <Button
           type="button"
+          className="w-full md:w-auto"
           onClick={() => navigate('/employee/leave-requests/create')}
         >
+          <CalendarPlus className="size-4" aria-hidden="true" />
           Tạo đơn nghỉ phép
         </Button>
       </div>
 
-      <Card>
-        <CardHeader>
+      <Card className="border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
+          <CardDescription>
+            Các yêu cầu nghỉ phép đã gửi và trạng thái xử lý.
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {leaveRequestsQuery.isLoading ? (
             <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Loại nghỉ phép</TableHead>
+                  <TableHead>Ngày bắt đầu</TableHead>
+                  <TableHead>Ngày kết thúc</TableHead>
+                  <TableHead className="text-center">Trạng thái</TableHead>
+                  <TableHead>Ngày tạo</TableHead>
+                  <TableHead className="text-right">Thao tác</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
-                <TableRowsSkeleton columns={5} />
+                <TableRowsSkeleton columns={6} />
               </TableBody>
             </Table>
           ) : null}
@@ -108,20 +147,21 @@ export function EmployeeLeaveRequestListPage() {
             <EmptyState
               icon={ClipboardList}
               title="Chưa có đơn nghỉ phép"
-              description="Các yêu cầu nghỉ phép sẽ xuất hiện tại đây."
+              description="Bạn có thể tạo đơn nghỉ phép khi cần xin nghỉ."
             />
           ) : null}
 
           {leaveRequests.length > 0 ? (
             <>
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Loại nghỉ phép</TableHead>
                     <TableHead>Ngày bắt đầu</TableHead>
                     <TableHead>Ngày kết thúc</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead className="text-center">Trạng thái</TableHead>
                     <TableHead>Ngày tạo</TableHead>
+                    <TableHead className="text-right">Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -129,23 +169,37 @@ export function EmployeeLeaveRequestListPage() {
                     <TableRow
                       key={leaveRequest.id}
                       className="cursor-pointer"
-                      onClick={() =>
-                        navigate(`/employee/leave-requests/${leaveRequest.id}`)
-                      }
+                      onClick={() => navigateToDetail(leaveRequest.id)}
                     >
                       <TableCell className="font-medium">
                         {leaveTypeLabel[leaveRequest.leaveType]}
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.startDate)}</TableCell>
                       <TableCell>{formatDate(leaveRequest.endDate)}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-medium ${statusClassName[leaveRequest.status]}`}
-                        >
-                          {statusLabel[leaveRequest.status]}
-                        </span>
+                      <TableCell className="text-center">
+                        <StatusBadge
+                          label={statusLabel[leaveRequest.status]}
+                          tone={statusTone[leaveRequest.status]}
+                          className="font-semibold ring-1 ring-current/10"
+                        />
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.createdAt)}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-muted-foreground hover:text-primary"
+                          aria-label="Xem chi tiết đơn nghỉ phép"
+                          title="Xem chi tiết đơn nghỉ phép"
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            navigateToDetail(leaveRequest.id)
+                          }}
+                        >
+                          <Eye className="size-4" aria-hidden="true" />
+                        </Button>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -153,28 +207,37 @@ export function EmployeeLeaveRequestListPage() {
 
               <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
-                  Trang {page} / {totalPages}
+                  Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} đơn
                 </p>
-                <div className="flex w-full items-center gap-2 sm:w-auto sm:justify-end">
+                <div className="flex items-center gap-2">
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 sm:flex-none"
+                    size="icon"
+                    className="size-8"
                     disabled={!meta?.hasPreviousPage}
+                    aria-label="Trang trước"
+                    title="Trang trước"
                     onClick={() =>
                       setPage((current) => Math.max(1, current - 1))
                     }
                   >
-                    Trước
+                    <ChevronLeft className="size-4" aria-hidden="true" />
                   </Button>
+                  <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+                    Trang {page} / {totalPages}
+                  </span>
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 sm:flex-none"
+                    size="icon"
+                    className="size-8"
                     disabled={!meta?.hasNextPage}
+                    aria-label="Trang sau"
+                    title="Trang sau"
                     onClick={() => setPage((current) => current + 1)}
                   >
-                    Sau
+                    <ChevronRight className="size-4" aria-hidden="true" />
                   </Button>
                 </div>
               </div>

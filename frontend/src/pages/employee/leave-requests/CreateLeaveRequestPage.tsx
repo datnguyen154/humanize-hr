@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { Send } from 'lucide-react'
+import { Loader2, Send } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -116,15 +116,15 @@ export function CreateLeaveRequestPage() {
   }
 
   return (
-    <section className="grid gap-5">
-      <Card>
-        <CardHeader>
+    <section className="mx-auto w-full max-w-3xl">
+      <Card className="border-border shadow-sm">
+        <CardHeader className="border-b border-border">
           <CardTitle className="text-lg">Tạo đơn nghỉ phép</CardTitle>
           <CardDescription>
-            Nhập thông tin thời gian nghỉ và lý do nghỉ phép của bạn.
+            Nhập thời gian và lý do nghỉ phép của bạn.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <form className="grid gap-6" onSubmit={handleSubmit(onSubmit)}>
             {formError ? (
               <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
@@ -211,17 +211,21 @@ export function CreateLeaveRequestPage() {
               <Button
                 type="button"
                 variant="outline"
-                className="sm:w-auto"
+                className="w-full sm:w-auto"
                 onClick={() => navigate('/employee/leave-requests')}
               >
                 Hủy
               </Button>
               <Button
                 type="submit"
-                className="inline-flex min-w-[160px] items-center justify-center gap-2 sm:w-auto"
+                className="inline-flex w-full items-center justify-center gap-2 sm:w-[190px]"
                 disabled={createLeaveRequestMutation.isPending}
               >
-                <Send className="size-4" aria-hidden="true" />
+                {createLeaveRequestMutation.isPending ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Send className="size-4" aria-hidden="true" />
+                )}
                 {createLeaveRequestMutation.isPending
                   ? 'Đang gửi...'
                   : 'Gửi đơn nghỉ phép'}
