@@ -1,7 +1,6 @@
 import {
   CalendarDays,
   LayoutDashboard,
-  LockKeyhole,
   LogOut,
   UserRound,
   type LucideIcon,
@@ -28,11 +27,6 @@ const employeeMenuItems: EmployeeMenuItem[] = [
     label: 'Hồ sơ cá nhân',
     path: '/employee/profile',
     icon: UserRound,
-  },
-  {
-    label: 'Đổi mật khẩu',
-    path: '/employee/change-password',
-    icon: LockKeyhole,
   },
   {
     label: 'Đơn nghỉ phép',

@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { getEmployeeDashboard } from '../api/employee-dashboard.api'
 import type { EmployeeDashboardQueryResult } from '../types/employee-dashboard.types'
 
-const employeeDashboardQueryKey = ['employee-dashboard'] as const
+export const employeeDashboardQueryKey = ['employee-dashboard'] as const
 
 export function useEmployeeDashboardQuery(): EmployeeDashboardQueryResult {
   const employeeDashboardQuery = useQuery({

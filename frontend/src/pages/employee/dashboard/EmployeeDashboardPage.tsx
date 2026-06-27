@@ -1,21 +1,35 @@
+import { useQueryClient } from '@tanstack/react-query'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useEmployeeDashboardQuery } from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useCheckInMutation } from '@/features/attendance/hooks/useCheckInMutation'
+import { useCheckOutMutation } from '@/features/attendance/hooks/useCheckOutMutation'
+import { attendanceQueryKeys } from '@/features/attendance/hooks/useAttendanceHistoryQuery'
+import { getAttendanceErrorMessage } from '@/features/attendance/lib/attendance-error'
+import {
+  employeeDashboardQueryKey,
+  useEmployeeDashboardQuery,
+} from '@/features/dashboard/hooks/useEmployeeDashboardQuery'
 import { useMyEmployeeProfileQuery } from '@/features/employee'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 
+import { EmployeeAttendanceWidget } from './components/EmployeeAttendanceWidget'
 import { EmployeeDashboardHeader } from './components/EmployeeDashboardHeader'
 import {
   EmployeeDashboardKpiSkeleton,
   RecentActivitiesSkeleton,
-  TodayAttendanceSkeleton,
 } from './components/EmployeeDashboardSkeleton'
 import { EmployeeKpiCards } from './components/EmployeeKpiCards'
 import { EmployeeQuickActions } from './components/EmployeeQuickActions'
 import { RecentActivitiesCard } from './components/RecentActivitiesCard'
-import { TodayAttendanceCard } from './components/TodayAttendanceCard'
+import { resolveWorkingStatus } from './components/employee-dashboard.mappers'
 
 export function EmployeeDashboardPage() {
+  const queryClient = useQueryClient()
   const employeeProfileQuery = useMyEmployeeProfileQuery()
+  const checkInMutation = useCheckInMutation()
+  const checkOutMutation = useCheckOutMutation()
   const {
     todayAttendance,
     attendanceSummary,
@@ -27,9 +41,63 @@ export function EmployeeDashboardPage() {
     refetch,
   } = useEmployeeDashboardQuery()
 
+  const refreshAttendanceData = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: employeeDashboardQueryKey }),
+      queryClient.invalidateQueries({ queryKey: attendanceQueryKeys.all }),
+    ])
+  }
+
+  const handleCheckIn = async () => {
+    try {
+      await checkInMutation.mutateAsync()
+      await refreshAttendanceData()
+      showSuccessToast(
+        'Thời gian vào làm đã được ghi nhận.',
+        'Chấm công vào thành công',
+      )
+    } catch (error) {
+      showErrorToast(
+        getAttendanceErrorMessage(error, 'check-in'),
+        'Không thể check in',
+      )
+    }
+  }
+
+  const handleCheckOut = async () => {
+    try {
+      await checkOutMutation.mutateAsync()
+      await refreshAttendanceData()
+      showSuccessToast(
+        'Thời gian ra về đã được ghi nhận.',
+        'Chấm công ra thành công',
+      )
+    } catch (error) {
+      showErrorToast(
+        getAttendanceErrorMessage(error, 'check-out'),
+        'Không thể check out',
+      )
+    }
+  }
+
   return (
     <section className="grid gap-4">
-      <EmployeeDashboardHeader fullName={employeeProfileQuery.data?.fullName} />
+      <EmployeeDashboardHeader fullName={employeeProfileQuery.data?.fullName}>
+        {isLoading ? (
+          <Skeleton className="h-[118px] w-full sm:w-[310px]" />
+        ) : !isError ? (
+          <EmployeeAttendanceWidget
+            workingStatus={resolveWorkingStatus(todayAttendance)}
+            status={todayAttendance?.status}
+            checkInTime={todayAttendance?.checkInTime}
+            checkOutTime={todayAttendance?.checkOutTime}
+            isCheckingIn={checkInMutation.isPending}
+            isCheckingOut={checkOutMutation.isPending}
+            onCheckIn={handleCheckIn}
+            onCheckOut={handleCheckOut}
+          />
+        ) : null}
+      </EmployeeDashboardHeader>
 
       {isError ? (
         <Card>
@@ -59,18 +127,7 @@ export function EmployeeDashboardPage() {
         />
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="lg:col-span-4">
-          <EmployeeQuickActions />
-        </div>
-        <div className="lg:col-span-8">
-          {isLoading ? (
-            <TodayAttendanceSkeleton />
-          ) : !isError ? (
-            <TodayAttendanceCard todayAttendance={todayAttendance} />
-          ) : null}
-        </div>
-      </div>
+      <EmployeeQuickActions />
 
       {isLoading ? (
         <RecentActivitiesSkeleton />

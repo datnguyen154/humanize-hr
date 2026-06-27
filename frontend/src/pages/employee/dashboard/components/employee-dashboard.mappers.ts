@@ -51,7 +51,7 @@ export const getTodayAttendanceLabel = (
   return attendanceStatusLabel[todayAttendance.status] ?? todayAttendance.status
 }
 
-const resolveWorkingStatus = (
+export const resolveWorkingStatus = (
   todayAttendance: EmployeeDashboardTodayAttendance | null | undefined,
 ): EmployeeDashboardWorkingStatus => {
   if (todayAttendance?.workingStatus) {

@@ -1,4 +1,5 @@
 import {
+  CalendarDays,
   ChevronRight,
   ClipboardList,
   FilePlus2,
@@ -17,6 +18,12 @@ type QuickAction = {
 }
 
 const quickActions: QuickAction[] = [
+  {
+    label: 'Lịch sử chấm công',
+    description: 'Xem lịch sử vào và ra',
+    path: '/employee/attendance',
+    icon: CalendarDays,
+  },
   {
     label: 'Tạo đơn nghỉ phép',
     description: 'Gửi yêu cầu nghỉ phép',

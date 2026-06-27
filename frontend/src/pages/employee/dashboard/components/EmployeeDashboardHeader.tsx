@@ -1,14 +1,13 @@
-import { CalendarCheck } from 'lucide-react'
-import { Link } from 'react-router-dom'
-
-import { Button } from '@/components/ui/button'
+import type { ReactNode } from 'react'
 
 type EmployeeDashboardHeaderProps = {
   fullName?: string
+  children?: ReactNode
 }
 
 export function EmployeeDashboardHeader({
   fullName,
+  children,
 }: EmployeeDashboardHeaderProps) {
   const displayName = fullName?.trim() || 'Nhân viên'
 
@@ -23,12 +22,7 @@ export function EmployeeDashboardHeader({
         </p>
       </div>
 
-      <Button asChild className="w-full shrink-0 gap-2 sm:w-auto">
-        <Link to="/employee/attendance">
-          <CalendarCheck className="size-4" aria-hidden="true" />
-          Chấm công
-        </Link>
-      </Button>
+      {children}
     </header>
   )
 }

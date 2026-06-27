@@ -3,14 +3,18 @@ import {
   Briefcase,
   Building2,
   CalendarDays,
+  ChevronRight,
   CircleDot,
   IdCard,
   Mail,
   Phone,
+  ShieldCheck,
   type LucideIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { DetailPageSkeleton } from '@/components/ui/skeleton'
 import {
@@ -190,6 +194,38 @@ export function EmployeeProfilePage() {
               </CardContent>
             </Card>
           </div>
+
+          <Card className="border-border shadow-sm">
+            <CardContent className="p-6">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-primary">
+                    <ShieldCheck className="size-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="text-base font-semibold text-foreground">
+                      Bảo mật tài khoản
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Quản lý mật khẩu và bảo vệ tài khoản nhân viên của bạn.
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  asChild
+                  type="button"
+                  variant="outline"
+                  className="w-full shrink-0 sm:w-auto"
+                >
+                  <Link to="/employee/change-password">
+                    Đổi mật khẩu
+                    <ChevronRight className="size-4" aria-hidden="true" />
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
 
           <p className="text-sm text-muted-foreground">
             Liên hệ bộ phận nhân sự nếu thông tin của bạn chưa chính xác.

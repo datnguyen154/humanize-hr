@@ -16,22 +16,6 @@ export function EmployeeDashboardKpiSkeleton() {
   )
 }
 
-export function TodayAttendanceSkeleton() {
-  return (
-    <Card>
-      <CardContent className="grid gap-3 p-4">
-        <Skeleton className="h-4 w-36" />
-        <Skeleton className="h-7 w-40" />
-        <div className="grid gap-2 sm:grid-cols-3">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-4 w-24" />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 export function RecentActivitiesSkeleton() {
   return (
     <Card>
