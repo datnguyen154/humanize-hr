@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export function EmployeeDashboardKpiSkeleton() {
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid h-full auto-rows-fr gap-4 sm:grid-cols-2">
       {Array.from({ length: 4 }).map((_, index) => (
         <Card key={index}>
           <CardContent className="p-4">

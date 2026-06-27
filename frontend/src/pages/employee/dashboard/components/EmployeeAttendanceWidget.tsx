@@ -1,10 +1,6 @@
 import { Loader2, LogIn, LogOut } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import {
-  StatusBadge,
-  type StatusBadgeTone,
-} from '@/components/ui/status-badge'
 import type { AttendanceStatus } from '@/features/attendance/types/attendance.types'
 import type { EmployeeDashboardWorkingStatus } from '@/features/dashboard/types/employee-dashboard.types'
 
@@ -19,101 +15,40 @@ type EmployeeAttendanceWidgetProps = {
   onCheckOut: () => void
 }
 
-const workingStatusLabels: Record<EmployeeDashboardWorkingStatus, string> = {
-  NOT_CHECKED_IN: 'Chưa chấm công',
-  WORKING: 'Đã chấm công',
-  CHECKED_OUT: 'Đã hoàn thành',
-}
-
-const attendanceStatusLabels: Record<AttendanceStatus, string> = {
-  PRESENT: 'Đúng giờ',
-  LATE: 'Đi muộn',
-}
-
-const attendanceStatusTones: Record<AttendanceStatus, StatusBadgeTone> = {
-  PRESENT: 'success',
-  LATE: 'warning',
-}
-
-const helperText: Record<EmployeeDashboardWorkingStatus, string> = {
-  NOT_CHECKED_IN: 'Bạn chưa chấm công hôm nay.',
-  WORKING: 'Bạn đang trong giờ làm việc. Vui lòng check out khi tan làm.',
-  CHECKED_OUT: 'Bạn đã hoàn tất chấm công hôm nay.',
-}
-
-const formatTime = (value: string | null | undefined) => {
-  if (!value) {
-    return '--:--'
-  }
-
-  return new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-    timeZone: 'Asia/Bangkok',
-  }).format(new Date(value))
-}
-
 export function EmployeeAttendanceWidget({
   workingStatus = 'NOT_CHECKED_IN',
-  status,
-  checkInTime,
-  checkOutTime,
   isCheckingIn,
   isCheckingOut,
   onCheckIn,
   onCheckOut,
 }: EmployeeAttendanceWidgetProps) {
   const isUpdating = isCheckingIn || isCheckingOut
-  const isCompleted = workingStatus === 'CHECKED_OUT'
+  const hasCheckedIn = workingStatus !== 'NOT_CHECKED_IN'
 
   return (
-    <div className="w-full rounded-xl border border-border bg-card p-4 shadow-sm transition-colors lg:w-[360px] lg:shrink-0">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Trạng thái hiện tại
-          </p>
-          <div className="mt-2 flex items-center gap-2 text-base font-semibold text-foreground">
-            <span
-              className={`size-2 shrink-0 rounded-full ${
-                workingStatus === 'NOT_CHECKED_IN'
-                  ? 'bg-muted-foreground/50'
-                  : 'bg-primary'
-              }`}
-              aria-hidden="true"
-            />
-            <span>{workingStatusLabels[workingStatus]}</span>
-          </div>
-        </div>
-
-        {status ? (
-          <StatusBadge
-            label={attendanceStatusLabels[status]}
-            tone={attendanceStatusTones[status]}
+    <div className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition-colors lg:w-[320px] lg:shrink-0">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Trạng thái hiện tại
+        </p>
+        <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-foreground sm:text-base">
+          <span
+            className={`size-2 shrink-0 rounded-full ${
+              hasCheckedIn ? 'bg-primary' : 'bg-muted-foreground/50'
+            }`}
+            aria-hidden="true"
           />
-        ) : null}
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3">
-        <div>
-          <p className="text-xs text-muted-foreground">Vào</p>
-          <p className="mt-1 text-sm font-medium text-foreground">
-            {formatTime(checkInTime)}
-          </p>
-        </div>
-        <div className="border-l border-border pl-3">
-          <p className="text-xs text-muted-foreground">Ra</p>
-          <p className="mt-1 text-sm font-medium text-foreground">
-            {formatTime(checkOutTime)}
-          </p>
+          <span className="truncate">
+            {hasCheckedIn ? 'Đã chấm công' : 'Chưa chấm công'}
+          </span>
         </div>
       </div>
 
       {workingStatus === 'NOT_CHECKED_IN' ? (
         <Button
           type="button"
-          className="mt-3 h-9 w-full"
+          size="sm"
+          className="w-[132px] shrink-0"
           disabled={isUpdating}
           onClick={onCheckIn}
         >
@@ -129,7 +64,8 @@ export function EmployeeAttendanceWidget({
       {workingStatus === 'WORKING' ? (
         <Button
           type="button"
-          className="mt-3 h-9 w-full"
+          size="sm"
+          className="w-[132px] shrink-0"
           disabled={isUpdating}
           onClick={onCheckOut}
         >
@@ -142,20 +78,17 @@ export function EmployeeAttendanceWidget({
         </Button>
       ) : null}
 
-      {isCompleted ? (
+      {workingStatus === 'CHECKED_OUT' ? (
         <Button
           type="button"
+          size="sm"
           variant="secondary"
-          className="mt-3 h-9 w-full"
+          className="w-[132px] shrink-0"
           disabled
         >
-          Đã hoàn thành
+          Đã xong
         </Button>
       ) : null}
-
-      <p className="mt-2 text-xs text-muted-foreground">
-        {helperText[workingStatus]}
-      </p>
     </div>
   )
 }

@@ -65,7 +65,7 @@ export function EmployeeKpiCards({
       : todayAttendanceCard.workingStatus
 
   return (
-    <div className="grid items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid h-full auto-rows-fr items-stretch gap-4 sm:grid-cols-2">
       {kpiCards.map((item) => {
         const Icon = kpiIconMap[item.label] ?? Clock3
         const isTodayStatus = item.label === 'Trạng thái hôm nay'

@@ -84,7 +84,7 @@ export function EmployeeDashboardPage() {
     <section className="grid gap-4">
       <EmployeeDashboardHeader fullName={employeeProfileQuery.data?.fullName}>
         {isLoading ? (
-          <Skeleton className="h-[210px] w-full rounded-xl lg:w-[360px]" />
+          <Skeleton className="h-[70px] w-full rounded-xl lg:w-[320px]" />
         ) : !isError ? (
           <EmployeeAttendanceWidget
             workingStatus={resolveWorkingStatus(todayAttendance)}
@@ -117,17 +117,23 @@ export function EmployeeDashboardPage() {
         </Card>
       ) : null}
 
-      {isLoading ? (
-        <EmployeeDashboardKpiSkeleton />
-      ) : !isError ? (
-        <EmployeeKpiCards
-          todayAttendance={todayAttendance}
-          attendanceSummary={attendanceSummary}
-          leaveSummary={leaveSummary}
-        />
-      ) : null}
+      <div className="grid gap-4 lg:grid-cols-12 lg:items-stretch">
+        <div className="min-w-0 lg:col-span-5">
+          <EmployeeQuickActions />
+        </div>
 
-      <EmployeeQuickActions />
+        <div className="min-w-0 lg:col-span-7">
+          {isLoading ? (
+            <EmployeeDashboardKpiSkeleton />
+          ) : !isError ? (
+            <EmployeeKpiCards
+              todayAttendance={todayAttendance}
+              attendanceSummary={attendanceSummary}
+              leaveSummary={leaveSummary}
+            />
+          ) : null}
+        </div>
+      </div>
 
       {isLoading ? (
         <RecentActivitiesSkeleton />
