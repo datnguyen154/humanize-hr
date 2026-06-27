@@ -7,12 +7,12 @@ import {
   IdCard,
   Mail,
   Phone,
-  User,
   type LucideIcon,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DetailPageSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -53,10 +53,22 @@ function ProfileField({ icon: Icon, label, children }: ProfileFieldProps) {
 
 const getProfileErrorMessage = (error: unknown) => {
   if (error instanceof AxiosError && error.response?.status === 404) {
-    return 'Chưa tìm thấy hồ sơ nhân viên được liên kết với tài khoản này'
+    return 'Chưa tìm thấy hồ sơ nhân viên được liên kết với tài khoản này.'
   }
 
-  return 'Không thể tải hồ sơ cá nhân'
+  return 'Không thể tải hồ sơ cá nhân.'
+}
+
+const getAvatarFallback = (fullName: string) => {
+  const initials = fullName
+    .trim()
+    .split(/\s+/)
+    .slice(-2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase()
+
+  return initials || 'NV'
 }
 
 export function EmployeeProfilePage() {
@@ -64,24 +76,22 @@ export function EmployeeProfilePage() {
   const profile = profileQuery.data
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <div>
-        <h2 className="text-2xl font-bold text-foreground">Hồ sơ cá nhân</h2>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          Hồ sơ cá nhân
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Thông tin nhân viên được liên kết với tài khoản của bạn.
+          Xem thông tin cá nhân và công việc của bạn trong hệ thống.
         </p>
       </div>
 
       {profileQuery.isLoading ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            Đang tải hồ sơ cá nhân...
-          </CardContent>
-        </Card>
+        <DetailPageSkeleton fieldsPerCard={3} />
       ) : null}
 
       {profileQuery.isError ? (
-        <Card>
+        <Card className="border-border shadow-sm">
           <CardContent className="py-12 text-center text-destructive">
             {getProfileErrorMessage(profileQuery.error)}
           </CardContent>
@@ -90,66 +100,100 @@ export function EmployeeProfilePage() {
 
       {profile ? (
         <>
-          <Card>
+          <Card className="border-border shadow-sm">
             <CardContent className="p-6">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-lg font-semibold text-primary">
-                  <User className="size-7" aria-hidden="true" />
+              <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
+                <div className="flex size-20 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl font-semibold text-primary ring-4 ring-primary/5">
+                  {getAvatarFallback(profile.fullName)}
                 </div>
-                <div className="min-w-0">
+
+                <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <h3 className="text-xl font-semibold text-foreground">
-                      {profile.fullName}
+                    <h3 className="text-2xl font-semibold tracking-tight text-foreground">
+                      {profile.fullName || 'Chưa cập nhật'}
                     </h3>
                     <StatusBadge
                       label={employeeStatusLabel[profile.status]}
                       tone={employeeStatusTone[profile.status]}
                     />
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {profile.position}
+
+                  <p className="mt-1 text-sm font-medium text-muted-foreground">
+                    {profile.position || 'Chưa cập nhật'}
                   </p>
+
+                  <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                    <span>
+                      Mã nhân viên:{' '}
+                      <span className="font-medium text-foreground">
+                        {profile.employeeCode || 'Chưa cập nhật'}
+                      </span>
+                    </span>
+                    <span>
+                      Phòng ban:{' '}
+                      <span className="font-medium text-foreground">
+                        {profile.department?.name || 'Chưa cập nhật'}
+                      </span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Thông tin hồ sơ</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="divide-y divide-border">
-                <ProfileField icon={IdCard} label="Mã nhân viên">
-                  {profile.employeeCode}
-                </ProfileField>
-                <ProfileField icon={User} label="Họ tên">
-                  {profile.fullName}
-                </ProfileField>
-                <ProfileField icon={Mail} label="Email">
-                  <span className="break-all">{profile.email}</span>
-                </ProfileField>
-                <ProfileField icon={Phone} label="Số điện thoại">
-                  {profile.phone || 'Chưa cập nhật'}
-                </ProfileField>
-                <ProfileField icon={Building2} label="Phòng ban">
-                  {profile.department?.name ?? 'Chưa cập nhật'}
-                </ProfileField>
-                <ProfileField icon={Briefcase} label="Chức vụ">
-                  {profile.position}
-                </ProfileField>
-                <ProfileField icon={CircleDot} label="Trạng thái">
-                  <StatusBadge
-                    label={employeeStatusLabel[profile.status]}
-                    tone={employeeStatusTone[profile.status]}
-                  />
-                </ProfileField>
-                <ProfileField icon={CalendarDays} label="Ngày vào làm">
-                  {formatEmployeeDate(profile.joinedAt)}
-                </ProfileField>
-              </dl>
-            </CardContent>
-          </Card>
+          <div className="grid gap-5 lg:grid-cols-2">
+            <Card className="border-border shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Thông tin cá nhân</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                  <ProfileField icon={Mail} label="Email">
+                    <span className="break-all">
+                      {profile.email || 'Chưa cập nhật'}
+                    </span>
+                  </ProfileField>
+                  <ProfileField icon={Phone} label="Số điện thoại">
+                    {profile.phone || 'Chưa cập nhật'}
+                  </ProfileField>
+                </dl>
+              </CardContent>
+            </Card>
+
+            <Card className="border-border shadow-sm">
+              <CardHeader>
+                <CardTitle className="text-lg">Thông tin công việc</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="divide-y divide-border">
+                  <ProfileField icon={IdCard} label="Mã nhân viên">
+                    {profile.employeeCode || 'Chưa cập nhật'}
+                  </ProfileField>
+                  <ProfileField icon={Building2} label="Phòng ban">
+                    {profile.department?.name || 'Chưa cập nhật'}
+                  </ProfileField>
+                  <ProfileField icon={Briefcase} label="Chức vụ">
+                    {profile.position || 'Chưa cập nhật'}
+                  </ProfileField>
+                  <ProfileField icon={CalendarDays} label="Ngày vào làm">
+                    {profile.joinedAt
+                      ? formatEmployeeDate(profile.joinedAt)
+                      : 'Chưa cập nhật'}
+                  </ProfileField>
+                  <ProfileField icon={CircleDot} label="Trạng thái">
+                    <StatusBadge
+                      label={employeeStatusLabel[profile.status]}
+                      tone={employeeStatusTone[profile.status]}
+                    />
+                  </ProfileField>
+                </dl>
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-sm text-muted-foreground">
+            Liên hệ bộ phận nhân sự nếu thông tin của bạn chưa chính xác.
+          </p>
         </>
       ) : null}
     </section>
