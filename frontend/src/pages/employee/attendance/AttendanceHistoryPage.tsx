@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  Loader2,
   LogIn,
   LogOut,
 } from 'lucide-react'
@@ -19,7 +20,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
-import { TableRowsSkeleton } from '@/components/ui/skeleton'
+import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -47,6 +48,12 @@ const attendanceStatusLabel: Record<AttendanceStatus, string> = {
 const attendanceStatusTone: Record<AttendanceStatus, StatusBadgeTone> = {
   PRESENT: 'success',
   LATE: 'warning',
+}
+
+const workStatusTone: Record<string, StatusBadgeTone> = {
+  'Chưa chấm công': 'neutral',
+  'Đang làm việc': 'warning',
+  'Đã hoàn thành': 'success',
 }
 
 const formatDate = (date: string) =>
@@ -101,13 +108,22 @@ export function AttendanceHistoryPage() {
   const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
   const toItem = Math.min(page * pageSize, totalItems)
   const isUpdating = checkInMutation.isPending || checkOutMutation.isPending
+  const today = formatDate(new Date().toISOString())
+  const todayAttendance = attendanceRecords.find(
+    (attendance) => formatDate(attendance.attendanceDate) === today,
+  )
+  const currentWorkStatus = !todayAttendance?.checkInTime
+    ? 'Chưa chấm công'
+    : todayAttendance.checkOutTime
+      ? 'Đã hoàn thành'
+      : 'Đang làm việc'
 
   const handleCheckIn = async () => {
     try {
       await checkInMutation.mutateAsync()
       showSuccessToast(
         'Thời gian vào làm đã được ghi nhận.',
-        'Check in thành công',
+        'Chấm công vào thành công',
       )
     } catch (error) {
       const message = getAttendanceErrorMessage(error, 'check-in')
@@ -126,7 +142,7 @@ export function AttendanceHistoryPage() {
       await checkOutMutation.mutateAsync()
       showSuccessToast(
         'Thời gian ra về đã được ghi nhận.',
-        'Check out thành công',
+        'Chấm công ra thành công',
       )
     } catch (error) {
       const message = getAttendanceErrorMessage(error, 'check-out')
@@ -141,7 +157,7 @@ export function AttendanceHistoryPage() {
   }
 
   return (
-    <section className="grid gap-5">
+    <section className="grid gap-6">
       <Link
         to="/employee/dashboard"
         className="inline-flex w-fit items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -150,13 +166,22 @@ export function AttendanceHistoryPage() {
         Quay lại tổng quan
       </Link>
 
-      <Card>
-        <CardHeader className="gap-4">
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          Chấm công
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Theo dõi thời gian vào, ra và lịch sử chấm công của bạn.
+        </p>
+      </div>
+
+      <Card className="border-border shadow-sm">
+        <CardHeader className="gap-4 border-b border-border">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="grid gap-1.5">
-              <CardTitle className="text-lg">Lịch sử chấm công</CardTitle>
+              <CardTitle className="text-lg">Chấm công hôm nay</CardTitle>
               <CardDescription>
-                Theo dõi thời gian vào, ra và trạng thái chấm công của bạn.
+                Ghi nhận thời gian làm việc trong ngày.
               </CardDescription>
             </div>
 
@@ -167,7 +192,11 @@ export function AttendanceHistoryPage() {
                 disabled={isUpdating}
                 onClick={handleCheckIn}
               >
-                <LogIn className="h-4 w-4" aria-hidden="true" />
+                {checkInMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <LogIn className="h-4 w-4" aria-hidden="true" />
+                )}
                 Chấm công vào
               </Button>
               <Button
@@ -177,15 +206,111 @@ export function AttendanceHistoryPage() {
                 disabled={isUpdating}
                 onClick={handleCheckOut}
               >
-                <LogOut className="h-4 w-4" aria-hidden="true" />
+                {checkOutMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <LogOut className="h-4 w-4" aria-hidden="true" />
+                )}
                 Chấm công ra
               </Button>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6">
+          {attendanceQuery.isLoading ? (
+            <div className="grid gap-4 md:grid-cols-3">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 rounded-lg border border-border p-4"
+                >
+                  <Skeleton className="size-9 shrink-0 rounded-lg" />
+                  <div className="grid flex-1 gap-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-7 w-28" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Clock3 className="size-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Trạng thái hiện tại
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <StatusBadge
+                      label={currentWorkStatus}
+                      tone={workStatusTone[currentWorkStatus]}
+                    />
+                    {todayAttendance ? (
+                      <StatusBadge
+                        label={attendanceStatusLabel[todayAttendance.status]}
+                        tone={attendanceStatusTone[todayAttendance.status]}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <LogIn className="size-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Giờ vào
+                  </p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                    {todayAttendance?.checkInTime
+                      ? formatTime(todayAttendance.checkInTime)
+                      : '--:--'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-lg border border-border p-4">
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <LogOut className="size-4" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    Giờ ra
+                  </p>
+                  <p className="mt-2 text-2xl font-bold tracking-tight text-foreground">
+                    {todayAttendance?.checkOutTime
+                      ? formatTime(todayAttendance.checkOutTime)
+                      : '--:--'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="border-border shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-lg">Lịch sử chấm công</CardTitle>
+          <CardDescription>
+            Theo dõi các lần chấm công trước đây của bạn.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="pt-6">
           {attendanceQuery.isLoading ? (
             <Table>
+              <TableHeader className="bg-muted/50">
+                <TableRow>
+                  <TableHead>Ngày</TableHead>
+                  <TableHead>Giờ vào</TableHead>
+                  <TableHead>Giờ ra</TableHead>
+                  <TableHead className="text-center">Trạng thái</TableHead>
+                </TableRow>
+              </TableHeader>
               <TableBody>
                 <TableRowsSkeleton columns={4} />
               </TableBody>
@@ -208,14 +333,14 @@ export function AttendanceHistoryPage() {
             <EmptyState
               icon={Clock3}
               title="Chưa có dữ liệu chấm công"
-              description="Thông tin chấm công sẽ xuất hiện sau khi nhân viên thực hiện check-in."
+              description="Thông tin chấm công sẽ xuất hiện sau khi bạn thực hiện chấm công."
             />
           ) : null}
 
           {attendanceRecords.length > 0 ? (
             <>
               <Table>
-                <TableHeader>
+                <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Ngày</TableHead>
                     <TableHead>Giờ vào</TableHead>
@@ -233,7 +358,7 @@ export function AttendanceHistoryPage() {
                       <TableCell>
                         {attendance.checkOutTime
                           ? formatTime(attendance.checkOutTime)
-                          : 'Chưa chấm công ra'}
+                          : '--:--'}
                       </TableCell>
                       <TableCell className="text-center">
                         <StatusBadge
