@@ -84,7 +84,7 @@ export function EmployeeDashboardPage() {
     <section className="grid gap-4">
       <EmployeeDashboardHeader fullName={employeeProfileQuery.data?.fullName}>
         {isLoading ? (
-          <Skeleton className="h-[118px] w-full sm:w-[310px]" />
+          <Skeleton className="h-[210px] w-full rounded-xl lg:w-[360px]" />
         ) : !isError ? (
           <EmployeeAttendanceWidget
             workingStatus={resolveWorkingStatus(todayAttendance)}

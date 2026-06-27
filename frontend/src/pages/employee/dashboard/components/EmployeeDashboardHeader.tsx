@@ -12,7 +12,7 @@ export function EmployeeDashboardHeader({
   const displayName = fullName?.trim() || 'Nhân viên'
 
   return (
-    <header className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <header className="mb-4 flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
       <div className="min-w-0">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">
           👋 Chào mừng trở lại, {displayName}

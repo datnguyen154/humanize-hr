@@ -1,6 +1,10 @@
-import { Clock3, Loader2, LogIn, LogOut } from 'lucide-react'
+import { Loader2, LogIn, LogOut } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import {
+  StatusBadge,
+  type StatusBadgeTone,
+} from '@/components/ui/status-badge'
 import type { AttendanceStatus } from '@/features/attendance/types/attendance.types'
 import type { EmployeeDashboardWorkingStatus } from '@/features/dashboard/types/employee-dashboard.types'
 
@@ -24,6 +28,17 @@ const workingStatusLabels: Record<EmployeeDashboardWorkingStatus, string> = {
 const attendanceStatusLabels: Record<AttendanceStatus, string> = {
   PRESENT: 'Đúng giờ',
   LATE: 'Đi muộn',
+}
+
+const attendanceStatusTones: Record<AttendanceStatus, StatusBadgeTone> = {
+  PRESENT: 'success',
+  LATE: 'warning',
+}
+
+const helperText: Record<EmployeeDashboardWorkingStatus, string> = {
+  NOT_CHECKED_IN: 'Bạn chưa chấm công hôm nay.',
+  WORKING: 'Bạn đang trong giờ làm việc. Vui lòng check out khi tan làm.',
+  CHECKED_OUT: 'Bạn đã hoàn tất chấm công hôm nay.',
 }
 
 const formatTime = (value: string | null | undefined) => {
@@ -50,31 +65,55 @@ export function EmployeeAttendanceWidget({
   onCheckOut,
 }: EmployeeAttendanceWidgetProps) {
   const isUpdating = isCheckingIn || isCheckingOut
+  const isCompleted = workingStatus === 'CHECKED_OUT'
 
   return (
-    <div className="flex w-full flex-col gap-3 rounded-lg border border-border bg-card p-3 shadow-sm sm:w-auto sm:min-w-[310px]">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <Clock3 className="size-4 text-primary" aria-hidden="true" />
-          <span className="text-sm font-semibold text-foreground">
-            {workingStatusLabels[workingStatus]}
-          </span>
+    <div className="w-full rounded-xl border border-border bg-card p-4 shadow-sm transition-colors lg:w-[360px] lg:shrink-0">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            Trạng thái hiện tại
+          </p>
+          <div className="mt-2 flex items-center gap-2 text-base font-semibold text-foreground">
+            <span
+              className={`size-2 shrink-0 rounded-full ${
+                workingStatus === 'NOT_CHECKED_IN'
+                  ? 'bg-muted-foreground/50'
+                  : 'bg-primary'
+              }`}
+              aria-hidden="true"
+            />
+            <span>{workingStatusLabels[workingStatus]}</span>
+          </div>
         </div>
-        <span className="text-xs text-muted-foreground">
-          {status ? attendanceStatusLabels[status] : 'Chưa có trạng thái'}
-        </span>
+
+        {status ? (
+          <StatusBadge
+            label={attendanceStatusLabels[status]}
+            tone={attendanceStatusTones[status]}
+          />
+        ) : null}
       </div>
 
-      <div className="flex items-center justify-between gap-4 text-xs text-muted-foreground">
-        <span>Vào: {formatTime(checkInTime)}</span>
-        <span>Ra: {formatTime(checkOutTime)}</span>
+      <div className="mt-3 grid grid-cols-2 gap-3 rounded-lg bg-muted/40 p-3">
+        <div>
+          <p className="text-xs text-muted-foreground">Vào</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {formatTime(checkInTime)}
+          </p>
+        </div>
+        <div className="border-l border-border pl-3">
+          <p className="text-xs text-muted-foreground">Ra</p>
+          <p className="mt-1 text-sm font-medium text-foreground">
+            {formatTime(checkOutTime)}
+          </p>
+        </div>
       </div>
 
       {workingStatus === 'NOT_CHECKED_IN' ? (
         <Button
           type="button"
-          size="sm"
-          className="gap-2"
+          className="mt-3 h-9 w-full"
           disabled={isUpdating}
           onClick={onCheckIn}
         >
@@ -83,16 +122,14 @@ export function EmployeeAttendanceWidget({
           ) : (
             <LogIn className="size-4" aria-hidden="true" />
           )}
-          Check In
+          {isCheckingIn ? 'Đang xử lý...' : 'Check In'}
         </Button>
       ) : null}
 
       {workingStatus === 'WORKING' ? (
         <Button
           type="button"
-          size="sm"
-          variant="outline"
-          className="gap-2"
+          className="mt-3 h-9 w-full"
           disabled={isUpdating}
           onClick={onCheckOut}
         >
@@ -101,15 +138,24 @@ export function EmployeeAttendanceWidget({
           ) : (
             <LogOut className="size-4" aria-hidden="true" />
           )}
-          Check Out
+          {isCheckingOut ? 'Đang xử lý...' : 'Check Out'}
         </Button>
       ) : null}
 
-      {workingStatus === 'CHECKED_OUT' ? (
-        <Button type="button" size="sm" variant="outline" disabled>
+      {isCompleted ? (
+        <Button
+          type="button"
+          variant="secondary"
+          className="mt-3 h-9 w-full"
+          disabled
+        >
           Đã hoàn thành
         </Button>
       ) : null}
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        {helperText[workingStatus]}
+      </p>
     </div>
   )
 }
