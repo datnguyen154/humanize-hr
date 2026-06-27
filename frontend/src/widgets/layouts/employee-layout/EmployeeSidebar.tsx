@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  Clock3,
   LayoutDashboard,
   LogOut,
   UserRound,
@@ -27,6 +28,11 @@ const employeeMenuItems: EmployeeMenuItem[] = [
     label: 'Hồ sơ cá nhân',
     path: '/employee/profile',
     icon: UserRound,
+  },
+  {
+    label: 'Chấm công',
+    path: '/employee/attendance',
+    icon: Clock3,
   },
   {
     label: 'Đơn nghỉ phép',
