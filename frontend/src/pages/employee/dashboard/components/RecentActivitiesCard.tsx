@@ -7,12 +7,21 @@ import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { getActivityIcon } from '@/features/dashboard/lib/employee-dashboard-activity'
 import type { EmployeeDashboardRecentActivity } from '@/features/dashboard/types/employee-dashboard.types'
+import type { EmployeeDashboardActivityType } from '@/features/dashboard/types/employee-dashboard.types'
 
 dayjs.extend(relativeTime)
 dayjs.locale('vi')
 
 type RecentActivitiesCardProps = {
   activities: EmployeeDashboardRecentActivity[] | undefined
+}
+
+const activityAccentClassName: Record<EmployeeDashboardActivityType, string> = {
+  CHECK_IN: 'bg-blue-50 text-blue-700',
+  CHECK_OUT: 'bg-emerald-50 text-emerald-700',
+  LEAVE_REQUEST_CREATED: 'bg-indigo-50 text-indigo-700',
+  LEAVE_REQUEST_APPROVED: 'bg-emerald-50 text-emerald-700',
+  LEAVE_REQUEST_REJECTED: 'bg-red-50 text-red-700',
 }
 
 export function RecentActivitiesCard({ activities }: RecentActivitiesCardProps) {
@@ -35,7 +44,9 @@ export function RecentActivitiesCard({ activities }: RecentActivitiesCardProps) 
                   key={`${activity.type}-${activity.createdAt}`}
                   className="flex gap-3 rounded-md py-4 transition-colors hover:bg-muted/30"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-primary">
+                  <div
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${activityAccentClassName[activity.type]}`}
+                  >
                     <ActivityIcon className="size-4" aria-hidden="true" />
                   </div>
                   <div className="min-w-0 flex-1">

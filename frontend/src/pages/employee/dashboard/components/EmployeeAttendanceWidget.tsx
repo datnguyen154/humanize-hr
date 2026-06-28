@@ -26,15 +26,23 @@ export function EmployeeAttendanceWidget({
   const hasCheckedIn = workingStatus !== 'NOT_CHECKED_IN'
 
   return (
-    <div className="flex w-full items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition-colors lg:w-[320px] lg:shrink-0">
+    <div
+      className={`flex w-full items-center justify-between gap-4 rounded-xl border bg-card px-4 py-3 shadow-sm transition-colors lg:w-[320px] lg:shrink-0 ${
+        hasCheckedIn ? 'border-emerald-200/70' : 'border-amber-200/70'
+      }`}
+    >
       <div className="min-w-0">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           Trạng thái hiện tại
         </p>
-        <div className="mt-1.5 flex items-center gap-2 text-sm font-semibold text-foreground sm:text-base">
+        <div
+          className={`mt-1.5 flex items-center gap-2 text-sm font-semibold sm:text-base ${
+            hasCheckedIn ? 'text-emerald-700' : 'text-amber-700'
+          }`}
+        >
           <span
             className={`size-2 shrink-0 rounded-full ${
-              hasCheckedIn ? 'bg-primary' : 'bg-muted-foreground/50'
+              hasCheckedIn ? 'bg-emerald-500' : 'bg-amber-500'
             }`}
             aria-hidden="true"
           />
