@@ -88,7 +88,7 @@ export const createEmployeeDashboardKpis = ({
   leaveSummary: EmployeeDashboardLeaveSummary | undefined
 }): EmployeeDashboardKpi[] => [
   {
-    label: 'Trạng thái hôm nay',
+    label: 'Kết quả hôm nay',
     value: getTodayAttendanceLabel(todayAttendance),
   },
   {

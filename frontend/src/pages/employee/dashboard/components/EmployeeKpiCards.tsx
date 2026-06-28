@@ -7,10 +7,6 @@ import {
 } from 'lucide-react'
 
 import { Card, CardContent } from '@/components/ui/card'
-import {
-  StatusBadge,
-  type StatusBadgeTone,
-} from '@/components/ui/status-badge'
 import type {
   EmployeeDashboardAttendanceSummary,
   EmployeeDashboardLeaveSummary,
@@ -19,7 +15,6 @@ import type {
 
 import {
   createEmployeeDashboardKpis,
-  createTodayAttendanceCardViewModel,
 } from './employee-dashboard.mappers'
 
 type EmployeeKpiCardsProps = {
@@ -29,22 +24,10 @@ type EmployeeKpiCardsProps = {
 }
 
 const kpiIconMap: Record<string, LucideIcon> = {
-  'Trạng thái hôm nay': Clock3,
+  'Kết quả hôm nay': Clock3,
   'Đi làm đúng giờ': CheckCircle2,
   'Đi muộn': Briefcase,
   'Đơn chờ duyệt': ClipboardList,
-}
-
-const getTodayStatusTone = (value: string): StatusBadgeTone => {
-  if (value === 'Đúng giờ') {
-    return 'success'
-  }
-
-  if (value === 'Đi muộn' || value === 'Nghỉ phép') {
-    return 'warning'
-  }
-
-  return 'neutral'
 }
 
 export function EmployeeKpiCards({
@@ -57,18 +40,12 @@ export function EmployeeKpiCards({
     attendanceSummary,
     leaveSummary,
   })
-  const todayAttendanceCard =
-    createTodayAttendanceCardViewModel(todayAttendance)
-  const todayWorkingStatus =
-    todayAttendanceCard.workingStatus === 'Đã hoàn thành ca làm'
-      ? 'Đã hoàn thành'
-      : todayAttendanceCard.workingStatus
 
   return (
     <div className="grid h-full auto-rows-fr items-stretch gap-4 sm:grid-cols-2">
       {kpiCards.map((item) => {
         const Icon = kpiIconMap[item.label] ?? Clock3
-        const isTodayStatus = item.label === 'Trạng thái hôm nay'
+        const isTodayResult = item.label === 'Kết quả hôm nay'
 
         return (
           <Card
@@ -87,19 +64,13 @@ export function EmployeeKpiCards({
 
               <div className="mt-2 flex flex-wrap items-center gap-2">
                 <p className="text-4xl font-bold tracking-tight text-foreground">
-                  {isTodayStatus ? todayWorkingStatus : item.value}
+                  {item.value}
                 </p>
-                {isTodayStatus ? (
-                  <StatusBadge
-                    label={item.value}
-                    tone={getTodayStatusTone(item.value)}
-                  />
-                ) : null}
               </div>
 
-              {isTodayStatus ? (
+              {isTodayResult ? (
                 <p className="mt-3 text-sm text-muted-foreground">
-                  Cập nhật theo dữ liệu chấm công hôm nay.
+                  Kết quả được ghi nhận từ dữ liệu chấm công hôm nay.
                 </p>
               ) : null}
             </CardContent>
