@@ -47,7 +47,7 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
         ) : null}
       />
 
-      <nav className="grid gap-1 px-3 py-4" aria-label="Điều hướng quản trị">
+      <nav className="space-y-1 px-3 py-4" aria-label="Điều hướng quản trị">
         {adminNavigationItems.map((item) => {
           const isActive =
             pathname === item.path || pathname.startsWith(`${item.path}/`)
@@ -59,9 +59,11 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
               asChild
               type="button"
               variant="ghost"
-              className={`relative w-full justify-start gap-3 px-3 text-muted-foreground transition-colors hover:bg-accent hover:text-primary ${
-                isActive ? 'bg-accent font-medium text-primary' : ''
-              }`}
+              className={cn(
+                'relative h-auto w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground',
+                isActive &&
+                  'bg-primary/10 font-semibold text-primary hover:bg-primary/10 hover:text-primary',
+              )}
             >
               <Link
                 to={item.path}
@@ -84,7 +86,7 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
           type="button"
           variant="ghost"
           disabled
-          className="w-full justify-start gap-3 px-3 text-muted-foreground"
+          className="h-auto w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground"
           title="Tính năng đang được phát triển"
         >
           <Settings className="size-4" />
@@ -93,7 +95,7 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
         <Button
           type="button"
           variant="ghost"
-          className="w-full justify-start gap-3 px-3 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          className="h-auto w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
           onClick={handleLogout}
         >
           <LogOut className="size-4" />
