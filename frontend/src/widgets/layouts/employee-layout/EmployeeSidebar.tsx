@@ -9,6 +9,7 @@ import {
 import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { SidebarBrand } from '@/components/ui/sidebar-brand'
 import { useAuthStore } from '@/features/auth'
 import { cn } from '@/lib/utils'
 
@@ -47,19 +48,7 @@ export function EmployeeSidebar() {
 
   return (
     <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
-      <div className="flex items-center gap-3 border-b border-border px-5 py-5">
-        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <UserRound className="size-4" aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-sm font-semibold text-primary">
-            Humanize HR
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            Cổng nhân viên
-          </p>
-        </div>
-      </div>
+      <SidebarBrand subtitle="Cổng nhân viên" />
 
       <nav
         className="flex-1 space-y-1 px-3 py-4"

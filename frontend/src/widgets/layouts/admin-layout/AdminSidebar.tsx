@@ -1,7 +1,8 @@
-import { Building2, LogOut, Settings, X } from 'lucide-react'
+import { LogOut, Settings, X } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { SidebarBrand } from '@/components/ui/sidebar-brand'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/features/auth'
 
@@ -29,20 +30,9 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
 
   return (
     <>
-      <div className="mb-8 flex items-center gap-3 px-2">
-        <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-          <Building2 className="size-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-foreground">
-            Humanize HR
-          </p>
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">
-            Phần mềm nhân sự
-          </p>
-        </div>
-
-        {showCloseButton ? (
+      <SidebarBrand
+        subtitle="Enterprise Suite"
+        action={showCloseButton ? (
           <Button
             type="button"
             variant="ghost"
@@ -55,9 +45,9 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
             <X className="size-5" />
           </Button>
         ) : null}
-      </div>
+      />
 
-      <nav className="grid gap-1" aria-label="Điều hướng quản trị">
+      <nav className="grid gap-1 px-3 py-4" aria-label="Điều hướng quản trị">
         {adminNavigationItems.map((item) => {
           const isActive =
             pathname === item.path || pathname.startsWith(`${item.path}/`)
@@ -89,7 +79,7 @@ function SidebarContent({ showCloseButton = false, onClose }: SidebarContentProp
         })}
       </nav>
 
-      <div className="mt-auto grid gap-1 border-t border-border pt-4">
+      <div className="mt-auto grid gap-1 border-t border-border px-3 py-4">
         <Button
           type="button"
           variant="ghost"
@@ -123,7 +113,7 @@ export function AdminSidebar({
     return (
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-border bg-card px-4 py-5 shadow-xl transition-transform duration-200 md:hidden',
+          'fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] flex-col border-r border-border bg-card shadow-xl transition-transform duration-200 md:hidden',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
@@ -133,7 +123,7 @@ export function AdminSidebar({
   }
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card px-4 py-5 md:flex">
+    <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-border bg-card md:flex">
       <SidebarContent />
     </aside>
   )
