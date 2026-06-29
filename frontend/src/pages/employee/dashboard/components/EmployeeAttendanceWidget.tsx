@@ -27,11 +27,11 @@ export function EmployeeAttendanceWidget({
 
   return (
     <div
-      className={`flex w-full items-center justify-between gap-4 rounded-xl border bg-card px-4 py-3 shadow-sm transition-colors lg:w-[320px] lg:shrink-0 ${
+      className={`flex w-full max-w-full flex-col items-stretch gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-4 lg:w-[380px] lg:min-w-[360px] lg:shrink-0 ${
         hasCheckedIn ? 'border-emerald-200/70' : 'border-amber-200/70'
       }`}
     >
-      <div className="min-w-0">
+      <div className="flex-1">
         <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
           Trạng thái hiện tại
         </p>
@@ -46,7 +46,7 @@ export function EmployeeAttendanceWidget({
             }`}
             aria-hidden="true"
           />
-          <span className="truncate">
+          <span className="whitespace-nowrap">
             {hasCheckedIn ? 'Đã chấm công' : 'Chưa chấm công'}
           </span>
         </div>
@@ -56,7 +56,7 @@ export function EmployeeAttendanceWidget({
         <Button
           type="button"
           size="sm"
-          className="w-[132px] shrink-0"
+          className="w-full shrink-0 sm:w-[132px] sm:min-w-[132px]"
           disabled={isUpdating}
           onClick={onCheckIn}
         >
@@ -73,7 +73,7 @@ export function EmployeeAttendanceWidget({
         <Button
           type="button"
           size="sm"
-          className="w-[132px] shrink-0"
+          className="w-full shrink-0 sm:w-[132px] sm:min-w-[132px]"
           disabled={isUpdating}
           onClick={onCheckOut}
         >
@@ -91,7 +91,7 @@ export function EmployeeAttendanceWidget({
           type="button"
           size="sm"
           variant="secondary"
-          className="w-[132px] shrink-0"
+          className="w-full shrink-0 sm:w-[132px] sm:min-w-[132px]"
           disabled
         >
           Đã xong
