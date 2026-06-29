@@ -17,7 +17,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
-import { TableRowsSkeleton } from '@/components/ui/skeleton'
+import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -58,6 +58,67 @@ const statusTone: Record<LeaveRequestStatus, StatusBadgeTone> = {
 const formatDate = (date: string) =>
   new Intl.DateTimeFormat('vi-VN').format(new Date(date))
 
+type PaginationControlsProps = {
+  page: number
+  totalPages: number
+  totalItems: number
+  fromItem: number
+  toItem: number
+  hasPreviousPage: boolean
+  hasNextPage: boolean
+  onPrevious: () => void
+  onNext: () => void
+}
+
+function PaginationControls({
+  page,
+  totalPages,
+  totalItems,
+  fromItem,
+  toItem,
+  hasPreviousPage,
+  hasNextPage,
+  onPrevious,
+  onNext,
+}: PaginationControlsProps) {
+  return (
+    <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="text-sm text-muted-foreground">
+        Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} đơn
+      </p>
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-8"
+          disabled={!hasPreviousPage}
+          aria-label="Trang trước"
+          title="Trang trước"
+          onClick={onPrevious}
+        >
+          <ChevronLeft className="size-4" aria-hidden="true" />
+        </Button>
+        <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
+          Trang {page} / {totalPages}
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon"
+          className="size-8"
+          disabled={!hasNextPage}
+          aria-label="Trang sau"
+          title="Trang sau"
+          onClick={onNext}
+        >
+          <ChevronRight className="size-4" aria-hidden="true" />
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export function EmployeeLeaveRequestListPage() {
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
@@ -84,9 +145,9 @@ export function EmployeeLeaveRequestListPage() {
   }
 
   return (
-    <section className="grid gap-6">
+    <section className="grid min-w-0 gap-6 overflow-x-hidden">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
+        <div className="min-w-0">
           <h2 className="text-2xl font-bold tracking-tight text-foreground">
             Đơn nghỉ phép
           </h2>
@@ -105,14 +166,155 @@ export function EmployeeLeaveRequestListPage() {
         </Button>
       </div>
 
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
-          <CardDescription>
-            Các yêu cầu nghỉ phép đã gửi và trạng thái xử lý.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
+      <div className="block md:hidden">
+        <div className="grid min-w-0 gap-3">
+        {leaveRequestsQuery.isLoading ? (
+          <div className="grid gap-3">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-lg border border-border bg-card p-4 shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="grid flex-1 gap-2">
+                    <Skeleton className="h-3 w-24" />
+                    <Skeleton className="h-5 w-36" />
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                </div>
+                <div className="mt-4 grid gap-3">
+                  <Skeleton className="h-4 w-full max-w-64" />
+                  <Skeleton className="h-4 w-full max-w-48" />
+                  <Skeleton className="h-9 w-full" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {leaveRequestsQuery.isFetching && !leaveRequestsQuery.isLoading ? (
+          <p className="text-right text-xs text-muted-foreground">
+            Đang cập nhật dữ liệu...
+          </p>
+        ) : null}
+
+        {leaveRequestsQuery.isError ? (
+          <p className="rounded-lg border border-destructive/20 bg-card px-4 py-8 text-center text-sm text-destructive">
+            Không thể tải danh sách đơn nghỉ phép
+          </p>
+        ) : null}
+
+        {leaveRequestsQuery.isSuccess && leaveRequests.length === 0 ? (
+          <EmptyState
+            icon={ClipboardList}
+            title="Chưa có đơn nghỉ phép"
+            description="Bạn có thể tạo đơn nghỉ phép khi cần xin nghỉ."
+            className="rounded-lg border border-border bg-card px-4"
+          />
+        ) : null}
+
+        {leaveRequests.length > 0 ? (
+          <>
+            <div className="grid gap-3">
+              {leaveRequests.map((leaveRequest) => (
+                <article
+                  key={leaveRequest.id}
+                  className="min-w-0 rounded-lg border border-border bg-card p-4 shadow-sm"
+                >
+                  <div className="flex min-w-0 items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-muted-foreground">
+                        Loại nghỉ phép
+                      </p>
+                      <h3 className="mt-1 break-words text-base font-semibold text-foreground">
+                        {leaveTypeLabel[leaveRequest.leaveType]}
+                      </h3>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="mb-1 text-xs font-medium text-muted-foreground">
+                        Trạng thái
+                      </p>
+                      <StatusBadge
+                        label={statusLabel[leaveRequest.status]}
+                        tone={statusTone[leaveRequest.status]}
+                        className="font-semibold ring-1 ring-current/10"
+                      />
+                    </div>
+                  </div>
+
+                  <dl className="mt-4 grid gap-3 text-sm">
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Thời gian
+                      </dt>
+                      <dd className="mt-1 font-medium text-foreground">
+                        {formatDate(leaveRequest.startDate)} -{' '}
+                        {formatDate(leaveRequest.endDate)}
+                      </dd>
+                    </div>
+
+                    {leaveRequest.reason?.trim() ? (
+                      <div className="min-w-0">
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Lý do
+                        </dt>
+                        <dd className="mt-1 break-words text-foreground">
+                          {leaveRequest.reason}
+                        </dd>
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Ngày tạo
+                      </dt>
+                      <dd className="mt-1 text-foreground">
+                        {formatDate(leaveRequest.createdAt)}
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="mt-4 w-full gap-2"
+                    onClick={() => navigateToDetail(leaveRequest.id)}
+                  >
+                    <Eye className="size-4" aria-hidden="true" />
+                    Xem chi tiết
+                  </Button>
+                </article>
+              ))}
+            </div>
+
+            <PaginationControls
+              page={page}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              fromItem={fromItem}
+              toItem={toItem}
+              hasPreviousPage={meta?.hasPreviousPage ?? false}
+              hasNextPage={meta?.hasNextPage ?? false}
+              onPrevious={() =>
+                setPage((current) => Math.max(1, current - 1))
+              }
+              onNext={() => setPage((current) => current + 1)}
+            />
+          </>
+        ) : null}
+        </div>
+      </div>
+
+      <div className="hidden min-w-0 md:block">
+        <Card className="border-border shadow-sm">
+          <CardHeader className="border-b border-border">
+            <CardTitle className="text-lg">Danh sách đơn nghỉ phép</CardTitle>
+            <CardDescription>
+              Các yêu cầu nghỉ phép đã gửi và trạng thái xử lý.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
           {leaveRequestsQuery.isLoading ? (
             <Table>
               <TableHeader className="bg-muted/50">
@@ -205,46 +407,24 @@ export function EmployeeLeaveRequestListPage() {
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} đơn
-                </p>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-8"
-                    disabled={!meta?.hasPreviousPage}
-                    aria-label="Trang trước"
-                    title="Trang trước"
-                    onClick={() =>
-                      setPage((current) => Math.max(1, current - 1))
-                    }
-                  >
-                    <ChevronLeft className="size-4" aria-hidden="true" />
-                  </Button>
-                  <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
-                    Trang {page} / {totalPages}
-                  </span>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="size-8"
-                    disabled={!meta?.hasNextPage}
-                    aria-label="Trang sau"
-                    title="Trang sau"
-                    onClick={() => setPage((current) => current + 1)}
-                  >
-                    <ChevronRight className="size-4" aria-hidden="true" />
-                  </Button>
-                </div>
-              </div>
+              <PaginationControls
+                page={page}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                fromItem={fromItem}
+                toItem={toItem}
+                hasPreviousPage={meta?.hasPreviousPage ?? false}
+                hasNextPage={meta?.hasNextPage ?? false}
+                onPrevious={() =>
+                  setPage((current) => Math.max(1, current - 1))
+                }
+                onNext={() => setPage((current) => current + 1)}
+              />
             </>
           ) : null}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </section>
   )
 }
