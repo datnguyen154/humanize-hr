@@ -75,9 +75,12 @@ export function AttendanceHistoryPage() {
     <section className="grid gap-6">
       <Link
         to="/employee/dashboard"
-        className="inline-flex w-fit items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        className="group inline-flex w-fit items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
+        <ArrowLeft
+          className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden="true"
+        />
         Quay lại tổng quan
       </Link>
 

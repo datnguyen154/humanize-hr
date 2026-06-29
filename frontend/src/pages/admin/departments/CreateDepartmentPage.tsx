@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
+import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -79,7 +80,21 @@ export function CreateDepartmentPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-4xl">
+    <section className="mx-auto grid w-full max-w-4xl gap-5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="group inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground"
+        onClick={() => navigate('/admin/departments')}
+      >
+        <ArrowLeft
+          className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden="true"
+        />
+        Quay lại danh sách
+      </Button>
+
       <Card>
         <CardHeader className="gap-1.5 border-b border-border">
           <CardTitle className="text-lg">Thông tin phòng ban</CardTitle>

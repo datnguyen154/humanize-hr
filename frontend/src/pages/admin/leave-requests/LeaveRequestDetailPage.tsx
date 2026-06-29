@@ -137,13 +137,14 @@ export function LeaveRequestDetailPage({
         type="button"
         variant="ghost"
         size="sm"
-        className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+        className="group inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground"
         onClick={() => navigate(backPath)}
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
-        {isEmployeeView
-          ? 'Quay lại danh sách đơn'
-          : 'Danh sách đơn nghỉ phép'}
+        <ArrowLeft
+          className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden="true"
+        />
+        Quay lại danh sách
       </Button>
 
       {leaveRequestQuery.isLoading ? (

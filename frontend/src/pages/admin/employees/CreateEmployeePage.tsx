@@ -101,10 +101,13 @@ export function CreateEmployeePage() {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="inline-flex mb-4 w-fit cursor-pointer items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                    className="group mb-4 inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground"
                     onClick={() => navigate("/admin/employees")}
                 >
-                    <ArrowLeft className="size-4" aria-hidden="true" />
+                    <ArrowLeft
+                        className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+                        aria-hidden="true"
+                    />
                     Quay lại danh sách
                 </Button>
 

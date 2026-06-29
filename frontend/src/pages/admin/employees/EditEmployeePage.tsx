@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -147,23 +148,27 @@ export function EditEmployeePage() {
 
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">
-            Sửa thông tin nhân viên
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Cập nhật hồ sơ nhân viên trong hệ thống.
-          </p>
-        </div>
-
+      <div>
         <Button
           type="button"
-          variant="outline"
+          variant="ghost"
+          size="sm"
+          className="group mb-4 inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-transparent px-3 py-2 text-sm font-medium text-muted-foreground transition-all duration-200 hover:bg-muted/60 hover:text-foreground"
           onClick={() => navigate(`/admin/employees/${id}`)}
         >
+          <ArrowLeft
+            className="size-4 transition-transform duration-200 group-hover:-translate-x-0.5"
+            aria-hidden="true"
+          />
           Quay lại chi tiết
         </Button>
+
+        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+          Sửa thông tin nhân viên
+        </h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Cập nhật hồ sơ nhân viên trong hệ thống.
+        </p>
       </div>
 
       <Card>
