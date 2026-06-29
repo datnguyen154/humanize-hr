@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
-import { Loader2, Send } from 'lucide-react'
+import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
@@ -116,7 +116,18 @@ export function CreateLeaveRequestPage() {
   }
 
   return (
-    <section className="mx-auto w-full max-w-3xl">
+    <section className="mx-auto grid w-full max-w-3xl gap-5">
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="inline-flex w-fit cursor-pointer items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+        onClick={() => navigate('/employee/leave-requests')}
+      >
+        <ArrowLeft className="size-4" aria-hidden="true" />
+        Quay lại danh sách
+      </Button>
+
       <Card className="border-border shadow-sm">
         <CardHeader className="border-b border-border">
           <CardTitle className="text-lg">Tạo đơn nghỉ phép</CardTitle>
