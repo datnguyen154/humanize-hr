@@ -21,7 +21,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { TableRowsSkeleton } from '@/components/ui/skeleton'
+import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -142,8 +142,8 @@ export function AttendanceListPage() {
   )
 
   return (
-    <section>
-      <Card>
+    <section className="min-w-0 overflow-x-hidden">
+      <Card className="min-w-0">
         <CardHeader className="gap-4">
           <div className="grid gap-1.5">
             <CardTitle className="text-lg">Danh sách chấm công</CardTitle>
@@ -232,11 +232,39 @@ export function AttendanceListPage() {
 
         <CardContent>
           {attendanceQuery.isLoading ? (
-            <Table>
-              <TableBody>
-                <TableRowsSkeleton columns={6} />
-              </TableBody>
-            </Table>
+            <>
+              <div className="grid gap-3 md:hidden">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="grid flex-1 gap-2">
+                        <Skeleton className="h-5 w-36" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                    </div>
+                    <div className="mt-4 grid gap-3">
+                      <Skeleton className="h-4 w-full max-w-44" />
+                      <div className="grid grid-cols-2 gap-3">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableBody>
+                    <TableRowsSkeleton columns={6} />
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : null}
 
           {attendanceQuery.isFetching && !attendanceQuery.isLoading ? (
@@ -261,49 +289,121 @@ export function AttendanceListPage() {
 
           {attendanceRecords.length > 0 ? (
             <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Mã nhân viên</TableHead>
-                    <TableHead>Họ tên</TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Ngày', 'attendanceDate')}
-                    </TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Giờ vào', 'checkInTime')}
-                    </TableHead>
-                    <TableHead>
-                      {renderSortableHeader('Giờ ra', 'checkOutTime')}
-                    </TableHead>
-                    <TableHead className="text-center">Trạng thái</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {attendanceRecords.map((attendance) => (
-                    <TableRow key={attendance.id}>
-                      <TableCell className="font-medium">
-                        {attendance.employee.employeeCode}
-                      </TableCell>
-                      <TableCell>{attendance.employee.fullName}</TableCell>
-                      <TableCell>
-                        {formatDate(attendance.attendanceDate)}
-                      </TableCell>
-                      <TableCell>{formatTime(attendance.checkInTime)}</TableCell>
-                      <TableCell>
-                        {attendance.checkOutTime
-                          ? formatTime(attendance.checkOutTime)
-                          : 'Chưa chấm công ra'}
-                      </TableCell>
-                      <TableCell className="text-center">
+              <div className="grid gap-3 md:hidden">
+                {attendanceRecords.map((attendance) => (
+                  <article
+                    key={attendance.id}
+                    className="min-w-0 rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Nhân viên
+                        </p>
+                        <h3 className="mt-1 break-words text-base font-semibold text-foreground">
+                          {attendance.employee.fullName}
+                        </h3>
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Mã nhân viên
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-primary">
+                            {attendance.employee.employeeCode}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">
+                          Trạng thái
+                        </p>
                         <StatusBadge
                           label={attendanceStatusLabel[attendance.status]}
                           tone={attendanceStatusTone[attendance.status]}
                         />
-                      </TableCell>
+                      </div>
+                    </div>
+
+                    <dl className="mt-4 grid gap-3 text-sm">
+                      <div>
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Ngày chấm công
+                        </dt>
+                        <dd className="mt-1 font-medium text-foreground">
+                          {formatDate(attendance.attendanceDate)}
+                        </dd>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="rounded-md bg-muted/40 p-3">
+                          <dt className="text-xs font-medium text-muted-foreground">
+                            Giờ vào
+                          </dt>
+                          <dd className="mt-1 font-semibold text-foreground">
+                            {formatTime(attendance.checkInTime)}
+                          </dd>
+                        </div>
+                        <div className="rounded-md bg-muted/40 p-3">
+                          <dt className="text-xs font-medium text-muted-foreground">
+                            Giờ ra
+                          </dt>
+                          <dd className="mt-1 break-words font-semibold text-foreground">
+                            {attendance.checkOutTime
+                              ? formatTime(attendance.checkOutTime)
+                              : 'Chưa chấm công ra'}
+                          </dd>
+                        </div>
+                      </div>
+                    </dl>
+                  </article>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Mã nhân viên</TableHead>
+                      <TableHead>Họ tên</TableHead>
+                      <TableHead>
+                        {renderSortableHeader('Ngày', 'attendanceDate')}
+                      </TableHead>
+                      <TableHead>
+                        {renderSortableHeader('Giờ vào', 'checkInTime')}
+                      </TableHead>
+                      <TableHead>
+                        {renderSortableHeader('Giờ ra', 'checkOutTime')}
+                      </TableHead>
+                      <TableHead className="text-center">Trạng thái</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {attendanceRecords.map((attendance) => (
+                      <TableRow key={attendance.id}>
+                        <TableCell className="font-medium">
+                          {attendance.employee.employeeCode}
+                        </TableCell>
+                        <TableCell>{attendance.employee.fullName}</TableCell>
+                        <TableCell>
+                          {formatDate(attendance.attendanceDate)}
+                        </TableCell>
+                        <TableCell>
+                          {formatTime(attendance.checkInTime)}
+                        </TableCell>
+                        <TableCell>
+                          {attendance.checkOutTime
+                            ? formatTime(attendance.checkOutTime)
+                            : 'Chưa chấm công ra'}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <StatusBadge
+                            label={attendanceStatusLabel[attendance.status]}
+                            tone={attendanceStatusTone[attendance.status]}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
 
               <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
