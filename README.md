@@ -103,28 +103,28 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 
 ### Login Page
 
-![Login Page](docs/images/login.jpg)
+![Login Page](./docs/images/login.jpg)
 
 ### Admin Dashboard
 
-![Admin Dashboard](docs/images/admin-dashboard-1.jpg)
-![Admin Dashboard](docs/images/admin-dashboard-2.jpg)
+![Admin Dashboard](./docs/images/admin-dashboard-1.jpg)
+![Admin Dashboard](./docs/images/admin-dashboard-2.jpg)
 
 ### Employee Dashboard
 
-![Employee Dashboard](docs/images/employee-dashboard.jpg)
+![Employee Dashboard](./docs/images/employee-dashboard.jpg)
 
 ### Employee Management
 
-![Employee Management](docs/images/employee-management.jpg)
+![Employee Management](./docs/images/employee-management.jpg)
 
 ### Attendance Management
 
-![Attendance Management](docs/images/attendance-management.jpg)
+![Attendance Management](./docs/images/attendance-management.jpg)
 
 ### Leave Request Management
 
-![Leave Request Management](docs/images/leave-request-management.jpg)
+![Leave Request Management](./docs/images/leave-request-management.jpg)
 
 ## Getting Started
 
