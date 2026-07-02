@@ -99,8 +99,6 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 
 ## Screenshots
 
-> Add screenshots to the `docs/images` folder and update the image paths below.
-
 ### Login Page
 
 ![Login Page](./docs/images/login.jpg)
