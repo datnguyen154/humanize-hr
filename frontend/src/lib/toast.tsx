@@ -24,3 +24,10 @@ export function showErrorToast(
     icon: <CircleX className="size-5 text-destructive" />,
   })
 }
+
+export function showSessionExpiredToast() {
+  toast.error('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', {
+    id: 'session-expired',
+    icon: <CircleX className="size-5 text-destructive" />,
+  })
+}
