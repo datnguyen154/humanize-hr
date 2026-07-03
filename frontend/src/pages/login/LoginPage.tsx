@@ -25,7 +25,10 @@ import {
     login,
     useAuthStore,
 } from "@/features/auth";
+import { showInfoToast } from "@/lib/toast";
 import type { ApiErrorResponse } from "@/shared/types";
+
+import { SupportDialog } from "./SupportDialog";
 
 const loginSchema = z.object({
     email: z.string().min(1, "Vui lòng nhập email").email("Email không hợp lệ"),
@@ -36,6 +39,11 @@ const loginSchema = z.object({
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+const REMEMBERED_EMAIL_KEY = "rememberedEmail";
+
+const getRememberedEmail = () =>
+    window.localStorage.getItem(REMEMBERED_EMAIL_KEY) ?? "";
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
     "Invalid email or password": "Email hoặc mật khẩu không đúng.",
@@ -60,7 +68,10 @@ const getLoginErrorMessage = (error: unknown) => {
 };
 
 export function LoginPage() {
+    const [rememberedEmail] = useState(getRememberedEmail);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+    const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail));
+    const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
     const [loginError, setLoginError] = useState<string | null>(null);
     const setUser = useAuthStore((state) => state.setUser);
     const navigate = useNavigate();
@@ -72,7 +83,7 @@ export function LoginPage() {
     } = useForm<LoginFormValues>({
         resolver: zodResolver(loginSchema),
         defaultValues: {
-            email: "",
+            email: rememberedEmail,
             password: "",
         },
     });
@@ -82,6 +93,15 @@ export function LoginPage() {
 
         try {
             const authData = await login(values);
+
+            if (rememberMe) {
+                window.localStorage.setItem(
+                    REMEMBERED_EMAIL_KEY,
+                    values.email,
+                );
+            } else {
+                window.localStorage.removeItem(REMEMBERED_EMAIL_KEY);
+            }
 
             authStorage.setTokens({
                 accessToken: authData.accessToken,
@@ -165,12 +185,18 @@ export function LoginPage() {
                                 >
                                     Mật khẩu
                                 </Label>
-                                <a
-                                    href="#"
+                                <button
+                                    type="button"
                                     className="text-sm font-medium text-primary hover:text-primary/80 hover:underline"
+                                    onClick={() =>
+                                        showInfoToast(
+                                            "Vui lòng liên hệ quản trị viên hoặc bộ phận IT để được hỗ trợ đặt lại mật khẩu.",
+                                            "Quên mật khẩu?",
+                                        )
+                                    }
                                 >
                                     Quên mật khẩu?
-                                </a>
+                                </button>
                             </div>
                             <div className="relative">
                                 <Lock
@@ -228,7 +254,13 @@ export function LoginPage() {
                         </div>
 
                         <div className="flex items-center gap-2">
-                            <Checkbox id="remember-me" />
+                            <Checkbox
+                                id="remember-me"
+                                checked={rememberMe}
+                                onCheckedChange={(checked) =>
+                                    setRememberMe(checked === true)
+                                }
+                            />
                             <Label
                                 htmlFor="remember-me"
                                 className="cursor-pointer text-sm font-normal text-muted-foreground"
@@ -250,14 +282,20 @@ export function LoginPage() {
 
                 <CardFooter className="flex-col gap-1 border-t border-border bg-muted/60 px-8 py-5 text-center text-sm text-muted-foreground">
                     <p>Cần hỗ trợ truy cập tài khoản?</p>
-                    <a
-                        href="mailto:it-support@example.com"
+                    <button
+                        type="button"
                         className="font-medium text-primary hover:text-primary/80 hover:underline"
+                        onClick={() => setIsSupportDialogOpen(true)}
                     >
                         Liên hệ hỗ trợ IT.
-                    </a>
+                    </button>
                 </CardFooter>
             </Card>
+
+            <SupportDialog
+                open={isSupportDialogOpen}
+                onOpenChange={setIsSupportDialogOpen}
+            />
         </main>
     );
 }

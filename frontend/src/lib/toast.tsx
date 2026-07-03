@@ -1,4 +1,4 @@
-import { CircleCheck, CircleX, TriangleAlert } from 'lucide-react'
+import { CircleCheck, CircleHelp, CircleX, TriangleAlert } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function showSuccessToast(description: string, title = 'Thành công') {
@@ -12,6 +12,13 @@ export function showWarningToast(description: string) {
   toast.warning('Trạng thái đã thay đổi', {
     description,
     icon: <TriangleAlert className="size-5 text-amber-600" />,
+  })
+}
+
+export function showInfoToast(description: string, title: string) {
+  toast.info(title, {
+    description,
+    icon: <CircleHelp className="size-5 text-primary" />,
   })
 }
 
