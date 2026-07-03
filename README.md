@@ -99,8 +99,6 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 
 ## Screenshots
 
-> Add screenshots to the `docs/images` folder and update the image paths below.
-
 ### Login Page
 
 ![Login Page](./docs/images/login.jpg)
@@ -262,11 +260,11 @@ VITE_API_BASE_URL="http://localhost:3000/api"
 ```txt
 Admin
 Email: admin@example.com
-Password: ********
+Password: 12345678
 
 Employee
 Email: employee@example.com
-Password: ********
+Password: thanhdat2004
 ```
 
 If you do not want to publish demo credentials, you can use:
