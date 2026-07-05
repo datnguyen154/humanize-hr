@@ -10,6 +10,7 @@ build/
 .env.local
 .env.development
 .env.production
+.env.neon.local
 
 # Logs
 logs
