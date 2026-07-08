@@ -22,6 +22,7 @@ import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
 import { EmployeeLayout } from '../widgets/layouts/employee-layout/EmployeeLayout'
 import { ProtectedRoute } from './router/ProtectedRoute'
+import { PublicRoute } from './router/PublicRoute'
 import { RoleGuard } from './router/RoleGuard'
 
 export const router = createBrowserRouter([
@@ -31,7 +32,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    ),
   },
   {
     path: '/admin',

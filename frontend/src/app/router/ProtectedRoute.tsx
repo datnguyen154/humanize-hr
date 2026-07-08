@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 
@@ -13,8 +14,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   if (isAuthRestoring) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-background px-4 text-center text-muted-foreground">
-        Đang kiểm tra phiên đăng nhập...
+      <main className="flex min-h-screen items-center justify-center bg-background px-4">
+        <div
+          className="flex flex-col items-center gap-3 text-center text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          <Loader2 className="size-7 animate-spin text-primary" aria-hidden="true" />
+          <p className="text-sm font-medium">Đang xác thực phiên đăng nhập</p>
+        </div>
       </main>
     )
   }
