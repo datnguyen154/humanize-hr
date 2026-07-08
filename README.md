@@ -277,7 +277,7 @@ Password: 12345678
 
 Employee
 Email: employee@example.com
-Password: 12345678
+Password: Employee@123
 ```
 
 If you do not want to publish demo credentials, you can use:
