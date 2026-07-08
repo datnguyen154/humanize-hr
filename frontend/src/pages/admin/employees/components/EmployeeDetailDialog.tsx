@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Pencil } from 'lucide-react'
+import { Ban, Loader2, Pencil, UserCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Dialog,
   DialogContent,
@@ -24,16 +25,17 @@ import {
   formatEmployeeDate,
   useEmployeeDetailQuery,
   useUpdateEmployeeMutation,
+  useUpdateEmployeeStatusMutation,
   type EmployeeStatus,
 } from '@/features/employee'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 
 import {
-  employeeEditSchema,
-  emptyEmployeeEditFormValues,
-  toEmployeeEditFormValues,
-  toUpdateEmployeeRequest,
-  type EmployeeEditFormValues,
+  employeeInformationEditSchema,
+  emptyEmployeeInformationEditFormValues,
+  toEmployeeInformationEditFormValues,
+  toUpdateEmployeeInformationRequest,
+  type EmployeeInformationEditFormValues,
 } from '../employee-edit-form'
 
 type EmployeeDetailDialogProps = {
@@ -69,35 +71,41 @@ export function EmployeeDetailDialog({
   onOpenChange,
 }: EmployeeDetailDialogProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false)
   const employeeQuery = useEmployeeDetailQuery(employeeId ?? '')
   const updateEmployeeMutation = useUpdateEmployeeMutation()
+  const updateEmployeeStatusMutation = useUpdateEmployeeStatusMutation()
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EmployeeEditFormValues>({
-    resolver: zodResolver(employeeEditSchema),
-    defaultValues: emptyEmployeeEditFormValues,
+  } = useForm<EmployeeInformationEditFormValues>({
+    resolver: zodResolver(employeeInformationEditSchema),
+    defaultValues: emptyEmployeeInformationEditFormValues,
   })
 
   const employee = employeeQuery.data
 
   useEffect(() => {
     if (open && employee) {
-      reset(toEmployeeEditFormValues(employee))
+      reset(toEmployeeInformationEditFormValues(employee))
     }
   }, [employee, open, reset])
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
-    if (updateEmployeeMutation.isPending) {
+    if (
+      updateEmployeeMutation.isPending ||
+      updateEmployeeStatusMutation.isPending
+    ) {
       return
     }
 
     if (!nextOpen) {
       setIsEditing(false)
-      reset(emptyEmployeeEditFormValues)
+      setIsStatusDialogOpen(false)
+      reset(emptyEmployeeInformationEditFormValues)
     }
 
     onOpenChange(nextOpen)
@@ -105,13 +113,13 @@ export function EmployeeDetailDialog({
 
   const handleCancelEdit = () => {
     if (employee) {
-      reset(toEmployeeEditFormValues(employee))
+      reset(toEmployeeInformationEditFormValues(employee))
     }
 
     setIsEditing(false)
   }
 
-  const onSubmit = async (values: EmployeeEditFormValues) => {
+  const onSubmit = async (values: EmployeeInformationEditFormValues) => {
     if (!employeeId) {
       return
     }
@@ -119,7 +127,7 @@ export function EmployeeDetailDialog({
     try {
       await updateEmployeeMutation.mutateAsync({
         id: employeeId,
-        payload: toUpdateEmployeeRequest(values),
+        payload: toUpdateEmployeeInformationRequest(values),
       })
       showSuccessToast('Thông tin nhân viên đã được cập nhật.')
       setIsEditing(false)
@@ -131,9 +139,30 @@ export function EmployeeDetailDialog({
     }
   }
 
+  const handleStatusUpdate = async () => {
+    if (!employeeId || !employee) {
+      return
+    }
+
+    const nextStatus: EmployeeStatus =
+      employee.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+
+    try {
+      await updateEmployeeStatusMutation.mutateAsync({
+        id: employeeId,
+        status: nextStatus,
+      })
+      showSuccessToast('Cập nhật trạng thái nhân viên thành công')
+      setIsStatusDialogOpen(false)
+    } catch {
+      showErrorToast('Không thể cập nhật trạng thái nhân viên')
+    }
+  }
+
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
+    <>
+      <Dialog open={open} onOpenChange={handleDialogOpenChange}>
+        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? 'Sửa thông tin nhân viên' : 'Chi tiết nhân viên'}
@@ -213,19 +242,36 @@ export function EmployeeDetailDialog({
               />
             </dl>
 
-            <DialogFooter>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
-                variant="outline"
-                onClick={() => handleDialogOpenChange(false)}
+                variant={employee.status === 'ACTIVE' ? 'destructive' : 'default'}
+                onClick={() => setIsStatusDialogOpen(true)}
               >
-                Đóng
+                {employee.status === 'ACTIVE' ? (
+                  <Ban className="size-4" aria-hidden="true" />
+                ) : (
+                  <UserCheck className="size-4" aria-hidden="true" />
+                )}
+                {employee.status === 'ACTIVE'
+                  ? 'Tạm ngưng nhân viên'
+                  : 'Kích hoạt nhân viên'}
               </Button>
-              <Button type="button" onClick={() => setIsEditing(true)}>
-                <Pencil className="size-4" aria-hidden="true" />
-                Sửa thông tin
-              </Button>
-            </DialogFooter>
+
+              <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleDialogOpenChange(false)}
+                >
+                  Đóng
+                </Button>
+                <Button type="button" onClick={() => setIsEditing(true)}>
+                  <Pencil className="size-4" aria-hidden="true" />
+                  Sửa thông tin
+                </Button>
+              </div>
+            </div>
           </>
         ) : null}
 
@@ -295,22 +341,6 @@ export function EmployeeDetailDialog({
                 ) : null}
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="dialog-status">Trạng thái</Label>
-                <select
-                  id="dialog-status"
-                  className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                  {...register('status')}
-                >
-                  <option value="ACTIVE">Đang làm việc</option>
-                  <option value="INACTIVE">Tạm ngưng</option>
-                </select>
-                {errors.status ? (
-                  <p className="text-sm text-destructive">
-                    {errors.status.message}
-                  </p>
-                ) : null}
-              </div>
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -344,7 +374,32 @@ export function EmployeeDetailDialog({
             </DialogFooter>
           </form>
         ) : null}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+
+      {employee ? (
+        <ConfirmDialog
+          open={isStatusDialogOpen}
+          title={
+            employee.status === 'ACTIVE'
+              ? 'Xác nhận tạm ngưng nhân viên'
+              : 'Xác nhận kích hoạt nhân viên'
+          }
+          description={
+            employee.status === 'ACTIVE'
+              ? 'Bạn có chắc muốn tạm ngưng nhân viên này không? Nhân viên có thể bị hạn chế truy cập hệ thống.'
+              : 'Bạn có chắc muốn kích hoạt lại nhân viên này không?'
+          }
+          actionLabel={
+            employee.status === 'ACTIVE' ? 'Tạm ngưng' : 'Kích hoạt'
+          }
+          pendingLabel="Đang xử lý..."
+          variant={employee.status === 'ACTIVE' ? 'danger' : 'success'}
+          isPending={updateEmployeeStatusMutation.isPending}
+          onOpenChange={setIsStatusDialogOpen}
+          onConfirm={() => void handleStatusUpdate()}
+        />
+      ) : null}
+    </>
   )
 }

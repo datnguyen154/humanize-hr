@@ -34,6 +34,7 @@ type ConfirmDialogProps = {
   title: string
   description: string
   actionLabel: string
+  pendingLabel?: string
   variant?: ConfirmDialogVariant
   isPending?: boolean
   onOpenChange: (open: boolean) => void
@@ -45,6 +46,7 @@ export function ConfirmDialog({
   title,
   description,
   actionLabel,
+  pendingLabel,
   variant = 'warning',
   isPending = false,
   onOpenChange,
@@ -100,7 +102,7 @@ export function ConfirmDialog({
               disabled={isPending}
               onClick={onConfirm}
             >
-              {actionLabel}
+              {isPending && pendingLabel ? pendingLabel : actionLabel}
             </Button>
           </div>
         </AlertDialogPrimitive.Content>

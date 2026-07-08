@@ -20,6 +20,14 @@ export const employeeEditSchema = z.object({
 
 export type EmployeeEditFormValues = z.infer<typeof employeeEditSchema>
 
+export const employeeInformationEditSchema = employeeEditSchema.omit({
+  status: true,
+})
+
+export type EmployeeInformationEditFormValues = z.infer<
+  typeof employeeInformationEditSchema
+>
+
 export const emptyEmployeeEditFormValues: EmployeeEditFormValues = {
   employeeCode: '',
   fullName: '',
@@ -27,6 +35,15 @@ export const emptyEmployeeEditFormValues: EmployeeEditFormValues = {
   phone: '',
   position: '',
   status: 'ACTIVE',
+  joinedAt: '',
+}
+
+export const emptyEmployeeInformationEditFormValues: EmployeeInformationEditFormValues = {
+  employeeCode: '',
+  fullName: '',
+  email: '',
+  phone: '',
+  position: '',
   joinedAt: '',
 }
 
@@ -42,6 +59,17 @@ export const toEmployeeEditFormValues = (
   joinedAt: toDateInputValue(employee.joinedAt),
 })
 
+export const toEmployeeInformationEditFormValues = (
+  employee: EmployeeDetail,
+): EmployeeInformationEditFormValues => ({
+  employeeCode: employee.employeeCode,
+  fullName: employee.fullName,
+  email: employee.email,
+  phone: employee.phone ?? '',
+  position: employee.position,
+  joinedAt: toDateInputValue(employee.joinedAt),
+})
+
 export const toUpdateEmployeeRequest = (
   values: EmployeeEditFormValues,
 ): UpdateEmployeeRequest => ({
@@ -51,5 +79,16 @@ export const toUpdateEmployeeRequest = (
   phone: values.phone?.trim() || undefined,
   position: values.position,
   status: values.status,
+  joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
+})
+
+export const toUpdateEmployeeInformationRequest = (
+  values: EmployeeInformationEditFormValues,
+): UpdateEmployeeRequest => ({
+  employeeCode: values.employeeCode,
+  fullName: values.fullName,
+  email: values.email,
+  phone: values.phone?.trim() || undefined,
+  position: values.position,
   joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
 })

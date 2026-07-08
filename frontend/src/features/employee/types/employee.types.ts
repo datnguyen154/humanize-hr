@@ -46,7 +46,7 @@ export type CreateEmployeeRequest = {
   joinedAt: string
 }
 
-export type UpdateEmployeeRequest = CreateEmployeeRequest
+export type UpdateEmployeeRequest = Partial<CreateEmployeeRequest>
 
 export type UpdateEmployeeStatusResponse = {
   id: string
