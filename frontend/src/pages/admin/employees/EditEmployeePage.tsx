@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
-import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,26 +11,19 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  toDateInputValue,
   useEmployeeDetailQuery,
   useUpdateEmployeeMutation,
 } from '@/features/employee'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
 
-const editEmployeeSchema = z.object({
-  employeeCode: z.string().min(1, 'Vui lòng nhập mã nhân viên'),
-  fullName: z.string().min(1, 'Vui lòng nhập họ tên'),
-  email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
-  phone: z.string().optional(),
-  position: z.string().min(1, 'Vui lòng nhập chức vụ'),
-  status: z.enum(['ACTIVE', 'INACTIVE'], {
-    message: 'Vui lòng chọn trạng thái',
-  }),
-  joinedAt: z.string().min(1, 'Vui lòng chọn ngày vào làm'),
-})
-
-type EditEmployeeFormValues = z.infer<typeof editEmployeeSchema>
+import {
+  employeeEditSchema,
+  emptyEmployeeEditFormValues,
+  toEmployeeEditFormValues,
+  toUpdateEmployeeRequest,
+  type EmployeeEditFormValues,
+} from './employee-edit-form'
 
 const getEditEmployeeErrorMessage = (error: unknown) => {
   if (error instanceof AxiosError) {
@@ -56,17 +48,9 @@ export function EditEmployeePage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<EditEmployeeFormValues>({
-    resolver: zodResolver(editEmployeeSchema),
-    defaultValues: {
-      employeeCode: '',
-      fullName: '',
-      email: '',
-      phone: '',
-      position: '',
-      status: 'ACTIVE',
-      joinedAt: '',
-    },
+  } = useForm<EmployeeEditFormValues>({
+    resolver: zodResolver(employeeEditSchema),
+    defaultValues: emptyEmployeeEditFormValues,
   })
 
   useEffect(() => {
@@ -74,18 +58,10 @@ export function EditEmployeePage() {
       return
     }
 
-    reset({
-      employeeCode: employeeQuery.data.employeeCode,
-      fullName: employeeQuery.data.fullName,
-      email: employeeQuery.data.email,
-      phone: employeeQuery.data.phone ?? '',
-      position: employeeQuery.data.position,
-      status: employeeQuery.data.status,
-      joinedAt: toDateInputValue(employeeQuery.data.joinedAt),
-    })
+    reset(toEmployeeEditFormValues(employeeQuery.data))
   }, [employeeQuery.data, reset])
 
-  const onSubmit = async (values: EditEmployeeFormValues) => {
+  const onSubmit = async (values: EmployeeEditFormValues) => {
     if (!id) {
       return
     }
@@ -95,15 +71,7 @@ export function EditEmployeePage() {
     try {
       await updateEmployeeMutation.mutateAsync({
         id,
-        payload: {
-          employeeCode: values.employeeCode,
-          fullName: values.fullName,
-          email: values.email,
-          phone: values.phone?.trim() || undefined,
-          position: values.position,
-          status: values.status,
-          joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
-        },
+        payload: toUpdateEmployeeRequest(values),
       })
 
       showSuccessToast('Thông tin nhân viên đã được cập nhật.')

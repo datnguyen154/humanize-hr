@@ -19,14 +19,16 @@ export type Employee = {
   joinedAt: string
 }
 
-export type EmployeeDetail = Employee & {
-  createdAt: string
-  updatedAt: string
-}
-
 export type EmployeeDepartment = {
   id: string
   name: string
+}
+
+export type EmployeeDetail = Employee & {
+  departmentId?: string | null
+  department?: EmployeeDepartment | null
+  createdAt: string
+  updatedAt: string
 }
 
 export type MyEmployeeProfile = EmployeeDetail & {

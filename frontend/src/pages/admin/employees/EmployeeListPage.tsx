@@ -44,6 +44,8 @@ import {
   type EmployeeStatus,
 } from '@/features/employee'
 
+import { EmployeeDetailDialog } from './components/EmployeeDetailDialog'
+
 type StatusFilter = 'ALL' | EmployeeStatus
 
 const statusOptions: Array<{ label: string; value: StatusFilter }> = [
@@ -64,6 +66,9 @@ export function EmployeeListPage() {
   const [status, setStatus] = useState<StatusFilter>('ALL')
   const [sortBy, setSortBy] = useState<EmployeeSortBy>('employeeCode')
   const [sortOrder, setSortOrder] = useState<EmployeeSortOrder>('asc')
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
+    null,
+  )
 
   const employeesQuery = useEmployeesQuery({
     page,
@@ -116,8 +121,8 @@ export function EmployeeListPage() {
     )
   }
 
-  const navigateToDetail = (id: string) => {
-    navigate(`/admin/employees/${id}`)
+  const openEmployeeDialog = (id: string) => {
+    setSelectedEmployeeId(id)
   }
 
   return (
@@ -288,7 +293,7 @@ export function EmployeeListPage() {
                       variant="outline"
                       size="sm"
                       className="mt-4 w-full gap-2"
-                      onClick={() => navigateToDetail(employee.id)}
+                      onClick={() => openEmployeeDialog(employee.id)}
                     >
                       <Eye className="size-4" aria-hidden="true" />
                       Xem chi tiết
@@ -346,7 +351,7 @@ export function EmployeeListPage() {
                     <TableRow
                       key={employee.id}
                       className="cursor-pointer"
-                      onClick={() => navigateToDetail(employee.id)}
+                      onClick={() => openEmployeeDialog(employee.id)}
                     >
                       <TableCell className="font-medium">
                         <button
@@ -354,7 +359,7 @@ export function EmployeeListPage() {
                           className="font-medium text-primary hover:underline"
                           onClick={(event) => {
                             event.stopPropagation()
-                            navigateToDetail(employee.id)
+                            openEmployeeDialog(employee.id)
                           }}
                         >
                           {employee.employeeCode}
@@ -381,7 +386,7 @@ export function EmployeeListPage() {
                           title="Xem chi tiết nhân viên"
                           onClick={(event) => {
                             event.stopPropagation()
-                            navigateToDetail(employee.id)
+                            openEmployeeDialog(employee.id)
                           }}
                         >
                           <Eye className="size-4" />
@@ -435,6 +440,16 @@ export function EmployeeListPage() {
           ) : null}
         </CardContent>
       </Card>
+
+      <EmployeeDetailDialog
+        employeeId={selectedEmployeeId}
+        open={Boolean(selectedEmployeeId)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedEmployeeId(null)
+          }
+        }}
+      />
     </section>
   )
 }
