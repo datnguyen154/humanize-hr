@@ -9,7 +9,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -242,31 +241,39 @@ export function EmployeeDetailDialog({
               />
             </dl>
 
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
-                variant={employee.status === 'ACTIVE' ? 'destructive' : 'default'}
-                onClick={() => setIsStatusDialogOpen(true)}
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => handleDialogOpenChange(false)}
               >
-                {employee.status === 'ACTIVE' ? (
-                  <Ban className="size-4" aria-hidden="true" />
-                ) : (
-                  <UserCheck className="size-4" aria-hidden="true" />
-                )}
-                {employee.status === 'ACTIVE'
-                  ? 'Tạm ngưng nhân viên'
-                  : 'Kích hoạt nhân viên'}
+                Đóng
               </Button>
 
-              <div className="flex flex-col-reverse gap-2 sm:flex-row">
+              <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
                 <Button
                   type="button"
-                  variant="outline"
-                  onClick={() => handleDialogOpenChange(false)}
+                  variant={
+                    employee.status === 'ACTIVE' ? 'destructive' : 'outline'
+                  }
+                  className="w-full sm:w-auto"
+                  onClick={() => setIsStatusDialogOpen(true)}
                 >
-                  Đóng
+                  {employee.status === 'ACTIVE' ? (
+                    <Ban className="size-4" aria-hidden="true" />
+                  ) : (
+                    <UserCheck className="size-4" aria-hidden="true" />
+                  )}
+                  {employee.status === 'ACTIVE'
+                    ? 'Tạm ngưng nhân viên'
+                    : 'Kích hoạt nhân viên'}
                 </Button>
-                <Button type="button" onClick={() => setIsEditing(true)}>
+                <Button
+                  type="button"
+                  className="w-full sm:w-auto"
+                  onClick={() => setIsEditing(true)}
+                >
                   <Pencil className="size-4" aria-hidden="true" />
                   Sửa thông tin
                 </Button>
@@ -354,16 +361,21 @@ export function EmployeeDetailDialog({
               />
             </div>
 
-            <DialogFooter>
+            <div className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
               <Button
                 type="button"
                 variant="outline"
+                className="w-full sm:w-auto"
                 disabled={updateEmployeeMutation.isPending}
                 onClick={handleCancelEdit}
               >
                 Hủy
               </Button>
-              <Button type="submit" disabled={updateEmployeeMutation.isPending}>
+              <Button
+                type="submit"
+                className="w-full sm:w-auto"
+                disabled={updateEmployeeMutation.isPending}
+              >
                 {updateEmployeeMutation.isPending ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 ) : null}
@@ -371,7 +383,7 @@ export function EmployeeDetailDialog({
                   ? 'Đang lưu...'
                   : 'Lưu thay đổi'}
               </Button>
-            </DialogFooter>
+            </div>
           </form>
         ) : null}
         </DialogContent>
