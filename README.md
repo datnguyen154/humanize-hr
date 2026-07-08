@@ -4,6 +4,14 @@ Humanize HR is a full-stack HR Management System built to practice developing a 
 
 The system supports two main roles: **Admin** and **Employee**. Admin users can manage employees, departments, attendance records and leave requests. Employee users can use a self-service portal to check in/out, view attendance history, create leave requests, view their profile and change their password.
 
+## 🚀 Live Demo
+
+- **Frontend:** https://humanize-hr.vercel.app
+- **Backend API:** https://humanize-hr-api.onrender.com
+- **Health Check:** https://humanize-hr-api.onrender.com/health
+
+> **Note:** The backend is hosted on Render Free. The first request may take **30–60 seconds** if the service is waking up.
+
 ## Features
 
 ### Admin
@@ -79,6 +87,11 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 - PostgreSQL
 - Prisma ORM
 - JWT Authentication
+
+### Deployment
+- Vercel
+- Render
+- Neon PostgreSQL
 
 ## Technical Highlights
 
@@ -264,7 +277,7 @@ Password: 12345678
 
 Employee
 Email: employee@example.com
-Password: thanhdat2004
+Password: 12345678
 ```
 
 If you do not want to publish demo credentials, you can use:
