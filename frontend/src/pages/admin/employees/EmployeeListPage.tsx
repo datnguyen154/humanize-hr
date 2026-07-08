@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/card'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
-import { TableRowsSkeleton } from '@/components/ui/skeleton'
+import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -121,8 +121,8 @@ export function EmployeeListPage() {
   }
 
   return (
-    <section>
-      <Card>
+    <section className="min-w-0 overflow-x-hidden">
+      <Card className="min-w-0">
         <CardHeader className="gap-4">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="grid gap-1.5">
@@ -173,11 +173,37 @@ export function EmployeeListPage() {
 
         <CardContent>
           {employeesQuery.isLoading ? (
-            <Table>
-              <TableBody>
-                <TableRowsSkeleton columns={8} />
-              </TableBody>
-            </Table>
+            <>
+              <div className="grid gap-3 md:hidden">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="grid flex-1 gap-2">
+                        <Skeleton className="h-5 w-36" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-24 rounded-full" />
+                    </div>
+                    <div className="mt-4 grid gap-3">
+                      <Skeleton className="h-4 w-full max-w-64" />
+                      <Skeleton className="h-4 w-full max-w-48" />
+                      <Skeleton className="h-9 w-full" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
+                <Table>
+                  <TableBody>
+                    <TableRowsSkeleton columns={8} />
+                  </TableBody>
+                </Table>
+              </div>
+            </>
           ) : null}
 
           {employeesQuery.isFetching && !employeesQuery.isLoading ? (
@@ -202,6 +228,76 @@ export function EmployeeListPage() {
 
           {employees.length > 0 ? (
             <>
+              <div className="grid gap-3 md:hidden">
+                {employees.map((employee) => (
+                  <article
+                    key={employee.id}
+                    className="min-w-0 rounded-lg border border-border bg-card p-4"
+                  >
+                    <div className="flex min-w-0 items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          Họ tên
+                        </p>
+                        <h3 className="mt-1 break-words text-base font-semibold text-foreground">
+                          {employee.fullName}
+                        </h3>
+                        <div className="mt-2">
+                          <p className="text-xs font-medium text-muted-foreground">
+                            Mã nhân viên
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-primary">
+                            {employee.employeeCode}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <p className="mb-1 text-xs font-medium text-muted-foreground">
+                          Trạng thái
+                        </p>
+                        <StatusBadge
+                          label={employeeStatusLabel[employee.status]}
+                          tone={employeeStatusTone[employee.status]}
+                        />
+                      </div>
+                    </div>
+
+                    <dl className="mt-4 grid gap-3 text-sm">
+                      <div className="min-w-0">
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Email
+                        </dt>
+                        <dd className="mt-1 break-all text-foreground">
+                          {employee.email}
+                        </dd>
+                      </div>
+                      {employee.position ? (
+                        <div className="min-w-0">
+                          <dt className="text-xs font-medium text-muted-foreground">
+                            Chức vụ
+                          </dt>
+                          <dd className="mt-1 break-words text-foreground">
+                            {employee.position}
+                          </dd>
+                        </div>
+                      ) : null}
+                    </dl>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="mt-4 w-full gap-2"
+                      onClick={() => navigateToDetail(employee.id)}
+                    >
+                      <Eye className="size-4" aria-hidden="true" />
+                      Xem chi tiết
+                    </Button>
+                  </article>
+                ))}
+              </div>
+
+              <div className="hidden md:block">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -295,6 +391,7 @@ export function EmployeeListPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
 
               <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-muted-foreground">
