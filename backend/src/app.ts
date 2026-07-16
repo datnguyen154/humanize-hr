@@ -8,6 +8,7 @@ import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
 import { departmentRoutes } from "./modules/department/department.routes";
 import { employeeRoutes } from "./modules/employee/employee.routes";
 import { leaveRequestRoutes } from "./modules/leave-request/leave-request.routes";
+import { payrollRoutes } from "./modules/payroll/payroll.routes";
 
 const app = express();
 
@@ -45,5 +46,6 @@ app.use("/api/departments", departmentRoutes);
 app.use("/api/leave-requests", leaveRequestRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/payrolls", payrollRoutes);
 
 export default app;
