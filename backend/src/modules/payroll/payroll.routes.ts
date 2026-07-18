@@ -6,6 +6,13 @@ import { payrollController } from "./payroll.controller";
 
 export const payrollRoutes = Router();
 
+payrollRoutes.get(
+    "/",
+    authenticate,
+    requireRole("ADMIN"),
+    payrollController.getPayrolls,
+);
+
 payrollRoutes.post(
     "/",
     authenticate,

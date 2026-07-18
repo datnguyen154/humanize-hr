@@ -1,7 +1,12 @@
 import { Prisma, type Payroll } from "@prisma/client";
 
 import { employeeRepository } from "../employee/employee.repository";
-import { payrollRepository } from "./payroll.repository";
+import {
+    payrollRepository,
+    type PayrollSortBy,
+    type PayrollSortOrder,
+    type PayrollWithEmployee,
+} from "./payroll.repository";
 
 type CreatePayrollInput = {
     employeeId?: unknown;
@@ -29,6 +34,30 @@ type CreatedPayroll = Pick<
     | "updatedAt"
 >;
 
+type GetPayrollsQuery = {
+    page?: number | string;
+    limit?: number | string;
+    search?: string;
+    month?: number | string;
+    year?: number | string;
+    sortBy?: PayrollSortBy;
+    sortOrder?: PayrollSortOrder;
+};
+
+type GetPayrollsPagination = {
+    page: number;
+    limit: number;
+    totalItems: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+};
+
+type GetPayrollsResult = {
+    data: PayrollWithEmployee[];
+    pagination: GetPayrollsPagination;
+};
+
 export class PayrollServiceError extends Error {
     constructor(
         message: string,
@@ -38,6 +67,51 @@ export class PayrollServiceError extends Error {
         this.name = "PayrollServiceError";
     }
 }
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
+const MAX_LIMIT = 100;
+
+const parsePositiveInteger = (
+    value: number | string | undefined,
+    defaultValue: number,
+): number => {
+    if (value === undefined || value === "") {
+        return defaultValue;
+    }
+
+    const parsedValue =
+        typeof value === "number" ? value : Number.parseInt(value, 10);
+
+    if (!Number.isInteger(parsedValue)) {
+        return Number.NaN;
+    }
+
+    return parsedValue;
+};
+
+const normalizePagination = (
+    pageInput: number | string | undefined,
+    limitInput: number | string | undefined,
+): { page: number; limit: number; skip: number; take: number } => {
+    const page = parsePositiveInteger(pageInput, DEFAULT_PAGE);
+    const limit = parsePositiveInteger(limitInput, DEFAULT_LIMIT);
+
+    if (page < 1 || Number.isNaN(page)) {
+        throw new PayrollServiceError("Invalid page", 400);
+    }
+
+    if (limit < 1 || limit > MAX_LIMIT || Number.isNaN(limit)) {
+        throw new PayrollServiceError("Invalid limit", 400);
+    }
+
+    return {
+        page,
+        limit,
+        skip: (page - 1) * limit,
+        take: limit,
+    };
+};
 
 const UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -139,12 +213,73 @@ const toCreatedPayroll = (payroll: Payroll): CreatedPayroll => ({
 });
 
 export const payrollService = {
+    async getPayrolls(query: GetPayrollsQuery): Promise<GetPayrollsResult> {
+        const { page, limit, skip, take } = normalizePagination(
+            query.page,
+            query.limit,
+        );
+
+        let parsedMonth: number | undefined;
+        if (query.month !== undefined && query.month !== "") {
+            parsedMonth = Number(query.month);
+            if (
+                !Number.isInteger(parsedMonth) ||
+                parsedMonth < 1 ||
+                parsedMonth > 12
+            ) {
+                throw new PayrollServiceError(
+                    "month must be between 1 and 12",
+                    400,
+                );
+            }
+        }
+
+        let parsedYear: number | undefined;
+        if (query.year !== undefined && query.year !== "") {
+            parsedYear = Number(query.year);
+            if (!Number.isInteger(parsedYear) || parsedYear <= 2000) {
+                throw new PayrollServiceError(
+                    "year must be greater than 2000",
+                    400,
+                );
+            }
+        }
+
+        const repositoryParams = {
+            skip,
+            take,
+            search: query.search,
+            month: parsedMonth,
+            year: parsedYear,
+            sortBy: query.sortBy,
+            sortOrder: query.sortOrder,
+        };
+
+        const [payrolls, totalItems] = await Promise.all([
+            payrollRepository.findPayrolls(repositoryParams),
+            payrollRepository.countPayrolls(repositoryParams),
+        ]);
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+            data: payrolls,
+            pagination: {
+                page,
+                limit,
+                totalItems,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1 && totalPages > 0,
+            },
+        };
+    },
+
     async createPayroll(data: CreatePayrollInput): Promise<CreatedPayroll> {
         const employeeId = parseRequiredString(data.employeeId, "employeeId");
 
         if (!UUID_REGEX.test(employeeId)) {
             throw new PayrollServiceError(
-                
                 "employeeId must be a valid UUID",
                 400,
             );
