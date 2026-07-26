@@ -5,6 +5,7 @@ import {
     Banknote,
     ChevronLeft,
     ChevronRight,
+    Plus,
     Search,
 } from "lucide-react";
 import { useState } from "react";
@@ -38,6 +39,7 @@ import {
     type PayrollSortOrder,
     type PayrollStatus,
 } from "@/features/payroll";
+import { CreatePayrollDialog } from "./components/CreatePayrollDialog";
 
 type MonthFilter = "ALL" | number;
 type YearFilter = "ALL" | number;
@@ -93,6 +95,7 @@ export function PayrollListPage() {
     const [year, setYear] = useState<YearFilter>("ALL");
     const [sortBy, setSortBy] = useState<PayrollSortBy>("createdAt");
     const [sortOrder, setSortOrder] = useState<PayrollSortOrder>("desc");
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
     const payrollsQuery = usePayrollsQuery({
         page,
@@ -175,6 +178,15 @@ export function PayrollListPage() {
                                 tháng của nhân viên.
                             </CardDescription>
                         </div>
+
+                        <Button
+                            type="button"
+                            className="w-full shrink-0 gap-2 sm:w-auto"
+                            onClick={() => setIsCreateDialogOpen(true)}
+                        >
+                            <Plus className="size-4" aria-hidden="true" />
+                            Tạo bảng lương
+                        </Button>
                     </div>
 
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -538,6 +550,11 @@ export function PayrollListPage() {
                     ) : null}
                 </CardContent>
             </Card>
+
+            <CreatePayrollDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+            />
         </section>
     );
 }
