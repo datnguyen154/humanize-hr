@@ -119,13 +119,13 @@ export function AttendanceListPage() {
 
   const renderSortIcon = (column: AttendanceSortBy) => {
     if (sortBy !== column) {
-      return <ArrowUpDown className="size-4" aria-hidden="true" />
+      return <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />
     }
 
     return sortOrder === 'asc' ? (
-      <ArrowUp className="size-4" aria-hidden="true" />
+      <ArrowUp className="size-4 shrink-0" aria-hidden="true" />
     ) : (
-      <ArrowDown className="size-4" aria-hidden="true" />
+      <ArrowDown className="size-4 shrink-0" aria-hidden="true" />
     )
   }
 
@@ -265,12 +265,6 @@ export function AttendanceListPage() {
                 </Table>
               </div>
             </>
-          ) : null}
-
-          {attendanceQuery.isFetching && !attendanceQuery.isLoading ? (
-            <p className="mb-3 text-right text-xs text-muted-foreground">
-              Đang cập nhật dữ liệu...
-            </p>
           ) : null}
 
           {attendanceQuery.isError ? (

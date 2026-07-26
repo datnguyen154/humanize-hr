@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { getEmployeeById, getEmployees } from '../api/employee.api'
 import { employeeQueryKeys } from '../lib/employee.query-keys'
@@ -8,6 +8,7 @@ export function useEmployeesQuery(params: EmployeesQueryParams) {
   return useQuery({
     queryKey: employeeQueryKeys.list(params),
     queryFn: () => getEmployees(params),
+    placeholderData: keepPreviousData,
   })
 }
 

@@ -117,12 +117,6 @@ export function AttendanceHistoryPage() {
             </Table>
           ) : null}
 
-          {attendanceQuery.isFetching && !attendanceQuery.isLoading ? (
-            <p className="mb-3 text-right text-xs text-muted-foreground">
-              Đang cập nhật dữ liệu...
-            </p>
-          ) : null}
-
           {attendanceQuery.isError ? (
             <p className="py-8 text-center text-destructive">
               Không thể tải lịch sử chấm công

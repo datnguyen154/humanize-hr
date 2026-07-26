@@ -192,12 +192,6 @@ export function EmployeeLeaveRequestListPage() {
           </div>
         ) : null}
 
-        {leaveRequestsQuery.isFetching && !leaveRequestsQuery.isLoading ? (
-          <p className="text-right text-xs text-muted-foreground">
-            Đang cập nhật dữ liệu...
-          </p>
-        ) : null}
-
         {leaveRequestsQuery.isError ? (
           <p className="rounded-lg border border-destructive/20 bg-card px-4 py-8 text-center text-sm text-destructive">
             Không thể tải danh sách đơn nghỉ phép
@@ -331,12 +325,6 @@ export function EmployeeLeaveRequestListPage() {
                 <TableRowsSkeleton columns={6} />
               </TableBody>
             </Table>
-          ) : null}
-
-          {leaveRequestsQuery.isFetching && !leaveRequestsQuery.isLoading ? (
-            <p className="mb-3 text-right text-xs text-muted-foreground">
-              Đang cập nhật dữ liệu...
-            </p>
           ) : null}
 
           {leaveRequestsQuery.isError ? (

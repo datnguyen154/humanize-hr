@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import {
   getLeaveRequestById,
@@ -22,6 +22,7 @@ export function useLeaveRequestsQuery(
   return useQuery({
     queryKey: leaveRequestQueryKeys.list(params, scope),
     queryFn: () => getLeaveRequests(params),
+    placeholderData: keepPreviousData,
   })
 }
 

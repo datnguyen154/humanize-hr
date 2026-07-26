@@ -128,13 +128,13 @@ export function LeaveRequestListPage() {
 
   const renderSortIcon = (column: LeaveRequestSortBy) => {
     if (sortBy !== column) {
-      return <ArrowUpDown className="size-4" aria-hidden="true" />
+      return <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />
     }
 
     return sortOrder === 'asc' ? (
-      <ArrowUp className="size-4" aria-hidden="true" />
+      <ArrowUp className="size-4 shrink-0" aria-hidden="true" />
     ) : (
-      <ArrowDown className="size-4" aria-hidden="true" />
+      <ArrowDown className="size-4 shrink-0" aria-hidden="true" />
     )
   }
 
@@ -231,12 +231,6 @@ export function LeaveRequestListPage() {
                 </Table>
               </div>
             </>
-          ) : null}
-
-          {leaveRequestsQuery.isFetching && !leaveRequestsQuery.isLoading ? (
-            <p className="mb-3 text-right text-xs text-muted-foreground">
-              Đang cập nhật dữ liệu...
-            </p>
           ) : null}
 
           {leaveRequestsQuery.isError ? (

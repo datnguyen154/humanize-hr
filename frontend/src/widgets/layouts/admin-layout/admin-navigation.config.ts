@@ -1,5 +1,6 @@
 import type React from 'react'
 import {
+  Banknote,
   Building2,
   CalendarCheck,
   ClipboardList,
@@ -38,5 +39,10 @@ export const adminNavigationItems = [
     label: 'Nghỉ phép',
     path: '/admin/leave-requests',
     icon: ClipboardList,
+  },
+  {
+    label: 'Bảng lương',
+    path: '/admin/payroll',
+    icon: Banknote,
   },
 ] satisfies AdminNavigationItem[]

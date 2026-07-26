@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { getAttendanceList } from '../api/attendance.api'
 import { attendanceQueryKeys } from './useAttendanceHistoryQuery'
@@ -8,5 +8,6 @@ export function useAttendanceListQuery(params: AttendanceListQueryParams) {
   return useQuery({
     queryKey: attendanceQueryKeys.list(params),
     queryFn: () => getAttendanceList(params),
+    placeholderData: keepPreviousData,
   })
 }

@@ -111,13 +111,13 @@ export function EmployeeListPage() {
 
   const renderSortIcon = (column: EmployeeSortBy) => {
     if (sortBy !== column) {
-      return <ArrowUpDown className="size-4" aria-hidden="true" />
+      return <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />
     }
 
     return sortOrder === 'asc' ? (
-      <ArrowUp className="size-4" aria-hidden="true" />
+      <ArrowUp className="size-4 shrink-0" aria-hidden="true" />
     ) : (
-      <ArrowDown className="size-4" aria-hidden="true" />
+      <ArrowDown className="size-4 shrink-0" aria-hidden="true" />
     )
   }
 
@@ -209,12 +209,6 @@ export function EmployeeListPage() {
                 </Table>
               </div>
             </>
-          ) : null}
-
-          {employeesQuery.isFetching && !employeesQuery.isLoading ? (
-            <p className="mb-3 text-right text-xs text-muted-foreground">
-              Đang cập nhật dữ liệu...
-            </p>
           ) : null}
 
           {employeesQuery.isError ? (

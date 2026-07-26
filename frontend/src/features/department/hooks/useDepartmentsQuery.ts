@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { getDepartmentById, getDepartments } from '../api/department.api'
 import type { DepartmentsQueryParams } from '../types/department.types'
@@ -14,6 +14,7 @@ export function useDepartmentsQuery(params: DepartmentsQueryParams) {
   return useQuery({
     queryKey: departmentQueryKeys.list(params),
     queryFn: () => getDepartments(params),
+    placeholderData: keepPreviousData,
   })
 }
 
