@@ -5,6 +5,7 @@ import {
     Banknote,
     ChevronLeft,
     ChevronRight,
+    Eye,
     Plus,
     Search,
 } from "lucide-react";
@@ -35,11 +36,13 @@ import {
 } from "@/components/ui/table";
 import {
     usePayrollsQuery,
+    type Payroll,
     type PayrollSortBy,
     type PayrollSortOrder,
     type PayrollStatus,
 } from "@/features/payroll";
 import { CreatePayrollDialog } from "./components/CreatePayrollDialog";
+import { PayrollDetailDialog } from "./components/PayrollDetailDialog";
 
 type MonthFilter = "ALL" | number;
 type YearFilter = "ALL" | number;
@@ -96,6 +99,7 @@ export function PayrollListPage() {
     const [sortBy, setSortBy] = useState<PayrollSortBy>("createdAt");
     const [sortOrder, setSortOrder] = useState<PayrollSortOrder>("desc");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
 
     const payrollsQuery = usePayrollsQuery({
         page,
@@ -265,7 +269,7 @@ export function PayrollListPage() {
                             <div className="hidden md:block">
                                 <Table>
                                     <TableBody>
-                                        <TableRowsSkeleton columns={9} />
+                                        <TableRowsSkeleton columns={10} />
                                     </TableBody>
                                 </Table>
                             </div>
@@ -384,6 +388,22 @@ export function PayrollListPage() {
                                                 </dd>
                                             </div>
                                         </dl>
+
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-4 w-full gap-2"
+                                            onClick={() =>
+                                                setSelectedPayroll(payroll)
+                                            }
+                                        >
+                                            <Eye
+                                                className="size-4"
+                                                aria-hidden="true"
+                                            />
+                                            Xem chi tiết
+                                        </Button>
                                     </article>
                                 ))}
                             </div>
@@ -433,16 +453,36 @@ export function PayrollListPage() {
                                                     "createdAt",
                                                 )}
                                             </TableHead>
+                                            <TableHead className="text-right">
+                                                Thao tác
+                                            </TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {payrolls.map((payroll) => (
-                                            <TableRow key={payroll.id}>
+                                            <TableRow
+                                                key={payroll.id}
+                                                className="cursor-pointer"
+                                                onClick={() =>
+                                                    setSelectedPayroll(payroll)
+                                                }
+                                            >
                                                 <TableCell className="font-medium text-primary">
-                                                    {
-                                                        payroll.employee
-                                                            .employeeCode
-                                                    }
+                                                    <button
+                                                        type="button"
+                                                        className="font-medium text-primary hover:underline"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            setSelectedPayroll(
+                                                                payroll,
+                                                            );
+                                                        }}
+                                                    >
+                                                        {
+                                                            payroll.employee
+                                                                .employeeCode
+                                                        }
+                                                    </button>
                                                 </TableCell>
                                                 <TableCell>
                                                     {payroll.employee.fullName}
@@ -491,6 +531,24 @@ export function PayrollListPage() {
                                                     {formatDate(
                                                         payroll.createdAt,
                                                     )}
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="size-8 text-muted-foreground hover:text-primary"
+                                                        aria-label="Xem chi tiết bảng lương"
+                                                        title="Xem chi tiết bảng lương"
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            setSelectedPayroll(
+                                                                payroll,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Eye className="size-4" />
+                                                    </Button>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -554,6 +612,16 @@ export function PayrollListPage() {
             <CreatePayrollDialog
                 open={isCreateDialogOpen}
                 onOpenChange={setIsCreateDialogOpen}
+            />
+
+            <PayrollDetailDialog
+                payroll={selectedPayroll}
+                open={Boolean(selectedPayroll)}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setSelectedPayroll(null);
+                    }
+                }}
             />
         </section>
     );

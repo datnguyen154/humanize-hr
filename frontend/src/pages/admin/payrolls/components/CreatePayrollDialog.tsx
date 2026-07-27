@@ -23,37 +23,26 @@ import type { ApiErrorResponse } from '@/shared/types'
 const createPayrollSchema = z.object({
   employeeId: z.string().min(1, 'Vui lòng chọn nhân viên'),
   month: z.coerce
-    .number({ invalid_type_error: 'Tháng phải là số' })
+    .number({ message: 'Tháng phải là số' })
     .min(1, 'Tháng phải từ 1 đến 12')
     .max(12, 'Tháng phải từ 1 đến 12'),
   year: z.coerce
-    .number({ invalid_type_error: 'Năm phải là số' })
+    .number({ message: 'Năm phải là số' })
     .min(2000, 'Năm phải từ 2000 trở đi'),
-  baseSalary: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? undefined : Number(val)),
-    z
-      .number({
-        required_error: 'Vui lòng nhập lương cơ bản',
-        invalid_type_error: 'Lương cơ bản phải là số',
-      })
-      .min(0, 'Lương cơ bản không được âm'),
-  ),
-  bonus: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? 0 : Number(val)),
-    z
-      .number({ invalid_type_error: 'Thưởng phải là số' })
-      .min(0, 'Thưởng không được âm'),
-  ),
-  deduction: z.preprocess(
-    (val) => (val === '' || val === null || val === undefined ? 0 : Number(val)),
-    z
-      .number({ invalid_type_error: 'Khấu trừ phải là số' })
-      .min(0, 'Khấu trừ không được âm'),
-  ),
+  baseSalary: z.coerce
+    .number({ message: 'Lương cơ bản phải là số' })
+    .min(0, 'Lương cơ bản không được âm'),
+  bonus: z.coerce
+    .number({ message: 'Thưởng phải là số' })
+    .min(0, 'Thưởng không được âm'),
+  deduction: z.coerce
+    .number({ message: 'Khấu trừ phải là số' })
+    .min(0, 'Khấu trừ không được âm'),
   note: z.string().optional(),
 })
 
-type CreatePayrollFormValues = z.infer<typeof createPayrollSchema>
+type CreatePayrollFormInput = z.input<typeof createPayrollSchema>
+type CreatePayrollFormValues = z.output<typeof createPayrollSchema>
 
 type CreatePayrollDialogProps = {
   open: boolean
@@ -102,13 +91,13 @@ export function CreatePayrollDialog({ open, onOpenChange }: CreatePayrollDialogP
     control,
     reset,
     formState: { errors },
-  } = useForm<CreatePayrollFormValues>({
+  } = useForm<CreatePayrollFormInput, unknown, CreatePayrollFormValues>({
     resolver: zodResolver(createPayrollSchema),
     defaultValues: {
       employeeId: '',
       month: currentMonth,
       year: currentYear,
-      baseSalary: '' as unknown as number,
+      baseSalary: 0,
       bonus: 0,
       deduction: 0,
       note: '',
