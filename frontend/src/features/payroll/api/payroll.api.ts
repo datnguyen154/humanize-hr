@@ -3,6 +3,7 @@ import { axiosInstance } from "@/shared/api";
 import type {
     CreatePayrollRequest,
     CreatePayrollResponse,
+    PublishPayrollResponse,
     PayrollsQueryParams,
     PayrollsResponse,
     UpdatePayrollRequest,
@@ -21,6 +22,14 @@ export const createPayroll = async (payload: CreatePayrollRequest) => {
     const response = await axiosInstance.post<CreatePayrollResponse>(
         "/payrolls",
         payload,
+    );
+
+    return response.data.data;
+};
+
+export const publishPayroll = async (id: string) => {
+    const response = await axiosInstance.patch<PublishPayrollResponse>(
+        `/payrolls/${id}/publish`,
     );
 
     return response.data.data;

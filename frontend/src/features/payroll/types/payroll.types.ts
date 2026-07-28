@@ -84,3 +84,7 @@ export type CreatePayrollResponse = {
 export type UpdatePayrollResponse = {
     data: PayrollMutationResult;
 };
+
+export type PublishPayrollResponse = {
+    data: PayrollMutationResult;
+};
