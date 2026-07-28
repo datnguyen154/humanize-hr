@@ -21,6 +21,13 @@ payrollRoutes.post(
 );
 
 payrollRoutes.patch(
+    "/:id/publish",
+    authenticate,
+    requireRole("ADMIN"),
+    payrollController.publishPayroll,
+);
+
+payrollRoutes.patch(
     "/:id",
     authenticate,
     requireRole("ADMIN"),

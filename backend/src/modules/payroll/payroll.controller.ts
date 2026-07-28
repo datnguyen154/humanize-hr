@@ -149,4 +149,16 @@ export const payrollController = {
             return handleError(error, res);
         }
     },
+
+    async publishPayroll(req: Request, res: Response): Promise<Response> {
+        try {
+            const payroll = await payrollService.publishPayroll(req.params.id);
+
+            return res.status(200).json({
+                data: payroll,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };

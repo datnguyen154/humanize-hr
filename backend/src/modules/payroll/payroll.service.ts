@@ -431,4 +431,27 @@ export const payrollService = {
 
         return toCreatedPayroll(payroll);
     },
+
+    async publishPayroll(id: string): Promise<CreatedPayroll> {
+        if (!UUID_REGEX.test(id)) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        const existingPayroll = await payrollRepository.findPayrollById(id);
+
+        if (!existingPayroll) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        if (existingPayroll.status !== PayrollStatus.DRAFT) {
+            throw new PayrollServiceError(
+                "Only draft payroll can be published",
+                400,
+            );
+        }
+
+        const payroll = await payrollRepository.publishPayroll(id);
+
+        return toCreatedPayroll(payroll);
+    },
 };

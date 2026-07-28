@@ -1,4 +1,4 @@
-import type { Payroll, Prisma } from "@prisma/client";
+import { PayrollStatus, type Payroll, type Prisma } from "@prisma/client";
 
 import { prisma } from "../../config/prisma";
 
@@ -123,6 +123,15 @@ export const payrollRepository = {
         return prisma.payroll.update({
             where: { id },
             data,
+        });
+    },
+
+    publishPayroll(id: string): Promise<Payroll> {
+        return prisma.payroll.update({
+            where: { id },
+            data: {
+                status: PayrollStatus.PUBLISHED,
+            },
         });
     },
 
