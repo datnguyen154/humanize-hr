@@ -3,6 +3,7 @@ import type { Payroll, Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
 export type CreatePayrollData = Prisma.PayrollUncheckedCreateInput;
+export type UpdatePayrollData = Prisma.PayrollUncheckedUpdateInput;
 
 export type PayrollSortBy =
     | "baseSalary"
@@ -108,6 +109,19 @@ export const payrollRepository = {
 
     createPayroll(data: CreatePayrollData): Promise<Payroll> {
         return prisma.payroll.create({
+            data,
+        });
+    },
+
+    findPayrollById(id: string): Promise<Payroll | null> {
+        return prisma.payroll.findUnique({
+            where: { id },
+        });
+    },
+
+    updatePayroll(id: string, data: UpdatePayrollData): Promise<Payroll> {
+        return prisma.payroll.update({
+            where: { id },
             data,
         });
     },

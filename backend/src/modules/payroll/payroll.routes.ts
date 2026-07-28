@@ -19,3 +19,10 @@ payrollRoutes.post(
     requireRole("ADMIN"),
     payrollController.createPayroll,
 );
+
+payrollRoutes.patch(
+    "/:id",
+    authenticate,
+    requireRole("ADMIN"),
+    payrollController.updatePayroll,
+);

@@ -125,4 +125,28 @@ export const payrollController = {
             return handleError(error, res);
         }
     },
+
+    async updatePayroll(req: Request, res: Response): Promise<Response> {
+        try {
+            const { baseSalary, bonus, deduction, note } = req.body as {
+                baseSalary?: unknown;
+                bonus?: unknown;
+                deduction?: unknown;
+                note?: unknown;
+            };
+
+            const payroll = await payrollService.updatePayroll(req.params.id, {
+                baseSalary,
+                bonus,
+                deduction,
+                note,
+            });
+
+            return res.status(200).json({
+                data: payroll,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
 };

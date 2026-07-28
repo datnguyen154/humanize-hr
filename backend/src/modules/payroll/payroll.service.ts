@@ -1,4 +1,4 @@
-import { Prisma, type Payroll } from "@prisma/client";
+import { PayrollStatus, Prisma, type Payroll } from "@prisma/client";
 
 import { employeeRepository } from "../employee/employee.repository";
 import {
@@ -12,6 +12,13 @@ type CreatePayrollInput = {
     employeeId?: unknown;
     month?: unknown;
     year?: unknown;
+    baseSalary?: unknown;
+    bonus?: unknown;
+    deduction?: unknown;
+    note?: unknown;
+};
+
+type UpdatePayrollInput = {
     baseSalary?: unknown;
     bonus?: unknown;
     deduction?: unknown;
@@ -172,6 +179,24 @@ const parseOptionalDecimal = (
     return decimal;
 };
 
+const parseOptionalUpdateDecimal = (
+    value: unknown,
+    fieldName: string,
+): Prisma.Decimal | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+
+    if (value === null || value === "") {
+        throw new PayrollServiceError(
+            `${fieldName} must be a valid number`,
+            400,
+        );
+    }
+
+    return parseOptionalDecimal(value, fieldName, "0");
+};
+
 const parseRequiredDecimal = (
     value: unknown,
     fieldName: string,
@@ -185,6 +210,24 @@ const parseRequiredDecimal = (
 
 const parseOptionalNote = (value: unknown): string | null => {
     if (value === undefined || value === null) {
+        return null;
+    }
+
+    if (typeof value !== "string") {
+        throw new PayrollServiceError("note must be a string", 400);
+    }
+
+    const note = value.trim();
+
+    return note.length > 0 ? note : null;
+};
+
+const parseOptionalUpdateNote = (value: unknown): string | null | undefined => {
+    if (value === undefined) {
+        return undefined;
+    }
+
+    if (value === null) {
         return null;
     }
 
@@ -333,6 +376,58 @@ export const payrollService = {
             netSalary,
             note,
         });
+
+        return toCreatedPayroll(payroll);
+    },
+
+    async updatePayroll(
+        id: string,
+        data: UpdatePayrollInput,
+    ): Promise<CreatedPayroll> {
+        if (!UUID_REGEX.test(id)) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        const existingPayroll = await payrollRepository.findPayrollById(id);
+
+        if (!existingPayroll) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        if (existingPayroll.status !== PayrollStatus.DRAFT) {
+            throw new PayrollServiceError(
+                "Published payroll cannot be updated",
+                400,
+            );
+        }
+
+        const baseSalary = parseOptionalUpdateDecimal(
+            data.baseSalary,
+            "baseSalary",
+        );
+        const bonus = parseOptionalUpdateDecimal(data.bonus, "bonus");
+        const deduction = parseOptionalUpdateDecimal(
+            data.deduction,
+            "deduction",
+        );
+        const note = parseOptionalUpdateNote(data.note);
+
+        const finalBaseSalary = baseSalary ?? existingPayroll.baseSalary;
+        const finalBonus = bonus ?? existingPayroll.bonus;
+        const finalDeduction = deduction ?? existingPayroll.deduction;
+        const netSalary = finalBaseSalary
+            .plus(finalBonus)
+            .minus(finalDeduction);
+
+        const updateData = {
+            baseSalary,
+            bonus,
+            deduction,
+            note,
+            netSalary,
+        };
+
+        const payroll = await payrollRepository.updatePayroll(id, updateData);
 
         return toCreatedPayroll(payroll);
     },
