@@ -5,6 +5,8 @@ import type {
     CreatePayrollResponse,
     PayrollsQueryParams,
     PayrollsResponse,
+    UpdatePayrollRequest,
+    UpdatePayrollResponse,
 } from "../types/payroll.types";
 
 export const getPayrolls = async (params: PayrollsQueryParams) => {
@@ -18,6 +20,18 @@ export const getPayrolls = async (params: PayrollsQueryParams) => {
 export const createPayroll = async (payload: CreatePayrollRequest) => {
     const response = await axiosInstance.post<CreatePayrollResponse>(
         "/payrolls",
+        payload,
+    );
+
+    return response.data.data;
+};
+
+export const updatePayroll = async (
+    id: string,
+    payload: UpdatePayrollRequest,
+) => {
+    const response = await axiosInstance.patch<UpdatePayrollResponse>(
+        `/payrolls/${id}`,
         payload,
     );
 

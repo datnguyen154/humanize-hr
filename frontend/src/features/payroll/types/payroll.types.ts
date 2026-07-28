@@ -44,6 +44,15 @@ export type CreatePayrollRequest = {
     note?: string | null;
 };
 
+export type UpdatePayrollRequest = {
+    baseSalary?: number;
+    bonus?: number;
+    deduction?: number;
+    note?: string | null;
+};
+
+export type PayrollMutationResult = Omit<Payroll, "employee">;
+
 export type PayrollsQueryParams = {
     page: number;
     limit: number;
@@ -69,5 +78,9 @@ export type PayrollsResponse = {
 };
 
 export type CreatePayrollResponse = {
-    data: Omit<Payroll, "employee">;
+    data: PayrollMutationResult;
+};
+
+export type UpdatePayrollResponse = {
+    data: PayrollMutationResult;
 };

@@ -37,6 +37,7 @@ import {
 import {
     usePayrollsQuery,
     type Payroll,
+    type PayrollMutationResult,
     type PayrollSortBy,
     type PayrollSortOrder,
     type PayrollStatus,
@@ -99,7 +100,9 @@ export function PayrollListPage() {
     const [sortBy, setSortBy] = useState<PayrollSortBy>("createdAt");
     const [sortOrder, setSortOrder] = useState<PayrollSortOrder>("desc");
     const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-    const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
+    const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(
+        null,
+    );
 
     const payrollsQuery = usePayrollsQuery({
         page,
@@ -146,7 +149,9 @@ export function PayrollListPage() {
 
     const renderSortIcon = (column: PayrollSortBy) => {
         if (sortBy !== column) {
-            return <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />;
+            return (
+                <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />
+            );
         }
 
         return sortOrder === "asc" ? (
@@ -167,6 +172,19 @@ export function PayrollListPage() {
             {renderSortIcon(column)}
         </Button>
     );
+
+    const handlePayrollUpdated = (updatedPayroll: PayrollMutationResult) => {
+        setSelectedPayroll((currentPayroll) => {
+            if (!currentPayroll || currentPayroll.id !== updatedPayroll.id) {
+                return currentPayroll;
+            }
+
+            return {
+                ...currentPayroll,
+                ...updatedPayroll,
+            };
+        });
+    };
 
     return (
         <section className="min-w-0 overflow-x-hidden">
@@ -617,6 +635,7 @@ export function PayrollListPage() {
             <PayrollDetailDialog
                 payroll={selectedPayroll}
                 open={Boolean(selectedPayroll)}
+                onPayrollUpdated={handlePayrollUpdated}
                 onOpenChange={(open) => {
                     if (!open) {
                         setSelectedPayroll(null);
