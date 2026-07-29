@@ -1,4 +1,5 @@
 export { useCreatePayrollMutation } from "./hooks/useCreatePayrollMutation";
+export { useDownloadEmployeePayrollPdfMutation } from "./hooks/useDownloadEmployeePayrollPdfMutation";
 export { useEmployeePayrollsQuery } from "./hooks/useEmployeePayrollsQuery";
 export { usePayrollsQuery } from "./hooks/usePayrollsQuery";
 export { usePublishPayrollMutation } from "./hooks/usePublishPayrollMutation";
@@ -13,6 +14,7 @@ export type {
     Payroll,
     PayrollEmployee,
     PayrollMutationResult,
+    PayrollPdfDownloadResult,
     PayrollSortBy,
     PayrollSortOrder,
     PayrollStatus,

@@ -5,6 +5,7 @@ import type {
     CreatePayrollResponse,
     EmployeePayrollsQueryParams,
     EmployeePayrollsResponse,
+    PayrollPdfDownloadResult,
     PublishPayrollResponse,
     PayrollsQueryParams,
     PayrollsResponse,
@@ -29,6 +30,26 @@ export const getMyPayrolls = async (params: EmployeePayrollsQueryParams) => {
     );
 
     return response.data;
+};
+
+export const downloadEmployeePayrollPdf = async (
+    id: string,
+): Promise<PayrollPdfDownloadResult> => {
+    const response = await axiosInstance.get<Blob>(
+        `/employees/me/payrolls/${id}/pdf`,
+        {
+            responseType: "blob",
+        },
+    );
+    const contentDisposition = response.headers["content-disposition"];
+
+    return {
+        blob: response.data,
+        contentDisposition:
+            typeof contentDisposition === "string"
+                ? contentDisposition
+                : undefined,
+    };
 };
 
 export const createPayroll = async (payload: CreatePayrollRequest) => {

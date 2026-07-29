@@ -93,6 +93,11 @@ export type EmployeePayrollsResponse = {
     pagination: PayrollsPagination;
 };
 
+export type PayrollPdfDownloadResult = {
+    blob: Blob;
+    contentDisposition?: string;
+};
+
 export type CreatePayrollResponse = {
     data: PayrollMutationResult;
 };
