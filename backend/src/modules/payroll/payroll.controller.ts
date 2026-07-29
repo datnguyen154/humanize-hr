@@ -88,6 +88,24 @@ export const payrollController = {
         }
     },
 
+    async getMyPayrolls(req: Request, res: Response): Promise<Response> {
+        try {
+            const result = await payrollService.getMyPayrolls(
+                req.user?.userId,
+                {
+                    page: getSingleQueryValue(req.query.page),
+                    limit: getSingleQueryValue(req.query.limit),
+                    month: getSingleQueryValue(req.query.month),
+                    year: getSingleQueryValue(req.query.year),
+                },
+            );
+
+            return res.status(200).json(result);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async createPayroll(req: Request, res: Response): Promise<Response> {
         try {
             const {

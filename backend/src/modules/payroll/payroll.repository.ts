@@ -26,6 +26,14 @@ export type PayrollQueryParams = {
     sortOrder?: PayrollSortOrder;
 };
 
+export type EmployeePayrollQueryParams = {
+    employeeId: string;
+    skip?: number;
+    take?: number;
+    month?: number;
+    year?: number;
+};
+
 const payrollEmployeeRelation = {
     employee: {
         select: {
@@ -39,6 +47,24 @@ const payrollEmployeeRelation = {
 
 export type PayrollWithEmployee = Prisma.PayrollGetPayload<{
     include: typeof payrollEmployeeRelation;
+}>;
+
+const employeePayrollSelect = {
+    id: true,
+    month: true,
+    year: true,
+    baseSalary: true,
+    bonus: true,
+    deduction: true,
+    netSalary: true,
+    note: true,
+    status: true,
+    createdAt: true,
+    updatedAt: true,
+} satisfies Prisma.PayrollSelect;
+
+export type EmployeePayroll = Prisma.PayrollGetPayload<{
+    select: typeof employeePayrollSelect;
 }>;
 
 const buildPayrollWhere = (
@@ -88,6 +114,25 @@ const buildPayrollOrderBy = (
     return {
         [sortBy]: sortOrder,
     };
+};
+
+const buildEmployeePayrollWhere = (
+    params: EmployeePayrollQueryParams,
+): Prisma.PayrollWhereInput => {
+    const where: Prisma.PayrollWhereInput = {
+        employeeId: params.employeeId,
+        status: PayrollStatus.PUBLISHED,
+    };
+
+    if (params.month !== undefined) {
+        where.month = params.month;
+    }
+
+    if (params.year !== undefined) {
+        where.year = params.year;
+    }
+
+    return where;
 };
 
 export const payrollRepository = {
@@ -148,6 +193,24 @@ export const payrollRepository = {
     countPayrolls(params: PayrollQueryParams): Promise<number> {
         return prisma.payroll.count({
             where: buildPayrollWhere(params),
+        });
+    },
+
+    findEmployeePayrolls(
+        params: EmployeePayrollQueryParams,
+    ): Promise<EmployeePayroll[]> {
+        return prisma.payroll.findMany({
+            where: buildEmployeePayrollWhere(params),
+            orderBy: [{ year: "desc" }, { month: "desc" }],
+            skip: params.skip,
+            take: params.take,
+            select: employeePayrollSelect,
+        });
+    },
+
+    countEmployeePayrolls(params: EmployeePayrollQueryParams): Promise<number> {
+        return prisma.payroll.count({
+            where: buildEmployeePayrollWhere(params),
         });
     },
 };

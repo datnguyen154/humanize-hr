@@ -3,6 +3,7 @@ import { PayrollStatus, Prisma, type Payroll } from "@prisma/client";
 import { employeeRepository } from "../employee/employee.repository";
 import {
     payrollRepository,
+    type EmployeePayroll,
     type PayrollSortBy,
     type PayrollSortOrder,
     type PayrollWithEmployee,
@@ -51,6 +52,13 @@ type GetPayrollsQuery = {
     sortOrder?: PayrollSortOrder;
 };
 
+type GetMyPayrollsQuery = {
+    page?: number | string;
+    limit?: number | string;
+    month?: number | string;
+    year?: number | string;
+};
+
 type GetPayrollsPagination = {
     page: number;
     limit: number;
@@ -62,6 +70,11 @@ type GetPayrollsPagination = {
 
 type GetPayrollsResult = {
     data: PayrollWithEmployee[];
+    pagination: GetPayrollsPagination;
+};
+
+type GetMyPayrollsResult = {
+    data: EmployeePayroll[];
     pagination: GetPayrollsPagination;
 };
 
@@ -301,6 +314,79 @@ export const payrollService = {
         const [payrolls, totalItems] = await Promise.all([
             payrollRepository.findPayrolls(repositoryParams),
             payrollRepository.countPayrolls(repositoryParams),
+        ]);
+
+        const totalPages = Math.ceil(totalItems / limit);
+
+        return {
+            data: payrolls,
+            pagination: {
+                page,
+                limit,
+                totalItems,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPreviousPage: page > 1 && totalPages > 0,
+            },
+        };
+    },
+
+    async getMyPayrolls(
+        userId: string | undefined,
+        query: GetMyPayrollsQuery,
+    ): Promise<GetMyPayrollsResult> {
+        if (!userId) {
+            throw new PayrollServiceError("Unauthorized", 401);
+        }
+
+        const employee = await employeeRepository.findEmployeeByUserId(userId);
+
+        if (!employee) {
+            throw new PayrollServiceError("Employee profile not found", 404);
+        }
+
+        const { page, limit, skip, take } = normalizePagination(
+            query.page,
+            query.limit,
+        );
+
+        let parsedMonth: number | undefined;
+        if (query.month !== undefined && query.month !== "") {
+            parsedMonth = Number(query.month);
+            if (
+                !Number.isInteger(parsedMonth) ||
+                parsedMonth < 1 ||
+                parsedMonth > 12
+            ) {
+                throw new PayrollServiceError(
+                    "month must be between 1 and 12",
+                    400,
+                );
+            }
+        }
+
+        let parsedYear: number | undefined;
+        if (query.year !== undefined && query.year !== "") {
+            parsedYear = Number(query.year);
+            if (!Number.isInteger(parsedYear) || parsedYear <= 2000) {
+                throw new PayrollServiceError(
+                    "year must be greater than 2000",
+                    400,
+                );
+            }
+        }
+
+        const repositoryParams = {
+            employeeId: employee.id,
+            skip,
+            take,
+            month: parsedMonth,
+            year: parsedYear,
+        };
+
+        const [payrolls, totalItems] = await Promise.all([
+            payrollRepository.findEmployeePayrolls(repositoryParams),
+            payrollRepository.countEmployeePayrolls(repositoryParams),
         ]);
 
         const totalPages = Math.ceil(totalItems / limit);
