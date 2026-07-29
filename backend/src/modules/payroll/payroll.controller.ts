@@ -106,6 +106,28 @@ export const payrollController = {
         }
     },
 
+    async downloadMyPayrollPdf(
+        req: Request,
+        res: Response,
+    ): Promise<Response> {
+        try {
+            const result = await payrollService.downloadMyPayrollPdf(
+                req.user?.userId,
+                req.params.id,
+            );
+
+            res.setHeader("Content-Type", "application/pdf");
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${result.filename}"`,
+            );
+
+            return res.status(200).send(result.buffer);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async createPayroll(req: Request, res: Response): Promise<Response> {
         try {
             const {

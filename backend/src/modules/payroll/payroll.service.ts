@@ -1,6 +1,7 @@
 import { PayrollStatus, Prisma, type Payroll } from "@prisma/client";
 
 import { employeeRepository } from "../employee/employee.repository";
+import { generatePayrollPdf } from "./payroll-pdf.generator";
 import {
     payrollRepository,
     type EmployeePayroll,
@@ -76,6 +77,11 @@ type GetPayrollsResult = {
 type GetMyPayrollsResult = {
     data: EmployeePayroll[];
     pagination: GetPayrollsPagination;
+};
+
+type DownloadMyPayrollPdfResult = {
+    buffer: Buffer;
+    filename: string;
 };
 
 export class PayrollServiceError extends Error {
@@ -268,6 +274,9 @@ const toCreatedPayroll = (payroll: Payroll): CreatedPayroll => ({
     updatedAt: payroll.updatedAt,
 });
 
+const sanitizeFilenamePart = (value: string): string =>
+    value.replace(/[^a-zA-Z0-9_-]/g, "-");
+
 export const payrollService = {
     async getPayrolls(query: GetPayrollsQuery): Promise<GetPayrollsResult> {
         const { page, limit, skip, take } = normalizePagination(
@@ -401,6 +410,44 @@ export const payrollService = {
                 hasNextPage: page < totalPages,
                 hasPreviousPage: page > 1 && totalPages > 0,
             },
+        };
+    },
+
+    async downloadMyPayrollPdf(
+        userId: string | undefined,
+        payrollId: string,
+    ): Promise<DownloadMyPayrollPdfResult> {
+        if (!userId) {
+            throw new PayrollServiceError("Unauthorized", 401);
+        }
+
+        if (!UUID_REGEX.test(payrollId)) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        const employee = await employeeRepository.findEmployeeByUserId(userId);
+
+        if (!employee) {
+            throw new PayrollServiceError("Employee profile not found", 404);
+        }
+
+        const payroll =
+            await payrollRepository.findEmployeePublishedPayrollById(
+                payrollId,
+                employee.id,
+            );
+
+        if (!payroll) {
+            throw new PayrollServiceError("Payroll not found", 404);
+        }
+
+        const buffer = await generatePayrollPdf(payroll);
+        const month = String(payroll.month).padStart(2, "0");
+        const employeeCode = sanitizeFilenamePart(payroll.employee.employeeCode);
+
+        return {
+            buffer,
+            filename: `payroll-${payroll.year}-${month}-${employeeCode}.pdf`,
         };
     },
 

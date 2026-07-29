@@ -67,6 +67,20 @@ export type EmployeePayroll = Prisma.PayrollGetPayload<{
     select: typeof employeePayrollSelect;
 }>;
 
+const employeePublishedPayrollPdfRelation = {
+    employee: {
+        select: {
+            employeeCode: true,
+            fullName: true,
+            email: true,
+        },
+    },
+} satisfies Prisma.PayrollInclude;
+
+export type EmployeePublishedPayrollForPdf = Prisma.PayrollGetPayload<{
+    include: typeof employeePublishedPayrollPdfRelation;
+}>;
+
 const buildPayrollWhere = (
     params: PayrollQueryParams,
 ): Prisma.PayrollWhereInput => {
@@ -211,6 +225,20 @@ export const payrollRepository = {
     countEmployeePayrolls(params: EmployeePayrollQueryParams): Promise<number> {
         return prisma.payroll.count({
             where: buildEmployeePayrollWhere(params),
+        });
+    },
+
+    findEmployeePublishedPayrollById(
+        id: string,
+        employeeId: string,
+    ): Promise<EmployeePublishedPayrollForPdf | null> {
+        return prisma.payroll.findFirst({
+            where: {
+                id,
+                employeeId,
+                status: PayrollStatus.PUBLISHED,
+            },
+            include: employeePublishedPayrollPdfRelation,
         });
     },
 };

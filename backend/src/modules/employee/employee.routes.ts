@@ -8,6 +8,13 @@ import { employeeController } from "./employee.controller";
 export const employeeRoutes = Router();
 
 employeeRoutes.get(
+    "/me/payrolls/:id/pdf",
+    authenticate,
+    requireRole("EMPLOYEE"),
+    payrollController.downloadMyPayrollPdf,
+);
+
+employeeRoutes.get(
     "/me/payrolls",
     authenticate,
     requireRole("EMPLOYEE"),
