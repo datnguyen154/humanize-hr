@@ -1,4 +1,5 @@
 export { useCreatePayrollMutation } from "./hooks/useCreatePayrollMutation";
+export { useEmployeePayrollsQuery } from "./hooks/useEmployeePayrollsQuery";
 export { usePayrollsQuery } from "./hooks/usePayrollsQuery";
 export { usePublishPayrollMutation } from "./hooks/usePublishPayrollMutation";
 export { useUpdatePayrollMutation } from "./hooks/useUpdatePayrollMutation";
@@ -6,6 +7,9 @@ export { payrollQueryKeys } from "./lib/payroll.query-keys";
 export type {
     CreatePayrollRequest,
     CreatePayrollResponse,
+    EmployeePayroll,
+    EmployeePayrollsQueryParams,
+    EmployeePayrollsResponse,
     Payroll,
     PayrollEmployee,
     PayrollMutationResult,

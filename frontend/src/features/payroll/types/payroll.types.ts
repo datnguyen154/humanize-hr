@@ -34,6 +34,10 @@ export type Payroll = {
     updatedAt: string;
 };
 
+export type EmployeePayroll = Omit<Payroll, "employeeId" | "employee"> & {
+    status: Extract<PayrollStatus, "PUBLISHED">;
+};
+
 export type CreatePayrollRequest = {
     employeeId: string;
     month: number;
@@ -63,6 +67,13 @@ export type PayrollsQueryParams = {
     sortOrder?: PayrollSortOrder;
 };
 
+export type EmployeePayrollsQueryParams = {
+    page: number;
+    limit: number;
+    month?: number;
+    year?: number;
+};
+
 export type PayrollsPagination = {
     page: number;
     limit: number;
@@ -74,6 +85,11 @@ export type PayrollsPagination = {
 
 export type PayrollsResponse = {
     data: Payroll[];
+    pagination: PayrollsPagination;
+};
+
+export type EmployeePayrollsResponse = {
+    data: EmployeePayroll[];
     pagination: PayrollsPagination;
 };
 

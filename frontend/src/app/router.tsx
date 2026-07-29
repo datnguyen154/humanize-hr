@@ -18,6 +18,7 @@ import { EmployeeChangePasswordPage } from '../pages/employee/change-password/Em
 import { EmployeeDashboardPage } from '../pages/employee/dashboard/EmployeeDashboardPage'
 import { CreateLeaveRequestPage } from '../pages/employee/leave-requests/CreateLeaveRequestPage'
 import { EmployeeLeaveRequestListPage } from '../pages/employee/leave-requests/EmployeeLeaveRequestListPage'
+import { EmployeePayrollPage } from '../pages/employee/payrolls/EmployeePayrollPage'
 import { EmployeeProfilePage } from '../pages/employee/profile/EmployeeProfilePage'
 import { LoginPage } from '../pages/login'
 import { AdminLayout } from '../widgets/layouts/admin-layout/AdminLayout'
@@ -146,6 +147,10 @@ export const router = createBrowserRouter([
         element: (
           <LeaveRequestDetailPage backPath="/employee/leave-requests" />
         ),
+      },
+      {
+        path: 'payrolls',
+        element: <EmployeePayrollPage />,
       },
     ],
   },

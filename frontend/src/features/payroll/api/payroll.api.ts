@@ -3,6 +3,8 @@ import { axiosInstance } from "@/shared/api";
 import type {
     CreatePayrollRequest,
     CreatePayrollResponse,
+    EmployeePayrollsQueryParams,
+    EmployeePayrollsResponse,
     PublishPayrollResponse,
     PayrollsQueryParams,
     PayrollsResponse,
@@ -14,6 +16,17 @@ export const getPayrolls = async (params: PayrollsQueryParams) => {
     const response = await axiosInstance.get<PayrollsResponse>("/payrolls", {
         params,
     });
+
+    return response.data;
+};
+
+export const getMyPayrolls = async (params: EmployeePayrollsQueryParams) => {
+    const response = await axiosInstance.get<EmployeePayrollsResponse>(
+        "/employees/me/payrolls",
+        {
+            params,
+        },
+    );
 
     return response.data;
 };

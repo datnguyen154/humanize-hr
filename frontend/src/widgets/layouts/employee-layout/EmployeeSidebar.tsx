@@ -4,6 +4,7 @@ import {
   KeyRound,
   LayoutDashboard,
   LogOut,
+  WalletCards,
   UserRound,
   X,
   type LucideIcon,
@@ -47,6 +48,11 @@ const employeeMenuItems: EmployeeMenuItem[] = [
     label: 'Nghỉ phép',
     path: '/employee/leave-requests',
     icon: CalendarDays,
+  },
+  {
+    label: 'Bảng lương của tôi',
+    path: '/employee/payrolls',
+    icon: WalletCards,
   },
   {
     label: 'Hồ sơ cá nhân',
