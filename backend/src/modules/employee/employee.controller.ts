@@ -114,6 +114,30 @@ export const employeeController = {
         }
     },
 
+    async exportEmployees(req: Request, res: Response): Promise<Response> {
+        try {
+            const result = await employeeService.exportEmployees({
+                search: getSingleQueryValue(req.query.search),
+                status: parseStatus(req.query.status),
+                sortBy: parseSortBy(req.query.sortBy),
+                sortOrder: parseSortOrder(req.query.sortOrder),
+            });
+
+            res.setHeader(
+                "Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            );
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${result.filename}"`,
+            );
+
+            return res.status(200).send(result.buffer);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getEmployeeById(req: Request, res: Response): Promise<Response> {
         try {
             const employee = await employeeService.getEmployeeById(

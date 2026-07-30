@@ -35,6 +35,25 @@ export type EmployeeProfileWithDepartment = Prisma.EmployeeGetPayload<{
     include: typeof employeeProfileDepartmentRelation;
 }>;
 
+const employeeExportSelect = {
+    employeeCode: true,
+    fullName: true,
+    email: true,
+    phone: true,
+    position: true,
+    status: true,
+    joinedAt: true,
+    department: {
+        select: {
+            name: true,
+        },
+    },
+} satisfies Prisma.EmployeeSelect;
+
+export type EmployeeExportRow = Prisma.EmployeeGetPayload<{
+    select: typeof employeeExportSelect;
+}>;
+
 const buildEmployeeWhere = (
     params: EmployeeQueryParams,
 ): Prisma.EmployeeWhereInput => {
@@ -89,6 +108,16 @@ export const employeeRepository = {
     countEmployees(params: EmployeeQueryParams): Promise<number> {
         return prisma.employee.count({
             where: buildEmployeeWhere(params),
+        });
+    },
+
+    findEmployeesForExport(
+        params: EmployeeQueryParams,
+    ): Promise<EmployeeExportRow[]> {
+        return prisma.employee.findMany({
+            where: buildEmployeeWhere(params),
+            orderBy: buildEmployeeOrderBy(params),
+            select: employeeExportSelect,
         });
     },
 

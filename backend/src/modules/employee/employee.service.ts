@@ -1,5 +1,6 @@
 import { EmployeeStatus, Gender, type Employee } from "@prisma/client";
 
+import { generateEmployeesExcel } from "./employee-excel.generator";
 import {
     employeeRepository,
     type EmployeeProfileWithDepartment,
@@ -28,6 +29,18 @@ type GetEmployeesMeta = {
 type GetEmployeesResult = {
     data: Employee[];
     meta: GetEmployeesMeta;
+};
+
+type ExportEmployeesQuery = {
+    search?: string;
+    status?: EmployeeStatus;
+    sortBy?: EmployeeSortBy;
+    sortOrder?: EmployeeSortOrder;
+};
+
+type ExportEmployeesResult = {
+    buffer: Buffer;
+    filename: string;
 };
 
 type EmployeeDetail = Pick<
@@ -216,6 +229,14 @@ const normalizePagination = (
     };
 };
 
+const formatExportDate = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+};
+
 export const employeeService = {
     async getMyProfile(
         userId: string | undefined,
@@ -266,6 +287,24 @@ export const employeeService = {
                 hasNextPage: page < totalPages,
                 hasPreviousPage: page > 1 && totalPages > 0,
             },
+        };
+    },
+
+    async exportEmployees(
+        query: ExportEmployeesQuery,
+    ): Promise<ExportEmployeesResult> {
+        const employees = await employeeRepository.findEmployeesForExport({
+            search: query.search,
+            status: query.status,
+            sortBy: query.sortBy,
+            sortOrder: query.sortOrder,
+        });
+
+        const buffer = await generateEmployeesExcel(employees);
+
+        return {
+            buffer,
+            filename: `employees-${formatExportDate(new Date())}.xlsx`,
         };
     },
 

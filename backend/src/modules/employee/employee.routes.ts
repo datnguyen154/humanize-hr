@@ -30,6 +30,13 @@ employeeRoutes.get(
     employeeController.getEmployees,
 );
 
+employeeRoutes.get(
+    "/export",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.exportEmployees,
+);
+
 employeeRoutes.post(
     "/",
     authenticate,
