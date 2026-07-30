@@ -443,7 +443,9 @@ export const payrollService = {
 
         const buffer = await generatePayrollPdf(payroll);
         const month = String(payroll.month).padStart(2, "0");
-        const employeeCode = sanitizeFilenamePart(payroll.employee.employeeCode);
+        const employeeCode = sanitizeFilenamePart(
+            payroll.employee.employeeCode,
+        );
 
         return {
             buffer,

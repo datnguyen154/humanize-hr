@@ -73,7 +73,7 @@ const getUpdatePayrollErrorMessage = (error: unknown) => {
         return 'Bảng lương đã phát hành không thể chỉnh sửa.'
       }
 
-      return message ?? 'Không thể cập nhật bảng lương. Vui lòng kiểm tra lại thông tin.'
+      return 'Không thể cập nhật bảng lương. Vui lòng kiểm tra lại thông tin.'
     }
 
     if (error.response?.status === 404) {
@@ -174,8 +174,8 @@ export function EditPayrollDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent className="max-h-[calc(100vh-2rem)] max-w-lg overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[calc(100vh-2rem)] max-w-lg flex-col overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle>Sửa bảng lương</DialogTitle>
           <DialogDescription>
             Cập nhật các khoản lương cho bảng lương nháp. Hệ thống sẽ tự tính
@@ -183,14 +183,19 @@ export function EditPayrollDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form className="grid gap-4 py-2" onSubmit={handleSubmit(onSubmit)}>
+        <form
+          className="min-h-0 flex flex-1 flex-col"
+          onSubmit={handleSubmit(onSubmit)}
+        >
           {formError ? (
-            <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p className="mb-3 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {formError}
             </p>
           ) : null}
 
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+            <div className="grid gap-4 py-1">
+          <div className="rounded-lg border border-border bg-muted/15 p-3">
             <p className="text-xs font-medium text-muted-foreground">
               Nhân viên
             </p>
@@ -211,6 +216,7 @@ export function EditPayrollDialog({
               type="number"
               min={0}
               step="any"
+              className="text-right tabular-nums"
               {...register('baseSalary')}
             />
             {errors.baseSalary ? (
@@ -228,6 +234,7 @@ export function EditPayrollDialog({
                 type="number"
                 min={0}
                 step="any"
+                className="text-right tabular-nums"
                 {...register('bonus')}
               />
               {errors.bonus ? (
@@ -244,6 +251,7 @@ export function EditPayrollDialog({
                 type="number"
                 min={0}
                 step="any"
+                className="text-right tabular-nums"
                 {...register('deduction')}
               />
               {errors.deduction ? (
@@ -279,8 +287,10 @@ export function EditPayrollDialog({
               <p className="text-xs text-destructive">{errors.note.message}</p>
             ) : null}
           </div>
+            </div>
+          </div>
 
-          <DialogFooter className="mt-2">
+          <DialogFooter className="mt-4 shrink-0 border-t border-border pt-4">
             <Button
               type="button"
               variant="outline"

@@ -120,7 +120,7 @@ const getDownloadPayrollPdfErrorMessage = (error: unknown) => {
 function DetailField({ label, value, className = "" }: DetailFieldProps) {
     return (
         <div
-            className={`min-w-0 rounded-lg border border-border bg-muted/20 p-3 ${className}`}
+            className={`min-w-0 rounded-lg border border-border bg-muted/15 p-3 ${className}`}
         >
             <dt className="text-xs font-medium text-muted-foreground">
                 {label}
@@ -172,10 +172,11 @@ export function EmployeePayrollDetailDialog({
 
                 <div className="min-h-0 flex-1 overflow-y-auto pr-1">
                     {payroll ? (
-                        <dl className="grid gap-3 py-2 sm:grid-cols-2">
+                        <dl className="grid gap-3 py-1 sm:grid-cols-2">
                             <DetailField
                                 label="Kỳ lương"
                                 value={`Tháng ${payroll.month} / ${payroll.year}`}
+                                className="order-1"
                             />
                             <DetailField
                                 label="Trạng thái"
@@ -187,54 +188,63 @@ export function EmployeePayrollDetailDialog({
                                         tone={payrollStatusTone[payroll.status]}
                                     />
                                 }
+                                className="order-6 sm:col-span-2"
                             />
                             <DetailField
                                 label="Lương cơ bản"
                                 value={formatCurrency(payroll.baseSalary)}
+                                className="order-3"
                             />
                             <DetailField
                                 label="Thưởng"
                                 value={formatCurrency(payroll.bonus)}
+                                className="order-3"
                             />
                             <DetailField
                                 label="Khấu trừ"
                                 value={formatCurrency(payroll.deduction)}
-                                className="sm:col-span-2"
+                                className="order-3 sm:col-span-2"
                             />
 
-                            <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20 sm:col-span-2">
+                            <div className="order-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3.5 dark:border-emerald-900/50 dark:bg-emerald-950/20 sm:col-span-2">
                                 <dt className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
                                     Thực nhận
                                 </dt>
                                 <dd className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {formatCurrency(payroll.netSalary)}
                                 </dd>
+                                <p className="mt-1 text-[11px] text-muted-foreground">
+                                    Công thức: Lương cơ bản + Thưởng - Khấu trừ
+                                </p>
                             </div>
 
                             {payroll.note ? (
                                 <DetailField
                                     label="Ghi chú"
                                     value={payroll.note}
-                                    className="sm:col-span-2"
+                                    className="order-4 sm:col-span-2"
                                 />
                             ) : null}
 
                             <DetailField
                                 label="Ngày tạo"
                                 value={formatPayrollDate(payroll.createdAt)}
+                                className="order-5 text-muted-foreground"
                             />
                             <DetailField
                                 label="Ngày cập nhật"
                                 value={formatPayrollDate(payroll.updatedAt)}
+                                className="order-5 text-muted-foreground"
                             />
                         </dl>
                     ) : null}
                 </div>
 
-                <DialogFooter className="shrink-0">
+                <DialogFooter className="shrink-0 gap-2">
                     <Button
                         type="button"
                         variant="outline"
+                        className="w-full sm:w-auto"
                         disabled={downloadPdfMutation.isPending}
                         onClick={() => onOpenChange(false)}
                     >
@@ -242,7 +252,7 @@ export function EmployeePayrollDetailDialog({
                     </Button>
                     <Button
                         type="button"
-                        className="gap-2"
+                        className="w-full gap-2 sm:w-auto"
                         disabled={!payroll || downloadPdfMutation.isPending}
                         onClick={() => void handleDownloadPdf()}
                     >

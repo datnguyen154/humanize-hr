@@ -150,22 +150,37 @@ export function PayrollListPage() {
     const renderSortIcon = (column: PayrollSortBy) => {
         if (sortBy !== column) {
             return (
-                <ArrowUpDown className="size-4 shrink-0" aria-hidden="true" />
+                <ArrowUpDown
+                    className="size-3.5 shrink-0 opacity-70"
+                    aria-hidden="true"
+                />
             );
         }
 
         return sortOrder === "asc" ? (
-            <ArrowUp className="size-4 shrink-0" aria-hidden="true" />
+            <ArrowUp
+                className="size-3.5 shrink-0 opacity-80"
+                aria-hidden="true"
+            />
         ) : (
-            <ArrowDown className="size-4 shrink-0" aria-hidden="true" />
+            <ArrowDown
+                className="size-3.5 shrink-0 opacity-80"
+                aria-hidden="true"
+            />
         );
     };
 
-    const renderSortableHeader = (label: string, column: PayrollSortBy) => (
+    const renderSortableHeader = (
+        label: string,
+        column: PayrollSortBy,
+        align: "left" | "right" = "left",
+    ) => (
         <Button
             type="button"
             variant="ghost"
-            className="h-auto justify-start gap-1 px-0 font-medium text-muted-foreground hover:bg-transparent hover:text-foreground"
+            className={`h-auto w-full gap-1 px-0 font-medium text-muted-foreground hover:bg-transparent hover:text-foreground ${
+                align === "right" ? "justify-end" : "justify-start"
+            }`}
             onClick={() => handleSort(column)}
         >
             {label}
@@ -188,8 +203,8 @@ export function PayrollListPage() {
 
     return (
         <section className="min-w-0 overflow-x-hidden">
-            <Card className="min-w-0">
-                <CardHeader className="gap-4">
+            <Card className="min-w-0 border-border shadow-sm">
+                <CardHeader className="gap-4 border-b border-border">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                         <div className="grid gap-1.5">
                             <CardTitle className="text-lg">
@@ -230,7 +245,7 @@ export function PayrollListPage() {
                         <div className="flex flex-wrap items-center gap-2">
                             <select
                                 value={month}
-                                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-auto"
                                 onChange={(e) =>
                                     handleMonthChange(e.target.value)
                                 }
@@ -244,7 +259,7 @@ export function PayrollListPage() {
 
                             <select
                                 value={year}
-                                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 sm:w-auto"
                                 onChange={(e) =>
                                     handleYearChange(e.target.value)
                                 }
@@ -259,7 +274,7 @@ export function PayrollListPage() {
                     </div>
                 </CardHeader>
 
-                <CardContent>
+                <CardContent className="pt-4 sm:pt-5">
                     {payrollsQuery.isLoading ? (
                         <>
                             <div className="grid gap-3 md:hidden">
@@ -350,7 +365,7 @@ export function PayrollListPage() {
                                             </div>
                                         </div>
 
-                                        <dl className="mt-4 grid gap-2 text-sm">
+                                        <dl className="mt-4 grid gap-3 text-sm">
                                             <div>
                                                 <dt className="text-xs font-medium text-muted-foreground">
                                                     Kỳ lương
@@ -389,7 +404,7 @@ export function PayrollListPage() {
                                                 <dt className="text-xs font-medium text-muted-foreground">
                                                     Lương thực nhận
                                                 </dt>
-                                                <dd className="mt-0.5 font-semibold text-emerald-600 dark:text-emerald-400">
+                                                <dd className="mt-1 text-lg font-semibold text-primary">
                                                     {formatCurrency(
                                                         payroll.netSalary,
                                                     )}
@@ -399,7 +414,7 @@ export function PayrollListPage() {
                                                 <dt className="text-xs font-medium text-muted-foreground">
                                                     Ngày tạo
                                                 </dt>
-                                                <dd className="mt-0.5 text-foreground">
+                                                <dd className="mt-1 text-muted-foreground">
                                                     {formatDate(
                                                         payroll.createdAt,
                                                     )}
@@ -428,7 +443,7 @@ export function PayrollListPage() {
 
                             <div className="hidden md:block">
                                 <Table>
-                                    <TableHeader>
+                                    <TableHeader className="bg-muted/50">
                                         <TableRow>
                                             <TableHead>Mã nhân viên</TableHead>
                                             <TableHead>Họ tên</TableHead>
@@ -442,24 +457,28 @@ export function PayrollListPage() {
                                                 {renderSortableHeader(
                                                     "Lương cơ bản",
                                                     "baseSalary",
+                                                    "right",
                                                 )}
                                             </TableHead>
                                             <TableHead>
                                                 {renderSortableHeader(
                                                     "Thưởng",
                                                     "bonus",
+                                                    "right",
                                                 )}
                                             </TableHead>
                                             <TableHead>
                                                 {renderSortableHeader(
                                                     "Khấu trừ",
                                                     "deduction",
+                                                    "right",
                                                 )}
                                             </TableHead>
                                             <TableHead>
                                                 {renderSortableHeader(
                                                     "Thực nhận",
                                                     "netSalary",
+                                                    "right",
                                                 )}
                                             </TableHead>
                                             <TableHead className="text-center">
@@ -509,24 +528,24 @@ export function PayrollListPage() {
                                                     Tháng {payroll.month}/
                                                     {payroll.year}
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="text-right tabular-nums">
                                                     {formatCurrency(
                                                         payroll.baseSalary,
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-emerald-600 dark:text-emerald-400">
+                                                <TableCell className="text-right font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
                                                     +
                                                     {formatCurrency(
                                                         payroll.bonus,
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="text-rose-600 dark:text-rose-400">
+                                                <TableCell className="text-right font-medium tabular-nums text-rose-600 dark:text-rose-400">
                                                     -
                                                     {formatCurrency(
                                                         payroll.deduction,
                                                     )}
                                                 </TableCell>
-                                                <TableCell className="font-semibold text-foreground">
+                                                <TableCell className="text-right font-semibold tabular-nums text-primary">
                                                     {formatCurrency(
                                                         payroll.netSalary,
                                                     )}
@@ -545,7 +564,7 @@ export function PayrollListPage() {
                                                         }
                                                     />
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="whitespace-nowrap text-muted-foreground">
                                                     {formatDate(
                                                         payroll.createdAt,
                                                     )}
@@ -574,13 +593,13 @@ export function PayrollListPage() {
                                 </Table>
                             </div>
 
-                            <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="text-sm text-muted-foreground">
+                            <div className="mt-4 flex flex-col gap-3 border-t pb-2 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pb-0">
+                                <p className="min-w-0 text-center text-sm text-muted-foreground sm:text-left">
                                     Hiển thị {fromItem} đến {toItem} trong tổng
                                     số {totalItems} bảng lương
                                 </p>
 
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
                                     <Button
                                         type="button"
                                         variant="outline"

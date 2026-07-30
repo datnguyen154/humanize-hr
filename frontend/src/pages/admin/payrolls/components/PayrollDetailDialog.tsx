@@ -76,7 +76,7 @@ type DetailFieldProps = {
 function DetailField({ label, value, className = "" }: DetailFieldProps) {
     return (
         <div
-            className={`min-w-0 rounded-lg border border-border bg-muted/20 p-3 ${className}`}
+            className={`min-w-0 rounded-lg border border-border bg-muted/15 p-3 ${className}`}
         >
             <dt className="text-xs font-medium text-muted-foreground">
                 {label}
@@ -104,7 +104,7 @@ const getPublishPayrollErrorMessage = (error: unknown) => {
             return "Chỉ bảng lương nháp mới có thể phát hành.";
         }
 
-        return message ?? "Không thể phát hành bảng lương.";
+        return "Không thể phát hành bảng lương.";
     }
 
     return "Không thể phát hành bảng lương. Vui lòng thử lại sau.";
@@ -168,7 +168,7 @@ export function PayrollDetailDialog({
 
                     <div className="min-h-0 flex-1 overflow-y-auto pr-1">
                         {payroll ? (
-                            <dl className="grid gap-3 py-2 sm:grid-cols-2">
+                            <dl className="grid gap-3 py-1 sm:grid-cols-2">
                                 <DetailField
                                     label="Mã nhân viên"
                                     value={
@@ -223,9 +223,9 @@ export function PayrollDetailDialog({
                                     className="sm:col-span-2"
                                 />
 
-                                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20 sm:col-span-2">
+                                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3.5 dark:border-emerald-900/50 dark:bg-emerald-950/20 sm:col-span-2">
                                     <dt className="text-xs font-medium text-emerald-800 dark:text-emerald-300">
-                                        Thực nhận (Net Salary)
+                                        Thực nhận
                                     </dt>
                                     <dd className="mt-1 text-xl font-bold text-emerald-600 dark:text-emerald-400">
                                         {formatCurrency(payroll.netSalary)}
@@ -247,13 +247,13 @@ export function PayrollDetailDialog({
                                 <DetailField
                                     label="Ngày tạo"
                                     value={formatPayrollDate(payroll.createdAt)}
-                                    className="sm:col-span-2"
+                                    className="text-muted-foreground sm:col-span-2"
                                 />
                             </dl>
                         ) : null}
                     </div>
 
-                    <DialogFooter className="shrink-0">
+                    <DialogFooter className="shrink-0 gap-2">
                         <Button
                             type="button"
                             variant="outline"
@@ -264,6 +264,7 @@ export function PayrollDetailDialog({
                         {payroll?.status === "DRAFT" ? (
                             <Button
                                 type="button"
+                                variant="outline"
                                 disabled={publishPayrollMutation.isPending}
                                 onClick={() => setIsEditDialogOpen(true)}
                             >
@@ -297,8 +298,8 @@ export function PayrollDetailDialog({
             {payroll ? (
                 <ConfirmDialog
                     open={isPublishDialogOpen}
-                    title="Phát hành bảng lương"
-                    description="Sau khi phát hành, bảng lương sẽ không thể chỉnh sửa. Bạn có chắc muốn tiếp tục?"
+                    title="Xác nhận phát hành bảng lương"
+                    description="Đây là bước chốt bảng lương. Sau khi phát hành, bảng lương sẽ không thể chỉnh sửa theo flow hiện tại. Bạn có chắc muốn tiếp tục?"
                     actionLabel="Phát hành"
                     pendingLabel="Đang phát hành..."
                     variant="warning"

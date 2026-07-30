@@ -136,12 +136,12 @@ function PaginationControls({
     onNext,
 }: PaginationControlsProps) {
     return (
-        <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm text-muted-foreground">
+        <div className="mt-4 flex flex-col gap-3 border-t pb-2 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pb-0">
+            <p className="min-w-0 text-center text-sm text-muted-foreground sm:text-left">
                 Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} bảng
                 lương
             </p>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
                 <Button
                     type="button"
                     variant="outline"
@@ -221,7 +221,7 @@ export function EmployeePayrollPage() {
 
     return (
         <section className="grid min-w-0 gap-6 overflow-x-hidden">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
                 <div className="min-w-0">
                     <h2 className="text-2xl font-bold tracking-tight text-foreground">
                         Bảng lương của tôi
@@ -233,7 +233,7 @@ export function EmployeePayrollPage() {
             </div>
 
             <Card className="border-border shadow-sm">
-                <CardHeader className="gap-4 border-b border-border">
+                <CardHeader className="gap-3 border-b border-border">
                     <div className="grid gap-1.5">
                         <CardTitle className="text-lg">
                             Danh sách bảng lương
@@ -277,21 +277,21 @@ export function EmployeePayrollPage() {
                     </div>
                 </CardHeader>
 
-                <CardContent className="pt-6">
+                <CardContent className="pt-4 sm:pt-5">
                     <div className="block md:hidden">
                         {payrollsQuery.isLoading ? (
                             <div className="grid gap-3">
                                 {Array.from({ length: 3 }).map((_, index) => (
                                     <div
                                         key={index}
-                                        className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                                        className="rounded-lg border border-border bg-card p-4"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="grid flex-1 gap-2">
                                                 <Skeleton className="h-3 w-24" />
                                                 <Skeleton className="h-5 w-36" />
                                             </div>
-                                            <Skeleton className="h-6 w-20 rounded-full" />
+                                            <Skeleton className="h-5 w-16 rounded-full" />
                                         </div>
                                         <div className="mt-4 grid gap-3">
                                             <Skeleton className="h-4 w-full max-w-64" />
@@ -324,7 +324,7 @@ export function EmployeePayrollPage() {
                                     {payrolls.map((payroll) => (
                                         <article
                                             key={payroll.id}
-                                            className="min-w-0 rounded-lg border border-border bg-card p-4 shadow-sm"
+                                            className="min-w-0 rounded-lg border border-border bg-card p-4"
                                         >
                                             <div className="flex min-w-0 items-start justify-between gap-3">
                                                 <div className="min-w-0">
@@ -347,16 +347,16 @@ export function EmployeePayrollPage() {
                                                             payroll.status
                                                         ]
                                                     }
-                                                    className="shrink-0 font-semibold ring-1 ring-current/10"
+                                                    className="shrink-0 font-medium ring-1 ring-current/10"
                                                 />
                                             </div>
 
                                             <dl className="mt-4 grid gap-3 text-sm">
-                                                <div>
+                                                <div className="rounded-md bg-primary/5 p-3">
                                                     <dt className="text-xs font-medium text-muted-foreground">
                                                         Thực nhận
                                                     </dt>
-                                                    <dd className="mt-1 text-base font-semibold text-foreground">
+                                                    <dd className="mt-1 text-xl font-semibold text-primary">
                                                         {formatCurrency(
                                                             payroll.netSalary,
                                                         )}
@@ -367,7 +367,7 @@ export function EmployeePayrollPage() {
                                                         <dt className="text-xs font-medium text-muted-foreground">
                                                             Lương cơ bản
                                                         </dt>
-                                                        <dd className="mt-1 text-foreground">
+                                                        <dd className="mt-1 text-muted-foreground">
                                                             {formatCurrency(
                                                                 payroll.baseSalary,
                                                             )}
@@ -377,7 +377,7 @@ export function EmployeePayrollPage() {
                                                         <dt className="text-xs font-medium text-muted-foreground">
                                                             Thưởng
                                                         </dt>
-                                                        <dd className="mt-1 text-foreground">
+                                                        <dd className="mt-1 font-medium text-emerald-600 dark:text-emerald-400">
                                                             {formatCurrency(
                                                                 payroll.bonus,
                                                             )}
@@ -389,7 +389,7 @@ export function EmployeePayrollPage() {
                                                         <dt className="text-xs font-medium text-muted-foreground">
                                                             Khấu trừ
                                                         </dt>
-                                                        <dd className="mt-1 text-foreground">
+                                                        <dd className="mt-1 font-medium text-rose-600 dark:text-rose-400">
                                                             {formatCurrency(
                                                                 payroll.deduction,
                                                             )}
@@ -399,7 +399,7 @@ export function EmployeePayrollPage() {
                                                         <dt className="text-xs font-medium text-muted-foreground">
                                                             Ngày tạo
                                                         </dt>
-                                                        <dd className="mt-1 text-foreground">
+                                                        <dd className="mt-1 text-muted-foreground">
                                                             {formatDate(
                                                                 payroll.createdAt,
                                                             )}
@@ -410,7 +410,7 @@ export function EmployeePayrollPage() {
                                                     <dt className="text-xs font-medium text-muted-foreground">
                                                         Ngày cập nhật
                                                     </dt>
-                                                    <dd className="mt-1 text-foreground">
+                                                    <dd className="mt-1 text-muted-foreground">
                                                         {formatDate(
                                                             payroll.updatedAt,
                                                         )}
@@ -468,11 +468,18 @@ export function EmployeePayrollPage() {
                                 <TableHeader className="bg-muted/50">
                                     <TableRow>
                                         <TableHead>Kỳ lương</TableHead>
-                                        <TableHead>Lương cơ bản</TableHead>
-                                        <TableHead>Thưởng</TableHead>
-                                        <TableHead>Khấu trừ</TableHead>
-                                        <TableHead>Thực nhận</TableHead>
-                                        <TableHead>Ngày tạo</TableHead>
+                                        <TableHead className="text-right">
+                                            Thực nhận
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            Lương cơ bản
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            Thưởng
+                                        </TableHead>
+                                        <TableHead className="text-right">
+                                            Khấu trừ
+                                        </TableHead>
                                         <TableHead>Ngày cập nhật</TableHead>
                                         <TableHead className="text-right">
                                             Thao tác
@@ -480,7 +487,7 @@ export function EmployeePayrollPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    <TableRowsSkeleton columns={8} />
+                                    <TableRowsSkeleton columns={7} />
                                 </TableBody>
                             </Table>
                         ) : null}
@@ -505,13 +512,18 @@ export function EmployeePayrollPage() {
                                     <TableHeader className="bg-muted/50">
                                         <TableRow>
                                             <TableHead>Kỳ lương</TableHead>
-                                            <TableHead>
+                                            <TableHead className="text-right">
+                                                Thực nhận
+                                            </TableHead>
+                                            <TableHead className="text-right">
                                                 Lương cơ bản
                                             </TableHead>
-                                            <TableHead>Thưởng</TableHead>
-                                            <TableHead>Khấu trừ</TableHead>
-                                            <TableHead>Thực nhận</TableHead>
-                                            <TableHead>Ngày tạo</TableHead>
+                                            <TableHead className="text-right">
+                                                Thưởng
+                                            </TableHead>
+                                            <TableHead className="text-right">
+                                                Khấu trừ
+                                            </TableHead>
                                             <TableHead>
                                                 Ngày cập nhật
                                             </TableHead>
@@ -533,32 +545,27 @@ export function EmployeePayrollPage() {
                                                     Tháng {payroll.month} /{" "}
                                                     {payroll.year}
                                                 </TableCell>
-                                                <TableCell>
-                                                    {formatCurrency(
-                                                        payroll.baseSalary,
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatCurrency(
-                                                        payroll.bonus,
-                                                    )}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {formatCurrency(
-                                                        payroll.deduction,
-                                                    )}
-                                                </TableCell>
-                                                <TableCell className="font-semibold">
+                                                <TableCell className="text-right font-semibold tabular-nums text-primary">
                                                     {formatCurrency(
                                                         payroll.netSalary,
                                                     )}
                                                 </TableCell>
-                                                <TableCell>
-                                                    {formatDate(
-                                                        payroll.createdAt,
+                                                <TableCell className="text-right tabular-nums text-muted-foreground">
+                                                    {formatCurrency(
+                                                        payroll.baseSalary,
                                                     )}
                                                 </TableCell>
-                                                <TableCell>
+                                                <TableCell className="text-right font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+                                                    {formatCurrency(
+                                                        payroll.bonus,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="text-right font-medium tabular-nums text-rose-600 dark:text-rose-400">
+                                                    {formatCurrency(
+                                                        payroll.deduction,
+                                                    )}
+                                                </TableCell>
+                                                <TableCell className="whitespace-nowrap text-muted-foreground">
                                                     {formatDate(
                                                         payroll.updatedAt,
                                                     )}
