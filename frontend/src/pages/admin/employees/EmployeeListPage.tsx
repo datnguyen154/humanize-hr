@@ -1,14 +1,17 @@
 import {
+  FileSpreadsheet,
   ArrowDown,
   ArrowUp,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   Eye,
+  Loader2,
   Plus,
   Search,
   Users,
 } from 'lucide-react'
+import { AxiosError } from 'axios'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -38,11 +41,14 @@ import {
 import {
   employeeStatusLabel,
   formatEmployeeDate,
+  useExportEmployeesMutation,
   useEmployeesQuery,
+  type ExportEmployeesParams,
   type EmployeeSortBy,
   type EmployeeSortOrder,
   type EmployeeStatus,
 } from '@/features/employee'
+import { showErrorToast } from '@/lib/toast'
 
 import { EmployeeDetailDialog } from './components/EmployeeDetailDialog'
 
@@ -59,8 +65,67 @@ const employeeStatusTone: Record<EmployeeStatus, StatusBadgeTone> = {
   INACTIVE: 'warning',
 }
 
+const formatDateForFilename = (date: Date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+const getFallbackExportFilename = () =>
+  `employees-${formatDateForFilename(new Date())}.xlsx`
+
+const parseFilenameFromContentDisposition = (
+  contentDisposition?: string,
+): string | null => {
+  if (!contentDisposition) return null
+
+  const encodedFilenameMatch = contentDisposition.match(
+    /filename\*=UTF-8''([^;]+)/i,
+  )
+
+  if (encodedFilenameMatch?.[1]) {
+    try {
+      return decodeURIComponent(
+        encodedFilenameMatch[1].trim().replace(/^"|"$/g, ''),
+      )
+    } catch {
+      return encodedFilenameMatch[1].trim().replace(/^"|"$/g, '')
+    }
+  }
+
+  const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i)
+
+  return filenameMatch?.[1]?.trim() || null
+}
+
+const triggerBrowserDownload = (blob: Blob, filename: string) => {
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+
+  try {
+    link.href = objectUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+  } finally {
+    link.remove()
+    URL.revokeObjectURL(objectUrl)
+  }
+}
+
+const getExportEmployeesErrorMessage = (error: unknown) => {
+  if (error instanceof AxiosError && error.response?.status === 400) {
+    return 'Bộ lọc hoặc sắp xếp không hợp lệ.'
+  }
+
+  return 'Không thể xuất danh sách nhân viên. Vui lòng thử lại sau.'
+}
+
 export function EmployeeListPage() {
   const navigate = useNavigate()
+  const exportEmployeesMutation = useExportEmployeesMutation()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('ALL')
@@ -125,6 +190,34 @@ export function EmployeeListPage() {
     setSelectedEmployeeId(id)
   }
 
+  const handleExportEmployees = async () => {
+    if (exportEmployeesMutation.isPending) {
+      return
+    }
+
+    const exportParams: ExportEmployeesParams = {
+      search: search.trim() || undefined,
+      status: status === 'ALL' ? undefined : status,
+      sortBy,
+      sortOrder,
+    }
+
+    try {
+      const { blob, contentDisposition } =
+        await exportEmployeesMutation.mutateAsync(exportParams)
+      const filename =
+        parseFilenameFromContentDisposition(contentDisposition) ??
+        getFallbackExportFilename()
+
+      triggerBrowserDownload(blob, filename)
+    } catch (error) {
+      showErrorToast(
+        getExportEmployeesErrorMessage(error),
+        'Xuất Excel thất bại',
+      )
+    }
+  }
+
   return (
     <section className="min-w-0 overflow-x-hidden">
       <Card className="min-w-0">
@@ -137,14 +230,35 @@ export function EmployeeListPage() {
               </CardDescription>
             </div>
 
-            <Button
-              type="button"
-              className="w-full shrink-0 gap-2 sm:w-auto"
-              onClick={() => navigate('/admin/employees/create')}
-            >
-              <Plus className="h-4 w-4" aria-hidden="true" />
-              Thêm nhân viên
-            </Button>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shrink-0 gap-2 sm:w-auto"
+                disabled={exportEmployeesMutation.isPending}
+                onClick={() => void handleExportEmployees()}
+              >
+                {exportEmployeesMutation.isPending ? (
+                  <Loader2
+                    className="size-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <FileSpreadsheet className="size-4" aria-hidden="true" />
+                )}
+                {exportEmployeesMutation.isPending
+                  ? 'Đang xuất...'
+                  : 'Xuất Excel'}
+              </Button>
+              <Button
+                type="button"
+                className="w-full shrink-0 gap-2 sm:w-auto"
+                onClick={() => navigate('/admin/employees/create')}
+              >
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                Thêm nhân viên
+              </Button>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

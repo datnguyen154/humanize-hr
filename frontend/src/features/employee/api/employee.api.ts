@@ -5,6 +5,8 @@ import type {
   CreateEmployeeRequest,
   EmployeeDetail,
   EmployeeStatus,
+  ExportEmployeesParams,
+  ExportEmployeesResult,
   EmployeesQueryParams,
   EmployeesResponse,
   MyEmployeeProfile,
@@ -29,6 +31,23 @@ export const getEmployees = async (params: EmployeesQueryParams) => {
   })
 
   return response.data
+}
+
+export const exportEmployees = async (
+  params: ExportEmployeesParams,
+): Promise<ExportEmployeesResult> => {
+  const response = await axiosInstance.get<Blob>('/employees/export', {
+    params,
+    headers: getAuthHeaders(),
+    responseType: 'blob',
+  })
+  const contentDisposition = response.headers['content-disposition']
+
+  return {
+    blob: response.data,
+    contentDisposition:
+      typeof contentDisposition === 'string' ? contentDisposition : undefined,
+  }
 }
 
 export const createEmployee = async (payload: CreateEmployeeRequest) => {

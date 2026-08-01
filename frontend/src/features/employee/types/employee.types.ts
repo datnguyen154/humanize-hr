@@ -62,6 +62,18 @@ export type EmployeesQueryParams = {
   sortOrder?: EmployeeSortOrder
 }
 
+export type ExportEmployeesParams = {
+  search?: string
+  status?: EmployeeStatus
+  sortBy?: EmployeeSortBy
+  sortOrder?: EmployeeSortOrder
+}
+
+export type ExportEmployeesResult = {
+  blob: Blob
+  contentDisposition?: string
+}
+
 export type EmployeesMeta = {
   page: number
   limit: number

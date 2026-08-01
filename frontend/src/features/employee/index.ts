@@ -5,6 +5,7 @@ export {
 } from './lib/employee-formatters'
 export { employeeQueryKeys } from './lib/employee.query-keys'
 export { useCreateEmployeeMutation } from './hooks/useCreateEmployeeMutation'
+export { useExportEmployeesMutation } from './hooks/useExportEmployeesMutation'
 export {
   useEmployeeDetailQuery,
   useEmployeesQuery,
@@ -19,6 +20,8 @@ export type {
   EmployeeSortBy,
   EmployeeSortOrder,
   EmployeeStatus,
+  ExportEmployeesParams,
+  ExportEmployeesResult,
   EmployeesMeta,
   EmployeesQueryParams,
   EmployeesResponse,
