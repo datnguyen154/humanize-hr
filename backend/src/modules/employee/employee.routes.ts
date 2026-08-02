@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { authenticate } from "../../middlewares/auth.middleware";
 import { requireRole } from "../../middlewares/role.middleware";
+import { uploadEmployeeImportFile } from "../../middlewares/upload.middleware";
 import { payrollController } from "../payroll/payroll.controller";
 import { employeeController } from "./employee.controller";
 
@@ -35,6 +36,21 @@ employeeRoutes.get(
     authenticate,
     requireRole("ADMIN"),
     employeeController.exportEmployees,
+);
+
+employeeRoutes.get(
+    "/import-template",
+    authenticate,
+    requireRole("ADMIN"),
+    employeeController.getEmployeeImportTemplate,
+);
+
+employeeRoutes.post(
+    "/import",
+    authenticate,
+    requireRole("ADMIN"),
+    uploadEmployeeImportFile,
+    employeeController.importEmployees,
 );
 
 employeeRoutes.post(

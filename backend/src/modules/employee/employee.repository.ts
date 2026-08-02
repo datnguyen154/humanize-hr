@@ -54,6 +54,16 @@ export type EmployeeExportRow = Prisma.EmployeeGetPayload<{
     select: typeof employeeExportSelect;
 }>;
 
+const employeeDuplicateCheckSelect = {
+    id: true,
+    employeeCode: true,
+    email: true,
+} satisfies Prisma.EmployeeSelect;
+
+export type EmployeeDuplicateCheckRow = Prisma.EmployeeGetPayload<{
+    select: typeof employeeDuplicateCheckSelect;
+}>;
+
 const buildEmployeeWhere = (
     params: EmployeeQueryParams,
 ): Prisma.EmployeeWhereInput => {
@@ -154,9 +164,46 @@ export const employeeRepository = {
         });
     },
 
+    findEmployeesByEmails(
+        emails: string[],
+    ): Promise<EmployeeDuplicateCheckRow[]> {
+        if (emails.length === 0) {
+            return Promise.resolve([]);
+        }
+
+        return prisma.employee.findMany({
+            where: {
+                OR: emails.map((email) => ({
+                    email: {
+                        equals: email,
+                        mode: "insensitive",
+                    },
+                })),
+            },
+            select: employeeDuplicateCheckSelect,
+        });
+    },
+
     findEmployeeByEmployeeCode(employeeCode: string): Promise<Employee | null> {
         return prisma.employee.findUnique({
             where: { employeeCode },
+        });
+    },
+
+    findEmployeesByEmployeeCodes(
+        employeeCodes: string[],
+    ): Promise<EmployeeDuplicateCheckRow[]> {
+        if (employeeCodes.length === 0) {
+            return Promise.resolve([]);
+        }
+
+        return prisma.employee.findMany({
+            where: {
+                employeeCode: {
+                    in: employeeCodes,
+                },
+            },
+            select: employeeDuplicateCheckSelect,
         });
     },
 

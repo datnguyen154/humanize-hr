@@ -138,6 +138,38 @@ export const employeeController = {
         }
     },
 
+    async importEmployees(req: Request, res: Response): Promise<Response> {
+        try {
+            const result = await employeeService.importEmployees(req.file);
+
+            return res.status(200).json(result);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async getEmployeeImportTemplate(
+        _req: Request,
+        res: Response,
+    ): Promise<Response> {
+        try {
+            const result = await employeeService.getEmployeeImportTemplate();
+
+            res.setHeader(
+                "Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            );
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="${result.filename}"`,
+            );
+
+            return res.status(200).send(result.buffer);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getEmployeeById(req: Request, res: Response): Promise<Response> {
         try {
             const employee = await employeeService.getEmployeeById(
