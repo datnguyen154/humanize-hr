@@ -5,10 +5,12 @@ import type {
   CreateEmployeeRequest,
   EmployeeDetail,
   EmployeeStatus,
+  DownloadEmployeeImportTemplateResult,
   ExportEmployeesParams,
   ExportEmployeesResult,
   EmployeesQueryParams,
   EmployeesResponse,
+  ImportEmployeesResponse,
   MyEmployeeProfile,
   UpdateEmployeeRequest,
   UpdateEmployeeStatusResponse,
@@ -49,6 +51,41 @@ export const exportEmployees = async (
       typeof contentDisposition === 'string' ? contentDisposition : undefined,
   }
 }
+
+export const importEmployees = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await axiosInstance.post<ImportEmployeesResponse>(
+    '/employees/import',
+    formData,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const downloadEmployeeImportTemplate =
+  async (): Promise<DownloadEmployeeImportTemplateResult> => {
+    const response = await axiosInstance.get<Blob>(
+      '/employees/import-template',
+      {
+        headers: getAuthHeaders(),
+        responseType: 'blob',
+      },
+    )
+    const contentDisposition = response.headers['content-disposition']
+
+    return {
+      blob: response.data,
+      contentDisposition:
+        typeof contentDisposition === 'string'
+          ? contentDisposition
+          : undefined,
+    }
+  }
 
 export const createEmployee = async (payload: CreateEmployeeRequest) => {
   const response = await axiosInstance.post<EmployeeDetail>(

@@ -74,6 +74,36 @@ export type ExportEmployeesResult = {
   contentDisposition?: string
 }
 
+export type ImportedEmployeeResult = {
+  rowNumber: number
+  id: string
+  employeeCode: string
+  fullName: string
+}
+
+export type EmployeeImportError = {
+  rowNumber: number
+  field: string
+  message: string
+}
+
+export type ImportEmployeesResult = {
+  totalRows: number
+  successCount: number
+  failedCount: number
+  createdEmployees: ImportedEmployeeResult[]
+  errors: EmployeeImportError[]
+}
+
+export type ImportEmployeesResponse = {
+  data: ImportEmployeesResult
+}
+
+export type DownloadEmployeeImportTemplateResult = {
+  blob: Blob
+  contentDisposition?: string
+}
+
 export type EmployeesMeta = {
   page: number
   limit: number

@@ -6,6 +6,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Eye,
+  FileUp,
   Loader2,
   Plus,
   Search,
@@ -51,6 +52,7 @@ import {
 import { showErrorToast } from '@/lib/toast'
 
 import { EmployeeDetailDialog } from './components/EmployeeDetailDialog'
+import { ImportEmployeesDialog } from './components/ImportEmployeesDialog'
 
 type StatusFilter = 'ALL' | EmployeeStatus
 
@@ -134,6 +136,7 @@ export function EmployeeListPage() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null,
   )
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
 
   const employeesQuery = useEmployeesQuery({
     page,
@@ -231,6 +234,15 @@ export function EmployeeListPage() {
             </div>
 
             <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shrink-0 gap-2 sm:w-auto"
+                onClick={() => setIsImportDialogOpen(true)}
+              >
+                <FileUp className="size-4" aria-hidden="true" />
+                Nhập Excel
+              </Button>
               <Button
                 type="button"
                 variant="outline"
@@ -557,6 +569,10 @@ export function EmployeeListPage() {
             setSelectedEmployeeId(null)
           }
         }}
+      />
+      <ImportEmployeesDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
       />
     </section>
   )

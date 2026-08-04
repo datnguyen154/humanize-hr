@@ -40,6 +40,9 @@ const isExcludedAuthRequest = (url?: string) =>
     url?.includes('/auth/login') || url?.includes('/auth/refresh-token'),
   )
 
+const isFormDataPayload = (data: unknown): data is FormData =>
+  typeof FormData !== 'undefined' && data instanceof FormData
+
 const requestNewAccessToken = () => {
   if (!refreshPromise) {
     const refreshToken = authStorage.getRefreshToken()
@@ -81,6 +84,11 @@ const redirectToLogin = () => {
 }
 
 axiosInstance.interceptors.request.use((config) => {
+  if (isFormDataPayload(config.data)) {
+    config.headers.delete('Content-Type')
+    config.headers.delete('content-type')
+  }
+
   if (isExcludedAuthRequest(config.url)) {
     config.headers.delete('Authorization')
     return config
