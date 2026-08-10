@@ -104,6 +104,7 @@ export const employeeController = {
                 limit: getSingleQueryValue(req.query.limit),
                 search: getSingleQueryValue(req.query.search),
                 status: parseStatus(req.query.status),
+                departmentId: getSingleQueryValue(req.query.departmentId),
                 sortBy: parseSortBy(req.query.sortBy),
                 sortOrder: parseSortOrder(req.query.sortOrder),
             });
@@ -192,6 +193,7 @@ export const employeeController = {
                 position,
                 status,
                 joinedAt,
+                departmentId,
             } = req.body as {
                 employeeCode?: string;
                 fullName?: string;
@@ -200,6 +202,7 @@ export const employeeController = {
                 position?: string;
                 status?: string;
                 joinedAt?: string;
+                departmentId?: string | null;
             };
 
             const employee = await employeeService.createEmployee({
@@ -210,6 +213,7 @@ export const employeeController = {
                 position,
                 status,
                 joinedAt,
+                departmentId,
             });
 
             return res.status(201).json({
@@ -230,6 +234,7 @@ export const employeeController = {
                 position,
                 status,
                 joinedAt,
+                departmentId,
             } = req.body as {
                 employeeCode?: string;
                 fullName?: string;
@@ -238,6 +243,7 @@ export const employeeController = {
                 position?: string;
                 status?: string;
                 joinedAt?: string;
+                departmentId?: string | null;
             };
 
             const employee = await employeeService.updateEmployee(
@@ -250,6 +256,7 @@ export const employeeController = {
                     position,
                     status,
                     joinedAt,
+                    departmentId,
                 },
             );
 

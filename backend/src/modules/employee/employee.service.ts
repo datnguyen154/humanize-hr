@@ -23,6 +23,7 @@ type GetEmployeesQuery = {
     limit?: number | string;
     search?: string;
     status?: EmployeeStatus;
+    departmentId?: string;
     sortBy?: EmployeeSortBy;
     sortOrder?: EmployeeSortOrder;
 };
@@ -37,7 +38,7 @@ type GetEmployeesMeta = {
 };
 
 type GetEmployeesResult = {
-    data: Employee[];
+    data: EmployeeProfileWithDepartment[];
     meta: GetEmployeesMeta;
 };
 
@@ -99,9 +100,15 @@ type EmployeeDetail = Pick<
     | "position"
     | "status"
     | "joinedAt"
+    | "departmentId"
     | "createdAt"
     | "updatedAt"
->;
+> & {
+    department: {
+        id: string;
+        name: string;
+    } | null;
+};
 
 type CreateEmployeeInput = {
     employeeCode?: string;
@@ -111,6 +118,7 @@ type CreateEmployeeInput = {
     position?: string;
     status?: string;
     joinedAt?: string;
+    departmentId?: string | null;
 };
 
 type UpdateEmployeeInput = Partial<CreateEmployeeInput>;
@@ -125,9 +133,15 @@ type CreatedEmployee = Pick<
     | "position"
     | "status"
     | "joinedAt"
+    | "departmentId"
     | "createdAt"
     | "updatedAt"
->;
+> & {
+    department: {
+        id: string;
+        name: string;
+    } | null;
+};
 
 type EmployeeStatusResult = Pick<Employee, "id" | "status">;
 
@@ -204,7 +218,17 @@ const parseRequiredDate = (value: unknown, fieldName: string): Date => {
     return date;
 };
 
-const toCreatedEmployee = (employee: Employee): CreatedEmployee => ({
+const validateDepartmentId = (departmentId: string): string => {
+    if (!UUID_REGEX.test(departmentId)) {
+        throw new EmployeeServiceError("Invalid departmentId", 400);
+    }
+
+    return departmentId;
+};
+
+const toCreatedEmployee = (
+    employee: EmployeeProfileWithDepartment,
+): CreatedEmployee => ({
     id: employee.id,
     employeeCode: employee.employeeCode,
     fullName: employee.fullName,
@@ -213,6 +237,8 @@ const toCreatedEmployee = (employee: Employee): CreatedEmployee => ({
     position: employee.position,
     status: employee.status,
     joinedAt: employee.joinedAt,
+    departmentId: employee.departmentId,
+    department: employee.department,
     createdAt: employee.createdAt,
     updatedAt: employee.updatedAt,
 });
@@ -557,11 +583,16 @@ export const employeeService = {
             query.limit,
         );
 
+        const departmentId = query.departmentId
+            ? validateDepartmentId(query.departmentId)
+            : undefined;
+
         const repositoryParams = {
             skip,
             take,
             search: query.search,
             status: query.status,
+            departmentId,
             sortBy: query.sortBy,
             sortOrder: query.sortOrder,
         };
@@ -858,6 +889,8 @@ export const employeeService = {
             position: employee.position,
             status: employee.status,
             joinedAt: employee.joinedAt,
+            departmentId: employee.departmentId,
+            department: employee.department,
             createdAt: employee.createdAt,
             updatedAt: employee.updatedAt,
         };
@@ -874,6 +907,19 @@ export const employeeService = {
         const position = parseRequiredString(data.position, "position");
         const status = parseEmployeeStatus(data.status);
         const joinedAt = parseRequiredDate(data.joinedAt, "joinedAt");
+
+        let departmentId: string | null = null;
+
+        if (data.departmentId !== undefined && data.departmentId !== null) {
+            departmentId = validateDepartmentId(data.departmentId);
+
+            const department =
+                await departmentRepository.findDepartmentById(departmentId);
+
+            if (!department) {
+                throw new EmployeeServiceError("Department not found", 404);
+            }
+        }
 
         const existingEmployeeByCode =
             await employeeRepository.findEmployeeByEmployeeCode(employeeCode);
@@ -897,7 +943,7 @@ export const employeeService = {
             gender: Gender.OTHER,
             dateOfBirth: DEFAULT_DATE_OF_BIRTH,
             position,
-            departmentId: null,
+            departmentId,
             status,
             joinedAt,
         });
@@ -927,6 +973,7 @@ export const employeeService = {
             position?: string;
             status?: EmployeeStatus;
             joinedAt?: Date;
+            departmentId?: string | null;
         } = {};
 
         if (data.employeeCode !== undefined) {
@@ -983,6 +1030,27 @@ export const employeeService = {
 
         if (data.joinedAt !== undefined) {
             updateData.joinedAt = parseRequiredDate(data.joinedAt, "joinedAt");
+        }
+
+        if (data.departmentId !== undefined) {
+            if (data.departmentId === null) {
+                updateData.departmentId = null;
+            } else {
+                const departmentId = validateDepartmentId(data.departmentId);
+                updateData.departmentId = departmentId;
+
+                const department =
+                    await departmentRepository.findDepartmentById(
+                        departmentId,
+                    );
+
+                if (!department) {
+                    throw new EmployeeServiceError(
+                        "Department not found",
+                        404,
+                    );
+                }
+            }
         }
 
         const updatedEmployee = await employeeRepository.updateEmployee(

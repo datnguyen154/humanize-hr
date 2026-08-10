@@ -15,6 +15,7 @@ export type EmployeeQueryParams = {
     take?: number;
     search?: string;
     status?: EmployeeStatus;
+    departmentId?: string;
     sortBy?: EmployeeSortBy;
     sortOrder?: EmployeeSortOrder;
 };
@@ -22,7 +23,7 @@ export type EmployeeQueryParams = {
 export type CreateEmployeeData = Prisma.EmployeeUncheckedCreateInput;
 export type UpdateEmployeeData = Prisma.EmployeeUncheckedUpdateInput;
 
-const employeeProfileDepartmentRelation = {
+const employeeDepartmentRelation = {
     department: {
         select: {
             id: true,
@@ -32,7 +33,7 @@ const employeeProfileDepartmentRelation = {
 } satisfies Prisma.EmployeeInclude;
 
 export type EmployeeProfileWithDepartment = Prisma.EmployeeGetPayload<{
-    include: typeof employeeProfileDepartmentRelation;
+    include: typeof employeeDepartmentRelation;
 }>;
 
 const employeeExportSelect = {
@@ -91,6 +92,10 @@ const buildEmployeeWhere = (
         where.status = params.status;
     }
 
+    if (params.departmentId) {
+        where.departmentId = params.departmentId;
+    }
+
     return where;
 };
 
@@ -106,12 +111,15 @@ const buildEmployeeOrderBy = (
 };
 
 export const employeeRepository = {
-    findEmployees(params: EmployeeQueryParams): Promise<Employee[]> {
+    findEmployees(
+        params: EmployeeQueryParams,
+    ): Promise<EmployeeProfileWithDepartment[]> {
         return prisma.employee.findMany({
             where: buildEmployeeWhere(params),
             orderBy: buildEmployeeOrderBy(params),
             skip: params.skip,
             take: params.take,
+            include: employeeDepartmentRelation,
         });
     },
 
@@ -131,9 +139,12 @@ export const employeeRepository = {
         });
     },
 
-    findEmployeeById(id: string): Promise<Employee | null> {
+    findEmployeeById(
+        id: string,
+    ): Promise<EmployeeProfileWithDepartment | null> {
         return prisma.employee.findUnique({
             where: { id },
+            include: employeeDepartmentRelation,
         });
     },
 
@@ -148,13 +159,16 @@ export const employeeRepository = {
     ): Promise<EmployeeProfileWithDepartment | null> {
         return prisma.employee.findUnique({
             where: { userId },
-            include: employeeProfileDepartmentRelation,
+            include: employeeDepartmentRelation,
         });
     },
 
-    createEmployee(data: CreateEmployeeData): Promise<Employee> {
+    createEmployee(
+        data: CreateEmployeeData,
+    ): Promise<EmployeeProfileWithDepartment> {
         return prisma.employee.create({
             data,
+            include: employeeDepartmentRelation,
         });
     },
 
@@ -207,10 +221,14 @@ export const employeeRepository = {
         });
     },
 
-    updateEmployee(id: string, data: UpdateEmployeeData): Promise<Employee> {
+    updateEmployee(
+        id: string,
+        data: UpdateEmployeeData,
+    ): Promise<EmployeeProfileWithDepartment> {
         return prisma.employee.update({
             where: { id },
             data,
+            include: employeeDepartmentRelation,
         });
     },
 
