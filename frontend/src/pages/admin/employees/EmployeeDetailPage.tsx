@@ -2,6 +2,7 @@ import { AxiosError } from "axios";
 import {
     ArrowLeft,
     Ban,
+    Building2,
     Briefcase,
     CalendarDays,
     CalendarPlus,
@@ -293,6 +294,13 @@ export function EmployeeDetailPage() {
                                         label="Chức vụ"
                                     >
                                         {employee.position}
+                                    </ProfileInformationField>
+                                    <ProfileInformationField
+                                        icon={Building2}
+                                        label="Phòng ban"
+                                    >
+                                        {employee.department?.name ||
+                                            "Chưa phân phòng ban"}
                                     </ProfileInformationField>
                                     <ProfileInformationField
                                         icon={CircleDot}

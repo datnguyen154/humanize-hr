@@ -136,7 +136,7 @@ export function EmployeeProfilePage() {
                     <span>
                       Phòng ban:{' '}
                       <span className="font-medium text-foreground">
-                        {profile.department?.name || 'Chưa cập nhật'}
+                        {profile.department?.name || 'Chưa phân phòng ban'}
                       </span>
                     </span>
                   </div>
@@ -174,7 +174,7 @@ export function EmployeeProfilePage() {
                     {profile.employeeCode || 'Chưa cập nhật'}
                   </ProfileField>
                   <ProfileField icon={Building2} label="Phòng ban">
-                    {profile.department?.name || 'Chưa cập nhật'}
+                    {profile.department?.name || 'Chưa phân phòng ban'}
                   </ProfileField>
                   <ProfileField icon={Briefcase} label="Chức vụ">
                     {profile.position || 'Chưa cập nhật'}

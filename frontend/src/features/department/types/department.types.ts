@@ -58,3 +58,5 @@ export type DepartmentsResponse = {
   data: Department[]
   meta: DepartmentsMeta
 }
+
+export type DepartmentOption = Pick<Department, 'id' | 'name' | 'status'>

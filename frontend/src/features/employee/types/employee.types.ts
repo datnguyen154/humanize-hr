@@ -25,15 +25,15 @@ export type EmployeeDepartment = {
 }
 
 export type EmployeeDetail = Employee & {
-  departmentId?: string | null
-  department?: EmployeeDepartment | null
+  departmentId: string | null
+  department: EmployeeDepartment | null
   createdAt: string
   updatedAt: string
 }
 
 export type MyEmployeeProfile = EmployeeDetail & {
-  departmentId: string
-  department: EmployeeDepartment
+  departmentId: string | null
+  department: EmployeeDepartment | null
 }
 
 export type CreateEmployeeRequest = {
@@ -44,6 +44,7 @@ export type CreateEmployeeRequest = {
   position: string
   status: EmployeeStatus
   joinedAt: string
+  departmentId?: string | null
 }
 
 export type UpdateEmployeeRequest = Partial<CreateEmployeeRequest>

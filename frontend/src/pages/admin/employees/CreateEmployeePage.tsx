@@ -16,15 +16,17 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useDepartmentOptionsQuery } from "@/features/department/hooks/useDepartmentOptionsQuery";
 import { useCreateEmployeeMutation } from "@/features/employee";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
-import type { ApiErrorResponse } from "@/shared/types";
+import { getEmployeeDepartmentErrorMessage } from "./employee-error-messages";
 
 const createEmployeeSchema = z.object({
     employeeCode: z.string().min(1, "Vui lòng nhập mã nhân viên"),
     fullName: z.string().min(1, "Vui lòng nhập họ tên"),
     email: z.string().min(1, "Vui lòng nhập email").email("Email không hợp lệ"),
     phone: z.string().optional(),
+    departmentId: z.string(),
     position: z.string().min(1, "Vui lòng nhập chức vụ"),
     status: z.enum(["ACTIVE", "INACTIVE"], {
         message: "Vui lòng chọn trạng thái",
@@ -36,12 +38,9 @@ type CreateEmployeeFormValues = z.infer<typeof createEmployeeSchema>;
 
 const getCreateEmployeeErrorMessage = (error: unknown) => {
     if (error instanceof AxiosError) {
-        const message = (error.response?.data as ApiErrorResponse | undefined)
-            ?.message;
-
-        return (
-            message ??
-            "Không thể tạo nhân viên. Vui lòng kiểm tra lại thông tin."
+        return getEmployeeDepartmentErrorMessage(
+            error,
+            "Không thể tạo nhân viên. Vui lòng kiểm tra lại thông tin.",
         );
     }
 
@@ -51,6 +50,7 @@ const getCreateEmployeeErrorMessage = (error: unknown) => {
 export function CreateEmployeePage() {
     const navigate = useNavigate();
     const createEmployeeMutation = useCreateEmployeeMutation();
+    const departmentOptionsQuery = useDepartmentOptionsQuery();
     const [formError, setFormError] = useState<string | null>(null);
 
     const {
@@ -67,6 +67,7 @@ export function CreateEmployeePage() {
             position: "",
             status: "ACTIVE",
             joinedAt: "",
+            departmentId: "",
         },
     });
 
@@ -84,6 +85,7 @@ export function CreateEmployeePage() {
                 joinedAt: new Date(
                     `${values.joinedAt}T00:00:00.000Z`,
                 ).toISOString(),
+                departmentId: values.departmentId || null,
             });
 
             showSuccessToast("Nhân viên mới đã được tạo.");
@@ -249,6 +251,39 @@ export function CreateEmployeePage() {
                                         {errors.position ? (
                                             <p className="text-sm text-destructive">
                                                 {errors.position.message}
+                                            </p>
+                                        ) : null}
+                                    </div>
+
+                                    <div className="grid gap-2 md:col-span-2">
+                                        <Label htmlFor="departmentId">
+                                            Phòng ban
+                                        </Label>
+                                        <select
+                                            id="departmentId"
+                                            className="h-11 min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            disabled={departmentOptionsQuery.isLoading}
+                                            {...register("departmentId")}
+                                        >
+                                            <option value="">
+                                                Chưa phân phòng ban
+                                            </option>
+                                            {departmentOptionsQuery.data?.map(
+                                                (department) => (
+                                                    <option key={department.id} value={department.id}>
+                                                        {department.name}
+                                                    </option>
+                                                ),
+                                            )}
+                                        </select>
+                                        {departmentOptionsQuery.isError ? (
+                                            <p className="text-sm text-destructive">
+                                                Không thể tải danh sách phòng ban.
+                                            </p>
+                                        ) : null}
+                                        {departmentOptionsQuery.isSuccess && departmentOptionsQuery.data.length === 0 ? (
+                                            <p className="text-sm text-muted-foreground">
+                                                Chưa có phòng ban để phân công.
                                             </p>
                                         ) : null}
                                     </div>

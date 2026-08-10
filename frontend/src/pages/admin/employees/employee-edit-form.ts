@@ -11,6 +11,7 @@ export const employeeEditSchema = z.object({
   fullName: z.string().min(1, 'Vui lòng nhập họ tên'),
   email: z.string().min(1, 'Vui lòng nhập email').email('Email không hợp lệ'),
   phone: z.string().optional(),
+  departmentId: z.string(),
   position: z.string().min(1, 'Vui lòng nhập chức vụ'),
   status: z.enum(['ACTIVE', 'INACTIVE'], {
     message: 'Vui lòng chọn trạng thái',
@@ -33,6 +34,7 @@ export const emptyEmployeeEditFormValues: EmployeeEditFormValues = {
   fullName: '',
   email: '',
   phone: '',
+  departmentId: '',
   position: '',
   status: 'ACTIVE',
   joinedAt: '',
@@ -45,6 +47,7 @@ export const emptyEmployeeInformationEditFormValues: EmployeeInformationEditForm
   phone: '',
   position: '',
   joinedAt: '',
+  departmentId: '',
 }
 
 export const toEmployeeEditFormValues = (
@@ -57,6 +60,7 @@ export const toEmployeeEditFormValues = (
   position: employee.position,
   status: employee.status,
   joinedAt: toDateInputValue(employee.joinedAt),
+  departmentId: employee.departmentId ?? '',
 })
 
 export const toEmployeeInformationEditFormValues = (
@@ -68,10 +72,12 @@ export const toEmployeeInformationEditFormValues = (
   phone: employee.phone ?? '',
   position: employee.position,
   joinedAt: toDateInputValue(employee.joinedAt),
+  departmentId: employee.departmentId ?? '',
 })
 
 export const toUpdateEmployeeRequest = (
   values: EmployeeEditFormValues,
+  originalDepartmentId: string | null,
 ): UpdateEmployeeRequest => ({
   employeeCode: values.employeeCode,
   fullName: values.fullName,
@@ -80,10 +86,14 @@ export const toUpdateEmployeeRequest = (
   position: values.position,
   status: values.status,
   joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
+  ...(values.departmentId !== (originalDepartmentId ?? '')
+    ? { departmentId: values.departmentId || null }
+    : {}),
 })
 
 export const toUpdateEmployeeInformationRequest = (
   values: EmployeeInformationEditFormValues,
+  originalDepartmentId: string | null,
 ): UpdateEmployeeRequest => ({
   employeeCode: values.employeeCode,
   fullName: values.fullName,
@@ -91,4 +101,7 @@ export const toUpdateEmployeeInformationRequest = (
   phone: values.phone?.trim() || undefined,
   position: values.position,
   joinedAt: new Date(`${values.joinedAt}T00:00:00.000Z`).toISOString(),
+  ...(values.departmentId !== (originalDepartmentId ?? '')
+    ? { departmentId: values.departmentId || null }
+    : {}),
 })

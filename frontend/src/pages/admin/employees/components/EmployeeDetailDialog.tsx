@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useDepartmentOptionsQuery } from '@/features/department/hooks/useDepartmentOptionsQuery'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -74,6 +75,9 @@ export function EmployeeDetailDialog({
   const employeeQuery = useEmployeeDetailQuery(employeeId ?? '')
   const updateEmployeeMutation = useUpdateEmployeeMutation()
   const updateEmployeeStatusMutation = useUpdateEmployeeStatusMutation()
+  const departmentOptionsQuery = useDepartmentOptionsQuery(
+    open && Boolean(employeeId),
+  )
 
   const {
     register,
@@ -119,14 +123,17 @@ export function EmployeeDetailDialog({
   }
 
   const onSubmit = async (values: EmployeeInformationEditFormValues) => {
-    if (!employeeId) {
+    if (!employeeId || !employee) {
       return
     }
 
     try {
       await updateEmployeeMutation.mutateAsync({
         id: employeeId,
-        payload: toUpdateEmployeeInformationRequest(values),
+        payload: toUpdateEmployeeInformationRequest(
+          values,
+          employee.departmentId,
+        ),
       })
       showSuccessToast('Thông tin nhân viên đã được cập nhật.')
       setIsEditing(false)
@@ -215,7 +222,7 @@ export function EmployeeDetailDialog({
               />
               <DetailField
                 label="Phòng ban"
-                value={employee.department?.name || 'Chưa có thông tin'}
+                value={employee.department?.name || 'Chưa phân phòng ban'}
               />
               <DetailField label="Chức vụ" value={employee.position} />
               <DetailField
@@ -288,10 +295,27 @@ export function EmployeeDetailDialog({
 
             <div className="grid gap-3 sm:grid-cols-2">
               <DetailField label="Mã nhân viên" value={employee.employeeCode} />
-              <DetailField
-                label="Phòng ban"
-                value={employee.department?.name || 'Chưa có thông tin'}
-              />
+              <div className="grid gap-2">
+                <Label htmlFor="dialog-departmentId">Phòng ban</Label>
+                <select
+                  id="dialog-departmentId"
+                  className="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  disabled={departmentOptionsQuery.isLoading}
+                  {...register('departmentId')}
+                >
+                  <option value="">Chưa phân phòng ban</option>
+                  {departmentOptionsQuery.data?.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
+                </select>
+                {departmentOptionsQuery.isError ? (
+                  <p className="text-sm text-destructive">
+                    Không thể tải danh sách phòng ban.
+                  </p>
+                ) : null}
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

@@ -9,13 +9,13 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useDepartmentOptionsQuery } from '@/features/department/hooks/useDepartmentOptionsQuery'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   useEmployeeDetailQuery,
   useUpdateEmployeeMutation,
 } from '@/features/employee'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
-import type { ApiErrorResponse } from '@/shared/types'
 
 import {
   employeeEditSchema,
@@ -24,13 +24,11 @@ import {
   toUpdateEmployeeRequest,
   type EmployeeEditFormValues,
 } from './employee-edit-form'
+import { getEmployeeDepartmentErrorMessage } from './employee-error-messages'
 
 const getEditEmployeeErrorMessage = (error: unknown) => {
   if (error instanceof AxiosError) {
-    const message = (error.response?.data as ApiErrorResponse | undefined)
-      ?.message
-
-    return message ?? 'Cập nhật nhân viên thất bại'
+    return getEmployeeDepartmentErrorMessage(error, 'Cập nhật nhân viên thất bại')
   }
 
   return 'Cập nhật nhân viên thất bại'
@@ -41,6 +39,7 @@ export function EditEmployeePage() {
   const navigate = useNavigate()
   const employeeQuery = useEmployeeDetailQuery(id ?? '')
   const updateEmployeeMutation = useUpdateEmployeeMutation()
+  const departmentOptionsQuery = useDepartmentOptionsQuery()
   const [formError, setFormError] = useState<string | null>(null)
 
   const {
@@ -71,7 +70,10 @@ export function EditEmployeePage() {
     try {
       await updateEmployeeMutation.mutateAsync({
         id,
-        payload: toUpdateEmployeeRequest(values),
+        payload: toUpdateEmployeeRequest(
+          values,
+          employeeQuery.data?.departmentId ?? null,
+        ),
       })
 
       showSuccessToast('Thông tin nhân viên đã được cập nhật.')
@@ -203,7 +205,31 @@ export function EditEmployeePage() {
               </div>
 
               <div className="grid gap-2">
-                <Label htmlFor="status">Trạng thái</Label>
+                <Label htmlFor="departmentId">Phòng ban</Label>
+                <select
+                  id="departmentId"
+                  className="h-9 min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  disabled={departmentOptionsQuery.isLoading}
+                  {...register('departmentId')}
+                >
+                  <option value="">Chưa phân phòng ban</option>
+                  {departmentOptionsQuery.data?.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
+                </select>
+                {departmentOptionsQuery.isError ? (
+                  <p className="text-sm text-destructive">
+                    Không thể tải danh sách phòng ban.
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="grid gap-2">
+                <Label htmlFor="status">
+                  Trạng thái
+                </Label>
                 <select
                   id="status"
                   className="h-9 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
