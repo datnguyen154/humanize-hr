@@ -45,6 +45,7 @@ type GetEmployeesResult = {
 type ExportEmployeesQuery = {
     search?: string;
     status?: EmployeeStatus;
+    departmentId?: string;
     sortBy?: EmployeeSortBy;
     sortOrder?: EmployeeSortOrder;
 };
@@ -620,9 +621,14 @@ export const employeeService = {
     async exportEmployees(
         query: ExportEmployeesQuery,
     ): Promise<ExportEmployeesResult> {
+        const departmentId = query.departmentId
+            ? validateDepartmentId(query.departmentId)
+            : undefined;
+
         const employees = await employeeRepository.findEmployeesForExport({
             search: query.search,
             status: query.status,
+            departmentId,
             sortBy: query.sortBy,
             sortOrder: query.sortOrder,
         });

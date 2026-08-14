@@ -120,6 +120,7 @@ export const employeeController = {
             const result = await employeeService.exportEmployees({
                 search: getSingleQueryValue(req.query.search),
                 status: parseStatus(req.query.status),
+                departmentId: getSingleQueryValue(req.query.departmentId),
                 sortBy: parseSortBy(req.query.sortBy),
                 sortOrder: parseSortOrder(req.query.sortOrder),
             });
