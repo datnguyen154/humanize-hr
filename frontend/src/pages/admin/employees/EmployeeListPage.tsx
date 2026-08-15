@@ -27,6 +27,7 @@ import {
 import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
+import { useDepartmentOptionsQuery } from '@/features/department/hooks/useDepartmentOptionsQuery'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -128,9 +129,11 @@ const getExportEmployeesErrorMessage = (error: unknown) => {
 export function EmployeeListPage() {
   const navigate = useNavigate()
   const exportEmployeesMutation = useExportEmployeesMutation()
+  const departmentOptionsQuery = useDepartmentOptionsQuery()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<StatusFilter>('ALL')
+  const [departmentId, setDepartmentId] = useState<string | undefined>()
   const [sortBy, setSortBy] = useState<EmployeeSortBy>('employeeCode')
   const [sortOrder, setSortOrder] = useState<EmployeeSortOrder>('asc')
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
@@ -143,6 +146,7 @@ export function EmployeeListPage() {
     limit: 10,
     search: search.trim() || undefined,
     status: status === 'ALL' ? undefined : status,
+    departmentId,
     sortBy,
     sortOrder,
   })
@@ -162,6 +166,11 @@ export function EmployeeListPage() {
 
   const handleStatusChange = (value: StatusFilter) => {
     setStatus(value)
+    setPage(1)
+  }
+
+  const handleDepartmentChange = (value: string) => {
+    setDepartmentId(value || undefined)
     setPage(1)
   }
 
@@ -201,6 +210,7 @@ export function EmployeeListPage() {
     const exportParams: ExportEmployeesParams = {
       search: search.trim() || undefined,
       status: status === 'ALL' ? undefined : status,
+      departmentId,
       sortBy,
       sortOrder,
     }
@@ -273,7 +283,7 @@ export function EmployeeListPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div className="relative w-full md:max-w-sm">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -287,17 +297,48 @@ export function EmployeeListPage() {
               />
             </div>
 
-            <div className="flex flex-wrap gap-2">
-              {statusOptions.map((option) => (
-                <Button
-                  key={option.value}
-                  type="button"
-                  variant={status === option.value ? 'default' : 'outline'}
-                  onClick={() => handleStatusChange(option.value)}
+            <div className="flex w-full flex-col gap-3 md:w-auto md:items-end">
+              <div className="flex flex-wrap gap-2">
+                {statusOptions.map((option) => (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant={status === option.value ? 'default' : 'outline'}
+                    onClick={() => handleStatusChange(option.value)}
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+              <div className="w-full md:w-64">
+                <label htmlFor="employee-department-filter" className="sr-only">
+                  Lọc theo phòng ban
+                </label>
+                <select
+                  id="employee-department-filter"
+                  value={departmentId ?? ''}
+                  className="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                  onChange={(event) => handleDepartmentChange(event.target.value)}
                 >
-                  {option.label}
-                </Button>
-              ))}
+                  <option value="">Tất cả phòng ban</option>
+                  {departmentOptionsQuery.data?.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
+                </select>
+                {departmentOptionsQuery.isError ? (
+                  <p className="mt-1 text-xs text-destructive">
+                    Không thể tải danh sách phòng ban.
+                  </p>
+                ) : null}
+                {departmentOptionsQuery.isSuccess &&
+                departmentOptionsQuery.data.length === 0 ? (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Chưa có phòng ban.
+                  </p>
+                ) : null}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -330,7 +371,7 @@ export function EmployeeListPage() {
               <div className="hidden md:block">
                 <Table>
                   <TableBody>
-                    <TableRowsSkeleton columns={8} />
+                    <TableRowsSkeleton columns={9} />
                   </TableBody>
                 </Table>
               </div>
@@ -406,6 +447,14 @@ export function EmployeeListPage() {
                           </dd>
                         </div>
                       ) : null}
+                      <div className="min-w-0">
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Phòng ban
+                        </dt>
+                        <dd className="mt-1 break-words text-foreground">
+                          {employee.department?.name || 'Chưa phân phòng ban'}
+                        </dd>
+                      </div>
                     </dl>
 
                     <Button
@@ -451,6 +500,7 @@ export function EmployeeListPage() {
                     <TableHead>Email</TableHead>
                     <TableHead>Số điện thoại</TableHead>
                     <TableHead>Chức vụ</TableHead>
+                    <TableHead>Phòng ban</TableHead>
                     <TableHead className="text-center">Trạng thái</TableHead>
                     <TableHead>
                       <Button
@@ -489,6 +539,9 @@ export function EmployeeListPage() {
                       <TableCell>{employee.email}</TableCell>
                       <TableCell>{employee.phone}</TableCell>
                       <TableCell>{employee.position}</TableCell>
+                      <TableCell className="max-w-48 whitespace-normal break-words">
+                        {employee.department?.name || 'Chưa phân phòng ban'}
+                      </TableCell>
                       <TableCell className="text-center">
                         <StatusBadge
                           label={employeeStatusLabel[employee.status]}

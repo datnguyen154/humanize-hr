@@ -17,6 +17,8 @@ export type Employee = {
   position: string
   status: EmployeeStatus
   joinedAt: string
+  departmentId: string | null
+  department: EmployeeDepartment | null
 }
 
 export type EmployeeDepartment = {
@@ -59,6 +61,7 @@ export type EmployeesQueryParams = {
   limit: number
   search?: string
   status?: EmployeeStatus
+  departmentId?: string
   sortBy?: EmployeeSortBy
   sortOrder?: EmployeeSortOrder
 }
@@ -66,6 +69,7 @@ export type EmployeesQueryParams = {
 export type ExportEmployeesParams = {
   search?: string
   status?: EmployeeStatus
+  departmentId?: string
   sortBy?: EmployeeSortBy
   sortOrder?: EmployeeSortOrder
 }
