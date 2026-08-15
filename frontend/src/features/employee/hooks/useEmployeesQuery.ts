@@ -4,10 +4,14 @@ import { getEmployeeById, getEmployees } from '../api/employee.api'
 import { employeeQueryKeys } from '../lib/employee.query-keys'
 import type { EmployeesQueryParams } from '../types/employee.types'
 
-export function useEmployeesQuery(params: EmployeesQueryParams) {
+export function useEmployeesQuery(
+  params: EmployeesQueryParams,
+  enabled = true,
+) {
   return useQuery({
     queryKey: employeeQueryKeys.list(params),
     queryFn: () => getEmployees(params),
+    enabled,
     placeholderData: keepPreviousData,
   })
 }

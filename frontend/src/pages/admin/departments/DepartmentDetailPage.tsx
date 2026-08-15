@@ -4,6 +4,8 @@ import {
     Ban,
     Building2,
     CalendarPlus,
+    ChevronLeft,
+    ChevronRight,
     CircleDot,
     FileText,
     History,
@@ -17,7 +19,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { EmptyState } from "@/components/ui/empty-state";
 import { DetailPageSkeleton } from "@/components/ui/skeleton";
+import { Skeleton, TableRowsSkeleton } from "@/components/ui/skeleton";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import {
     StatusBadge,
     type StatusBadgeTone,
@@ -25,6 +37,12 @@ import {
 import { useDepartmentDetailQuery } from "@/features/department/hooks/useDepartmentsQuery";
 import { useUpdateDepartmentStatusMutation } from "@/features/department/hooks/useUpdateDepartmentStatusMutation";
 import type { DepartmentStatus } from "@/features/department/types/department.types";
+import {
+    employeeStatusLabel,
+    formatEmployeeDate,
+    useEmployeesQuery,
+    type EmployeeStatus,
+} from "@/features/employee";
 import { showErrorToast, showWarningToast } from "@/lib/toast";
 
 const departmentStatusLabel: Record<DepartmentStatus, string> = {
@@ -33,6 +51,11 @@ const departmentStatusLabel: Record<DepartmentStatus, string> = {
 };
 
 const departmentStatusTone: Record<DepartmentStatus, StatusBadgeTone> = {
+    ACTIVE: "success",
+    INACTIVE: "warning",
+};
+
+const employeeStatusTone: Record<EmployeeStatus, StatusBadgeTone> = {
     ACTIVE: "success",
     INACTIVE: "warning",
 };
@@ -73,7 +96,26 @@ export function DepartmentDetailPage() {
     const updateDepartmentStatusMutation = useUpdateDepartmentStatusMutation();
     const [statusError, setStatusError] = useState<string | null>(null);
     const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+    const [employeePagination, setEmployeePagination] = useState({
+        departmentId: id,
+        page: 1,
+    });
     const department = departmentQuery.data;
+    const employeePage =
+        employeePagination.departmentId === id ? employeePagination.page : 1;
+    const employeesQuery = useEmployeesQuery(
+        {
+            page: employeePage,
+            limit: 10,
+            departmentId: id ?? "",
+            sortBy: "employeeCode",
+            sortOrder: "asc",
+        },
+        Boolean(id),
+    );
+    const employees = employeesQuery.data?.data ?? [];
+    const employeeMeta = employeesQuery.data?.meta;
+
     const nextStatus: DepartmentStatus =
         department?.status === "ACTIVE" ? "INACTIVE" : "ACTIVE";
 
@@ -302,6 +344,192 @@ export function DepartmentDetailPage() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">
+                                Nhân viên thuộc phòng ban
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {employeesQuery.isLoading ? (
+                                <>
+                                    <div className="grid gap-3 md:hidden">
+                                        {Array.from({ length: 3 }).map((_, index) => (
+                                            <div
+                                                key={index}
+                                                className="grid gap-3 rounded-lg border border-border p-4"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="grid flex-1 gap-2">
+                                                        <Skeleton className="h-4 w-24" />
+                                                        <Skeleton className="h-5 w-40 max-w-full" />
+                                                    </div>
+                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                                </div>
+                                                <Skeleton className="h-4 w-36" />
+                                                <Skeleton className="h-4 w-28" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="hidden md:block">
+                                        <Table>
+                                            <TableBody>
+                                                <TableRowsSkeleton columns={5} />
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+                                </>
+                            ) : null}
+
+                            {employeesQuery.isError ? (
+                                <p className="py-8 text-center text-destructive">
+                                    Không thể tải danh sách nhân viên của phòng ban.
+                                </p>
+                            ) : null}
+
+                            {employeesQuery.isSuccess && employees.length === 0 ? (
+                                <EmptyState
+                                    icon={Building2}
+                                    title="Chưa có nhân viên thuộc phòng ban này."
+                                    description="Nhân viên được gán vào phòng ban sẽ hiển thị tại đây."
+                                />
+                            ) : null}
+
+                            {employees.length > 0 ? (
+                                <>
+                                    <div className="grid gap-3 md:hidden">
+                                        {employees.map((employee) => (
+                                            <article
+                                                key={employee.id}
+                                                className="grid min-w-0 gap-3 rounded-lg border border-border p-4"
+                                            >
+                                                <div className="flex min-w-0 items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-medium text-muted-foreground">
+                                                            Mã nhân viên
+                                                        </p>
+                                                        <p className="mt-1 font-medium text-primary">
+                                                            {employee.employeeCode}
+                                                        </p>
+                                                        <h3 className="mt-2 break-words text-base font-semibold text-foreground">
+                                                            {employee.fullName}
+                                                        </h3>
+                                                    </div>
+                                                    <StatusBadge
+                                                        label={employeeStatusLabel[employee.status]}
+                                                        tone={employeeStatusTone[employee.status]}
+                                                    />
+                                                </div>
+                                                <dl className="grid gap-3 text-sm">
+                                                    <div>
+                                                        <dt className="text-xs font-medium text-muted-foreground">
+                                                            Chức vụ
+                                                        </dt>
+                                                        <dd className="mt-1 break-words text-foreground">
+                                                            {employee.position}
+                                                        </dd>
+                                                    </div>
+                                                    <div>
+                                                        <dt className="text-xs font-medium text-muted-foreground">
+                                                            Ngày vào làm
+                                                        </dt>
+                                                        <dd className="mt-1 text-foreground">
+                                                            {formatEmployeeDate(employee.joinedAt)}
+                                                        </dd>
+                                                    </div>
+                                                </dl>
+                                            </article>
+                                        ))}
+                                    </div>
+
+                                    <div className="hidden md:block">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Mã nhân viên</TableHead>
+                                                    <TableHead>Họ tên</TableHead>
+                                                    <TableHead>Chức vụ</TableHead>
+                                                    <TableHead className="text-center">
+                                                        Trạng thái
+                                                    </TableHead>
+                                                    <TableHead>Ngày vào làm</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {employees.map((employee) => (
+                                                    <TableRow key={employee.id}>
+                                                        <TableCell className="font-medium text-primary">
+                                                            {employee.employeeCode}
+                                                        </TableCell>
+                                                        <TableCell className="max-w-56 whitespace-normal break-words">
+                                                            {employee.fullName}
+                                                        </TableCell>
+                                                        <TableCell className="max-w-56 whitespace-normal break-words">
+                                                            {employee.position}
+                                                        </TableCell>
+                                                        <TableCell className="text-center">
+                                                            <StatusBadge
+                                                                label={employeeStatusLabel[employee.status]}
+                                                                tone={employeeStatusTone[employee.status]}
+                                                            />
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            {formatEmployeeDate(employee.joinedAt)}
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+
+                                    {employeeMeta && employeeMeta.totalPages > 1 ? (
+                                        <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <p className="text-sm text-muted-foreground">
+                                                Trang {employeePage} / {employeeMeta.totalPages}
+                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="size-8"
+                                                    disabled={!employeeMeta.hasPreviousPage}
+                                                    aria-label="Trang trước"
+                                                    title="Trang trước"
+                                                    onClick={() =>
+                                                        setEmployeePagination({
+                                                            departmentId: id,
+                                                            page: Math.max(employeePage - 1, 1),
+                                                        })
+                                                    }
+                                                >
+                                                    <ChevronLeft className="size-4" aria-hidden="true" />
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="size-8"
+                                                    disabled={!employeeMeta.hasNextPage}
+                                                    aria-label="Trang sau"
+                                                    title="Trang sau"
+                                                    onClick={() =>
+                                                        setEmployeePagination({
+                                                            departmentId: id,
+                                                            page: employeePage + 1,
+                                                        })
+                                                    }
+                                                >
+                                                    <ChevronRight className="size-4" aria-hidden="true" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                </>
+                            ) : null}
+                        </CardContent>
+                    </Card>
 
                     <ConfirmDialog
                         open={isStatusDialogOpen}
