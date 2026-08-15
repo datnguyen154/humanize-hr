@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios'
 import { CheckCircle2, Download, FileSpreadsheet, Loader2, Trash2, Upload } from 'lucide-react'
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useRef, useState, type ChangeEvent, type DragEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
@@ -146,22 +146,54 @@ export function ImportEmployeesDialog({ open, onOpenChange }: ImportEmployeesDia
   const [previewError, setPreviewError] = useState<string | null>(null)
   const [previewResult, setPreviewResult] = useState<EmployeeImportPreviewResult | null>(null)
   const [importResult, setImportResult] = useState<ImportEmployeesResult | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const phase: ImportPhase = importResult ? 'result' : previewResult ? 'preview' : 'select'
   const isBusy = previewMutation.isPending || importMutation.isPending
 
   const resetDialogState = () => {
-    setSelectedFile(null); setFileError(null); setPreviewError(null); setPreviewResult(null); setImportResult(null)
+    setSelectedFile(null); setFileError(null); setPreviewError(null); setPreviewResult(null); setImportResult(null); setIsDragging(false)
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
   const handleOpenChange = (nextOpen: boolean) => { if (isBusy) return; if (!nextOpen) resetDialogState(); onOpenChange(nextOpen) }
   const openFilePicker = () => { if (isBusy || !fileInputRef.current) return; fileInputRef.current.value = ''; fileInputRef.current.click() }
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    if (isBusy) return
-    const file = event.target.files?.[0] ?? null
+  const handleSelectedFile = (file: File | null, overrideError?: string) => {
     const validationMessage = validateImportFile(file)
     setPreviewResult(null); setImportResult(null); setPreviewError(null)
-    if (validationMessage) { setSelectedFile(null); setFileError(validationMessage); event.target.value = ''; return }
+    if (overrideError || validationMessage) {
+      const errorMessage = overrideError ?? validationMessage
+      setSelectedFile(null); setFileError(errorMessage)
+      return errorMessage
+    }
     setSelectedFile(file); setFileError(null)
+    return null
+  }
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (isBusy) return
+    const validationMessage = handleSelectedFile(event.target.files?.[0] ?? null)
+    if (validationMessage) event.target.value = ''
+  }
+  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (!isBusy) setIsDragging(true)
+  }
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (!isBusy) setIsDragging(true)
+  }
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDragging(false)
+  }
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    setIsDragging(false)
+    if (isBusy) return
+    const files = event.dataTransfer.files
+    if (files.length > 1) {
+      handleSelectedFile(null, 'Vui lòng chỉ chọn một file Excel.')
+      return
+    }
+    handleSelectedFile(files[0] ?? null)
   }
   const handleRemoveFile = () => { if (!isBusy) resetDialogState() }
   const handleDownloadTemplate = async () => {
@@ -192,7 +224,7 @@ export function ImportEmployeesDialog({ open, onOpenChange }: ImportEmployeesDia
       <div className="min-h-0 flex-1 overflow-y-auto pr-1"><div className="grid gap-5 py-1">
         {phase === 'select' ? <section className="grid gap-5">
           <section className="grid gap-3 rounded-lg border border-border bg-muted/20 p-4"><div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><h3 className="text-sm font-semibold text-foreground">Hướng dẫn nhập dữ liệu</h3><ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted-foreground"><li>Chỉ hỗ trợ file Excel định dạng .xlsx.</li><li>Dung lượng tối đa 5 MB, tối đa 1000 dòng.</li><li>Hệ thống sẽ kiểm tra dữ liệu trước khi nhập.</li></ul></div><Button type="button" variant="outline" className="w-full shrink-0 gap-2 sm:w-auto" disabled={templateMutation.isPending} onClick={() => void handleDownloadTemplate()}>{templateMutation.isPending ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Download className="size-4" aria-hidden="true" />}{templateMutation.isPending ? 'Đang tải...' : 'Tải file mẫu'}</Button></div></section>
-          <section className="grid gap-3"><div><label htmlFor="employee-import-file" className="text-sm font-medium text-foreground">File Excel</label><p className="mt-1 text-sm text-muted-foreground">Chọn file .xlsx. File sẽ chưa được nhập cho đến khi bạn xác nhận.</p></div><div className="rounded-lg border border-dashed border-border p-4">{selectedFile ? <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileSpreadsheet className="size-5" aria-hidden="true" /></div><div className="min-w-0"><p className="break-all text-sm font-medium text-foreground">{selectedFile.name}</p><p className="mt-1 text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p></div></div><div className="flex flex-col gap-2 sm:flex-row"><Button type="button" variant="outline" className="w-full sm:w-auto" disabled={isBusy} onClick={openFilePicker}>Đổi file</Button><Button type="button" variant="ghost" size="icon" className="size-10 text-muted-foreground hover:text-destructive" disabled={isBusy} aria-label="Xóa file đã chọn" title="Xóa file đã chọn" onClick={handleRemoveFile}><Trash2 className="size-4" aria-hidden="true" /></Button></div></div> : <div className="grid justify-items-center gap-3 py-6 text-center"><div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground"><Upload className="size-5" aria-hidden="true" /></div><div><p className="text-sm font-medium text-foreground">Chưa chọn file</p><p className="mt-1 text-sm text-muted-foreground">File .xlsx, không vượt quá 5 MB.</p></div><Button type="button" variant="outline" disabled={isBusy} onClick={openFilePicker}>Chọn file</Button></div>}</div>{fileError ? <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{fileError}</p> : null}</section>
+          <section className="grid gap-3"><div><label htmlFor="employee-import-file" className="text-sm font-medium text-foreground">File Excel</label><p className="mt-1 text-sm text-muted-foreground">Chọn file .xlsx. File sẽ chưa được nhập cho đến khi bạn xác nhận.</p></div><div className={`rounded-lg border border-dashed p-4 transition-colors ${isDragging ? 'border-primary bg-primary/5' : 'border-border'} ${isBusy ? 'opacity-60' : ''}`} onDragEnter={handleDragEnter} onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>{selectedFile ? <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div className="flex min-w-0 items-start gap-3"><div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"><FileSpreadsheet className="size-5" aria-hidden="true" /></div><div className="min-w-0"><p className="break-all text-sm font-medium text-foreground">{selectedFile.name}</p><p className="mt-1 text-xs text-muted-foreground">{formatFileSize(selectedFile.size)}</p></div></div><div className="flex flex-col gap-2 sm:flex-row"><Button type="button" variant="outline" className="w-full sm:w-auto" disabled={isBusy} onClick={openFilePicker}>Đổi file</Button><Button type="button" variant="ghost" size="icon" className="size-10 text-muted-foreground hover:text-destructive" disabled={isBusy} aria-label="Xóa file đã chọn" title="Xóa file đã chọn" onClick={handleRemoveFile}><Trash2 className="size-4" aria-hidden="true" /></Button></div></div> : <div className="grid justify-items-center gap-3 py-6 text-center"><div className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground"><Upload className="size-5" aria-hidden="true" /></div><div><p className="text-sm font-medium text-foreground">{isDragging ? 'Thả file Excel vào đây' : 'Chưa chọn file'}</p><p className="mt-1 text-sm text-muted-foreground">Kéo thả file vào đây hoặc chọn file .xlsx, không vượt quá 5 MB.</p></div><Button type="button" variant="outline" disabled={isBusy} onClick={openFilePicker}>Chọn file</Button></div>}</div>{fileError ? <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">{fileError}</p> : null}</section>
         </section> : null}
         {phase === 'preview' && previewResult ? <section className="grid gap-5"><div className="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="break-all text-sm font-medium text-foreground">{selectedFile?.name}</p><p className="mt-1 text-xs text-muted-foreground">{selectedFile ? formatFileSize(selectedFile.size) : null}</p></div><Button type="button" variant="outline" className="w-full shrink-0 sm:w-auto" disabled={isBusy} onClick={openFilePicker}>Chọn file khác</Button></div><PreviewSummary preview={previewResult} />{previewResult.validCount === 0 ? <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">Không có dòng hợp lệ để nhập.</p> : null}<PreviewTable rows={previewResult.rows} /><PreviewCards rows={previewResult.rows} /></section> : null}
         {previewMutation.isPending ? <div className="grid justify-items-center gap-3 py-10 text-center"><Loader2 className="size-7 animate-spin text-primary" aria-hidden="true" /><p className="text-sm text-muted-foreground">Đang kiểm tra...</p></div> : null}
