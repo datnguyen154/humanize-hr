@@ -46,6 +46,14 @@ employeeRoutes.get(
 );
 
 employeeRoutes.post(
+    "/import-preview",
+    authenticate,
+    requireRole("ADMIN"),
+    uploadEmployeeImportFile,
+    employeeController.previewEmployeeImport,
+);
+
+employeeRoutes.post(
     "/import",
     authenticate,
     requireRole("ADMIN"),

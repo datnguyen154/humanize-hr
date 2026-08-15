@@ -12,6 +12,10 @@ import {
 } from "./employee-import.parser";
 import { generateEmployeeImportTemplate } from "./employee-import-template.generator";
 import {
+    validateEmployeeImportRows,
+    type ValidatedEmployeeImportRow,
+} from "./employee-import.validation";
+import {
     employeeRepository,
     type EmployeeProfileWithDepartment,
     type EmployeeSortBy,
@@ -77,19 +81,7 @@ type EmployeeImportTemplateResult = {
     filename: string;
 };
 
-type NormalizedImportRow = {
-    rowNumber: number;
-    employeeCode?: string;
-    fullName?: string;
-    email?: string;
-    phone?: string;
-    position?: string;
-    departmentName?: string | null;
-    departmentId?: string | null;
-    status?: EmployeeStatus;
-    joinedAt?: Date;
-    errors: EmployeeImportRowError[];
-};
+type NormalizedImportRow = ValidatedEmployeeImportRow;
 
 type EmployeeDetail = Pick<
     Employee,
@@ -560,6 +552,24 @@ const normalizePrismaTarget = (target: unknown): string => {
     return String(target ?? "");
 };
 
+const parseAndValidateEmployeeImport = async (
+    file: Express.Multer.File,
+): Promise<ValidatedEmployeeImportRow[]> => {
+    let parsedRows: ParsedEmployeeImportRow[];
+
+    try {
+        parsedRows = await parseEmployeeImportWorkbook(file.buffer);
+    } catch (error) {
+        if (error instanceof EmployeeImportFileError) {
+            throw new EmployeeServiceError(error.message, error.statusCode);
+        }
+
+        throw error;
+    }
+
+    return validateEmployeeImportRows(parsedRows);
+};
+
 export const employeeService = {
     async getMyProfile(
         userId: string | undefined,
@@ -646,6 +656,169 @@ export const employeeService = {
     },
 
     async importEmployees(
+        file: Express.Multer.File | undefined,
+    ): Promise<ImportEmployeesResult> {
+        if (!file) {
+            throw new EmployeeServiceError("File is required", 400);
+        }
+
+        const rows = await parseAndValidateEmployeeImport(file);
+        const createdEmployees: EmployeeImportCreatedEmployee[] = [];
+
+        for (const row of rows) {
+            if (row.errors.length > 0) {
+                continue;
+            }
+
+            if (
+                !row.employeeCode ||
+                !row.fullName ||
+                !row.email ||
+                !row.phone ||
+                !row.position ||
+                !row.status ||
+                !row.joinedAt
+            ) {
+                addImportError(
+                    row.errors,
+                    row.rowNumber,
+                    "employeeCode",
+                    "Employee data is incomplete",
+                );
+                continue;
+            }
+
+            try {
+                const employee = await employeeRepository.createEmployee({
+                    employeeCode: row.employeeCode,
+                    fullName: row.fullName,
+                    email: row.email,
+                    phone: row.phone,
+                    gender: Gender.OTHER,
+                    dateOfBirth: DEFAULT_DATE_OF_BIRTH,
+                    position: row.position,
+                    departmentId: row.departmentId ?? null,
+                    status: row.status,
+                    joinedAt: row.joinedAt,
+                });
+
+                createdEmployees.push({
+                    rowNumber: row.rowNumber,
+                    id: employee.id,
+                    employeeCode: employee.employeeCode,
+                    fullName: employee.fullName,
+                });
+            } catch (error) {
+                if (isPrismaUniqueError(error)) {
+                    const target = normalizePrismaTarget(error.meta?.target);
+                    const isEmployeeCodeUniqueError =
+                        target.includes("employeeCode");
+                    const isEmailUniqueError = target.includes("email");
+
+                    if (isEmployeeCodeUniqueError) {
+                        addImportError(
+                            row.errors,
+                            row.rowNumber,
+                            "employeeCode",
+                            "Mã nhân viên already exists",
+                        );
+                    }
+
+                    if (isEmailUniqueError) {
+                        addImportError(
+                            row.errors,
+                            row.rowNumber,
+                            "email",
+                            "Email already exists",
+                        );
+                    }
+
+                    if (!isEmployeeCodeUniqueError && !isEmailUniqueError) {
+                        addImportError(
+                            row.errors,
+                            row.rowNumber,
+                            "employeeCode",
+                            "Employee already exists",
+                        );
+                    }
+
+                    continue;
+                }
+
+                throw error;
+            }
+        }
+
+        const errors = rows.flatMap((row) => row.errors);
+        const failedCount = rows.filter((row) => row.errors.length > 0).length;
+
+        return {
+            data: {
+                totalRows: rows.length,
+                successCount: createdEmployees.length,
+                failedCount,
+                createdEmployees,
+                errors,
+            },
+        };
+    },
+
+    async previewEmployeeImport(
+        file: Express.Multer.File | undefined,
+    ): Promise<{
+        data: {
+            totalRows: number;
+            validCount: number;
+            invalidCount: number;
+            rows: Array<{
+                rowNumber: number;
+                employeeCode: string | null;
+                fullName: string | null;
+                email: string | null;
+                phone: string | null;
+                position: string | null;
+                department: string | null;
+                status: EmployeeStatus | null;
+                joinedAt: string | null;
+                valid: boolean;
+                errors: Array<{ field: string; message: string }>;
+            }>;
+        };
+    }> {
+        if (!file) {
+            throw new EmployeeServiceError("File is required", 400);
+        }
+
+        const rows = await parseAndValidateEmployeeImport(file);
+        const previewRows = rows.map((row) => ({
+            rowNumber: row.rowNumber,
+            employeeCode: row.employeeCode ?? null,
+            fullName: row.fullName ?? null,
+            email: row.email ?? null,
+            phone: row.phone ?? null,
+            position: row.position ?? null,
+            department: row.departmentName ?? null,
+            status: row.status ?? null,
+            joinedAt: row.joinedAt?.toISOString() ?? null,
+            valid: row.errors.length === 0,
+            errors: row.errors.map(({ field, message }) => ({
+                field,
+                message,
+            })),
+        }));
+        const invalidCount = previewRows.filter((row) => !row.valid).length;
+
+        return {
+            data: {
+                totalRows: previewRows.length,
+                validCount: previewRows.length - invalidCount,
+                invalidCount,
+                rows: previewRows,
+            },
+        };
+    },
+
+    async legacyImportEmployees(
         file: Express.Multer.File | undefined,
     ): Promise<ImportEmployeesResult> {
         if (!file) {

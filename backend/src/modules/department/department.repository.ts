@@ -87,6 +87,20 @@ export const departmentRepository = {
         });
     },
 
+    findDepartmentsByNames(names: string[]): Promise<Department[]> {
+        if (names.length === 0) {
+            return Promise.resolve([]);
+        }
+
+        return prisma.department.findMany({
+            where: {
+                name: {
+                    in: names,
+                },
+            },
+        });
+    },
+
     createDepartment(data: CreateDepartmentData): Promise<Department> {
         return prisma.department.create({
             data,

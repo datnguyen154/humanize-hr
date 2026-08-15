@@ -150,6 +150,21 @@ export const employeeController = {
         }
     },
 
+    async previewEmployeeImport(
+        req: Request,
+        res: Response,
+    ): Promise<Response> {
+        try {
+            const result = await employeeService.previewEmployeeImport(
+                req.file,
+            );
+
+            return res.status(200).json(result);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getEmployeeImportTemplate(
         _req: Request,
         res: Response,
