@@ -104,6 +104,36 @@ export type ImportEmployeesResponse = {
   data: ImportEmployeesResult
 }
 
+export type EmployeeImportPreviewError = {
+  field: string
+  message: string
+}
+
+export type EmployeeImportPreviewRow = {
+  rowNumber: number
+  employeeCode: string | null
+  fullName: string | null
+  email: string | null
+  phone: string | null
+  position: string | null
+  department: string | null
+  status: EmployeeStatus | null
+  joinedAt: string | null
+  valid: boolean
+  errors: EmployeeImportPreviewError[]
+}
+
+export type EmployeeImportPreviewResult = {
+  totalRows: number
+  validCount: number
+  invalidCount: number
+  rows: EmployeeImportPreviewRow[]
+}
+
+export type EmployeeImportPreviewResponse = {
+  data: EmployeeImportPreviewResult
+}
+
 export type DownloadEmployeeImportTemplateResult = {
   blob: Blob
   contentDisposition?: string

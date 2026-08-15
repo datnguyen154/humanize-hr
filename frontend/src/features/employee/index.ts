@@ -8,6 +8,7 @@ export { useCreateEmployeeMutation } from './hooks/useCreateEmployeeMutation'
 export { useDownloadEmployeeImportTemplateMutation } from './hooks/useDownloadEmployeeImportTemplateMutation'
 export { useExportEmployeesMutation } from './hooks/useExportEmployeesMutation'
 export { useImportEmployeesMutation } from './hooks/useImportEmployeesMutation'
+export { usePreviewEmployeeImportMutation } from './hooks/usePreviewEmployeeImportMutation'
 export {
   useEmployeeDetailQuery,
   useEmployeesQuery,
@@ -20,6 +21,10 @@ export type {
   Employee,
   EmployeeDetail,
   EmployeeImportError,
+  EmployeeImportPreviewError,
+  EmployeeImportPreviewResponse,
+  EmployeeImportPreviewResult,
+  EmployeeImportPreviewRow,
   EmployeeSortBy,
   EmployeeSortOrder,
   EmployeeStatus,

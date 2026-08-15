@@ -10,6 +10,7 @@ import type {
   ExportEmployeesResult,
   EmployeesQueryParams,
   EmployeesResponse,
+  EmployeeImportPreviewResponse,
   ImportEmployeesResponse,
   MyEmployeeProfile,
   UpdateEmployeeRequest,
@@ -58,6 +59,21 @@ export const importEmployees = async (file: File) => {
 
   const response = await axiosInstance.post<ImportEmployeesResponse>(
     '/employees/import',
+    formData,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const previewEmployeeImport = async (file: File) => {
+  const formData = new FormData()
+  formData.append('file', file)
+
+  const response = await axiosInstance.post<EmployeeImportPreviewResponse>(
+    '/employees/import-preview',
     formData,
     {
       headers: getAuthHeaders(),
