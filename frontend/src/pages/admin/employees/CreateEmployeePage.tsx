@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import { ArrowLeft, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 
@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DatePicker } from "@/shared/components/DatePicker";
 import { useDepartmentOptionsQuery } from "@/features/department/hooks/useDepartmentOptionsQuery";
 import { useCreateEmployeeMutation } from "@/features/employee";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
@@ -55,6 +56,7 @@ export function CreateEmployeePage() {
 
     const {
         register,
+        control,
         handleSubmit,
         formState: { errors },
     } = useForm<CreateEmployeeFormValues>({
@@ -315,11 +317,17 @@ export function CreateEmployeePage() {
                                         <Label htmlFor="joinedAt">
                                             Ngày vào làm
                                         </Label>
-                                        <Input
-                                            id="joinedAt"
-                                            type="date"
-                                            className="h-11"
-                                            {...register("joinedAt")}
+                                        <Controller
+                                            control={control}
+                                            name="joinedAt"
+                                            render={({ field }) => (
+                                                <DatePicker
+                                                    id="joinedAt"
+                                                    value={field.value}
+                                                    onChange={field.onChange}
+                                                    aria-invalid={Boolean(errors.joinedAt)}
+                                                />
+                                            )}
                                         />
                                         {errors.joinedAt ? (
                                             <p className="text-sm text-destructive">

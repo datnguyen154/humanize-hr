@@ -2,13 +2,14 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
 import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/shared/components/DatePicker'
 import { useDepartmentOptionsQuery } from '@/features/department/hooks/useDepartmentOptionsQuery'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -44,6 +45,7 @@ export function EditEmployeePage() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -247,7 +249,18 @@ export function EditEmployeePage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="joinedAt">Ngày vào làm</Label>
-                <Input id="joinedAt" type="date" {...register('joinedAt')} />
+                <Controller
+                  control={control}
+                  name="joinedAt"
+                  render={({ field }) => (
+                    <DatePicker
+                      id="joinedAt"
+                      value={field.value}
+                      onChange={field.onChange}
+                      aria-invalid={Boolean(errors.joinedAt)}
+                    />
+                  )}
+                />
                 {errors.joinedAt ? (
                   <p className="text-sm text-destructive">
                     {errors.joinedAt.message}

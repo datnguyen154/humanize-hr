@@ -22,6 +22,7 @@ import { EmptyState } from '@/components/ui/empty-state'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton, TableRowsSkeleton } from '@/components/ui/skeleton'
+import { DatePicker } from '@/shared/components/DatePicker'
 import {
   StatusBadge,
   type StatusBadgeTone,
@@ -195,14 +196,11 @@ export function AttendanceListPage() {
                   />
                   Từ ngày
                 </Label>
-                <Input
+                <DatePicker
                   id="fromDate"
-                  type="date"
                   value={fromDate}
-                  className="h-10 bg-card"
-                  onChange={(event) =>
-                    updateFilter(() => setFromDate(event.target.value))
-                  }
+                  onChange={(value) => updateFilter(() => setFromDate(value))}
+                  allowClear
                 />
               </div>
               <div className="grid gap-2.5">
@@ -216,14 +214,11 @@ export function AttendanceListPage() {
                   />
                   Đến ngày
                 </Label>
-                <Input
+                <DatePicker
                   id="toDate"
-                  type="date"
                   value={toDate}
-                  className="h-10 bg-card"
-                  onChange={(event) =>
-                    updateFilter(() => setToDate(event.target.value))
-                  }
+                  onChange={(value) => updateFilter(() => setToDate(value))}
+                  allowClear
                 />
               </div>
             </div>

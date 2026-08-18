@@ -1,7 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Ban, Loader2, Pencil, UserCheck } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -15,6 +15,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DatePicker } from '@/shared/components/DatePicker'
 import { useDepartmentOptionsQuery } from '@/features/department/hooks/useDepartmentOptionsQuery'
 import {
   StatusBadge,
@@ -81,6 +82,7 @@ export function EmployeeDetailDialog({
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -360,10 +362,17 @@ export function EmployeeDetailDialog({
 
               <div className="grid gap-2">
                 <Label htmlFor="dialog-joinedAt">Ngày vào làm</Label>
-                <Input
-                  id="dialog-joinedAt"
-                  type="date"
-                  {...register('joinedAt')}
+                <Controller
+                  control={control}
+                  name="joinedAt"
+                  render={({ field }) => (
+                    <DatePicker
+                      id="dialog-joinedAt"
+                      value={field.value}
+                      onChange={field.onChange}
+                      aria-invalid={Boolean(errors.joinedAt)}
+                    />
+                  )}
                 />
                 {errors.joinedAt ? (
                   <p className="text-sm text-destructive">

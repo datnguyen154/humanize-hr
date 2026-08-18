@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { AxiosError } from 'axios'
 import { ArrowLeft, Loader2, Send } from 'lucide-react'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
 
@@ -14,8 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { DatePicker } from '@/shared/components/DatePicker'
 import { useCreateLeaveRequestMutation } from '@/features/leave-request/hooks/useCreateLeaveRequestMutation'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import type { ApiErrorResponse } from '@/shared/types'
@@ -75,6 +75,7 @@ export function CreateLeaveRequestPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm<CreateLeaveRequestFormValues>({
@@ -173,11 +174,17 @@ export function CreateLeaveRequestPage() {
                 <Label htmlFor="startDate" className="text-sm font-medium">
                   Ngày bắt đầu <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  className="h-10"
-                  {...register('startDate')}
+                <Controller
+                  control={control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id="startDate"
+                      value={field.value}
+                      onChange={field.onChange}
+                      aria-invalid={Boolean(errors.startDate)}
+                    />
+                  )}
                 />
                 {errors.startDate ? (
                   <p className="text-sm text-destructive" role="alert">
@@ -190,11 +197,17 @@ export function CreateLeaveRequestPage() {
                 <Label htmlFor="endDate" className="text-sm font-medium">
                   Ngày kết thúc <span className="text-destructive">*</span>
                 </Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  className="h-10"
-                  {...register('endDate')}
+                <Controller
+                  control={control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <DatePicker
+                      id="endDate"
+                      value={field.value}
+                      onChange={field.onChange}
+                      aria-invalid={Boolean(errors.endDate)}
+                    />
+                  )}
                 />
                 {errors.endDate ? (
                   <p className="text-sm text-destructive" role="alert">
