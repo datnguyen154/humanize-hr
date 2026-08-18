@@ -2,6 +2,7 @@ import { Outlet } from 'react-router-dom'
 
 import { MobileSidebarOverlay } from '../shared/MobileSidebarOverlay'
 import { useMobileSidebar } from '../shared/useMobileSidebar'
+import { HrAssistantWidget } from '../../hr-assistant/HrAssistantWidget'
 import { EmployeeHeader } from './EmployeeHeader'
 import { EmployeeSidebar } from './EmployeeSidebar'
 
@@ -25,6 +26,7 @@ export function EmployeeLayout() {
             <Outlet />
           </div>
         </main>
+        <HrAssistantWidget />
       </div>
     </div>
   )
