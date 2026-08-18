@@ -87,7 +87,7 @@ const getDateTimePart = (
     return Number(value);
 };
 
-const getCompanyDateContext = (
+export const getCompanyDateContext = (
     date: Date,
 ): { attendanceDate: Date; secondsSinceMidnight: number } => {
     const parts = companyDateTimeFormatter.formatToParts(date);

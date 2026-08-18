@@ -169,6 +169,23 @@ export const attendanceRepository = {
         });
     },
 
+    countLateAttendance(
+        employeeId: string,
+        fromDate: Date,
+        toDate: Date,
+    ): Promise<number> {
+        return prisma.attendance.count({
+            where: {
+                employeeId,
+                status: "LATE",
+                attendanceDate: {
+                    gte: fromDate,
+                    lt: toDate,
+                },
+            },
+        });
+    },
+
     findAttendanceRecords(
         params: AttendanceRecordParams,
     ): Promise<AttendanceWithEmployee[]> {
