@@ -1,6 +1,8 @@
 import { LeaveRequestStatus, LeaveType, Role, UserStatus } from "@prisma/client";
 
+import { prisma } from "../../config/prisma";
 import { employeeRepository } from "../employee/employee.repository";
+import { notificationService } from "../notification/notification.service";
 import {
     leaveRequestRepository,
     type LeaveRequestSortBy,
@@ -353,17 +355,35 @@ export const leaveRequestService = {
             );
         }
 
-        return leaveRequestRepository.createLeaveRequest({
-            employeeId: employee.id,
-            approverId,
-            leaveType,
-            startDate,
-            endDate,
-            reason,
-            status: LeaveRequestStatus.PENDING,
-            reviewedBy: null,
-            reviewedAt: null,
-            reviewNote: null,
+        return prisma.$transaction(async (tx) => {
+            const leaveRequest = await leaveRequestRepository.createLeaveRequest(
+                {
+                    employeeId: employee.id,
+                    approverId,
+                    leaveType,
+                    startDate,
+                    endDate,
+                    reason,
+                    status: LeaveRequestStatus.PENDING,
+                    reviewedBy: null,
+                    reviewedAt: null,
+                    reviewNote: null,
+                },
+                tx,
+            );
+
+            await notificationService.createLeaveRequestCreatedNotification(
+                approverId,
+                {
+                    id: leaveRequest.id,
+                    employeeFullName: employee.fullName,
+                    startDate,
+                    endDate,
+                },
+                tx,
+            );
+
+            return leaveRequest;
         });
     },
 
@@ -408,11 +428,47 @@ export const leaveRequestService = {
 
         const reviewNote = normalizeOptionalString(data.reviewNote);
 
-        return leaveRequestRepository.updateLeaveRequestStatus(id, {
-            status,
-            reviewedBy,
-            reviewedAt: new Date(),
-            reviewNote,
+        const notificationContext =
+            await leaveRequestRepository.findLeaveRequestNotificationContext(
+                id,
+            );
+
+        if (!notificationContext?.employee.userId) {
+            throw new LeaveRequestServiceError(
+                "Employee notification recipient not found",
+                409,
+            );
+        }
+
+        const recipientUserId = notificationContext.employee.userId;
+
+        return prisma.$transaction(async (tx) => {
+            const updatedLeaveRequest =
+                await leaveRequestRepository.updateLeaveRequestStatus(
+                    id,
+                    {
+                        status,
+                        reviewedBy,
+                        reviewedAt: new Date(),
+                        reviewNote,
+                    },
+                    tx,
+                );
+
+            await notificationService.createLeaveRequestDecisionNotification(
+                recipientUserId,
+                {
+                    id: notificationContext.id,
+                    employeeFullName:
+                        notificationContext.employee.fullName,
+                    startDate: notificationContext.startDate,
+                    endDate: notificationContext.endDate,
+                },
+                status === LeaveRequestStatus.APPROVED,
+                tx,
+            );
+
+            return updatedLeaveRequest;
         });
     },
 
@@ -467,9 +523,30 @@ export const leaveRequestService = {
             );
         }
 
-        return leaveRequestRepository.updateLeaveRequestApprover(
-            id,
-            approverId,
-        );
+        if (leaveRequest.approverId === approverId) {
+            return leaveRequest;
+        }
+
+        return prisma.$transaction(async (tx) => {
+            const updatedLeaveRequest =
+                await leaveRequestRepository.updateLeaveRequestApprover(
+                    id,
+                    approverId,
+                    tx,
+                );
+
+            await notificationService.createLeaveRequestAssignedNotification(
+                approverId,
+                {
+                    id: leaveRequest.id,
+                    employeeFullName: leaveRequest.employee.fullName,
+                    startDate: leaveRequest.startDate,
+                    endDate: leaveRequest.endDate,
+                },
+                tx,
+            );
+
+            return updatedLeaveRequest;
+        });
     },
 };

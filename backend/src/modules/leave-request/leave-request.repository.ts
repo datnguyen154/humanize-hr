@@ -23,6 +23,7 @@ export type LeaveRequestQueryParams = {
 export type CreateLeaveRequestData = Prisma.LeaveRequestUncheckedCreateInput;
 export type UpdateLeaveRequestStatusData =
     Prisma.LeaveRequestUncheckedUpdateInput;
+export type LeaveRequestDbClient = Prisma.TransactionClient;
 
 export type LeaveRequestApprover = Pick<
     User,
@@ -135,8 +136,9 @@ export const leaveRequestRepository = {
 
     createLeaveRequest(
         data: CreateLeaveRequestData,
+        db: LeaveRequestDbClient = prisma,
     ): Promise<LeaveRequestWithRelations> {
-        return prisma.leaveRequest.create({
+        return db.leaveRequest.create({
             data,
             include: leaveRequestRelations,
         });
@@ -145,8 +147,9 @@ export const leaveRequestRepository = {
     updateLeaveRequestStatus(
         id: string,
         data: UpdateLeaveRequestStatusData,
+        db: LeaveRequestDbClient = prisma,
     ): Promise<LeaveRequestWithRelations> {
-        return prisma.leaveRequest.update({
+        return db.leaveRequest.update({
             where: { id },
             data,
             include: leaveRequestRelations,
@@ -184,11 +187,37 @@ export const leaveRequestRepository = {
     updateLeaveRequestApprover(
         id: string,
         approverId: string,
+        db: LeaveRequestDbClient = prisma,
     ): Promise<LeaveRequestWithRelations> {
-        return prisma.leaveRequest.update({
+        return db.leaveRequest.update({
             where: { id },
             data: { approverId },
             include: leaveRequestRelations,
+        });
+    },
+
+    findLeaveRequestNotificationContext(id: string): Promise<{
+        id: string;
+        startDate: Date;
+        endDate: Date;
+        employee: {
+            fullName: string;
+            userId: string | null;
+        };
+    } | null> {
+        return prisma.leaveRequest.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                startDate: true,
+                endDate: true,
+                employee: {
+                    select: {
+                        fullName: true,
+                        userId: true,
+                    },
+                },
+            },
         });
     },
 };
