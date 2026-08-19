@@ -13,6 +13,7 @@ import {
   XCircle,
   type LucideIcon,
 } from 'lucide-react'
+import { AxiosError } from 'axios'
 import { useState, type ReactNode } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
@@ -101,7 +102,10 @@ export function LeaveRequestDetailPage({
     useState<LeaveRequestReviewStatus | null>(null)
   const leaveRequest = leaveRequestQuery.data
   const isEmployeeView = backPath.startsWith('/employee/')
-  const canReview = user?.role === 'ADMIN' && leaveRequest?.status === 'PENDING'
+  const isPending = leaveRequest?.status === 'PENDING'
+  const isAssignedApprover =
+    user?.role === 'ADMIN' && user.id === leaveRequest?.approverId
+  const canReview = !isEmployeeView && isPending && isAssignedApprover
 
   const handleReview = async (status: LeaveRequestReviewStatus) => {
     if (!id) {
@@ -125,9 +129,15 @@ export function LeaveRequestDetailPage({
       }
       setReviewNote('')
       setPendingReviewStatus(null)
-    } catch {
-      setApprovalError('Cập nhật trạng thái đơn nghỉ phép thất bại')
-      showErrorToast()
+    } catch (error) {
+      const isForbidden =
+        error instanceof AxiosError && error.response?.status === 403
+      const errorMessage = isForbidden
+        ? 'Bạn không được phân công xử lý đơn nghỉ phép này.'
+        : 'Cập nhật trạng thái đơn nghỉ phép thất bại'
+
+      setApprovalError(errorMessage)
+      showErrorToast(errorMessage)
     }
   }
 
@@ -234,6 +244,12 @@ export function LeaveRequestDetailPage({
                 ) : leaveRequest.status !== 'PENDING' ? (
                   <p className="rounded-full bg-muted px-3 py-1 text-sm font-medium text-muted-foreground">
                     Đơn này đã được xử lý.
+                  </p>
+                ) : !isEmployeeView ? (
+                  <p className="max-w-sm rounded-lg bg-muted px-3 py-2 text-sm font-medium text-muted-foreground">
+                    {leaveRequest.approverId
+                      ? 'Đơn này được phân công cho người duyệt khác.'
+                      : 'Đơn chưa được phân công người duyệt.'}
                   </p>
                 ) : null}
               </div>

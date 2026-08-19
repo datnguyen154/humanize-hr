@@ -9,7 +9,7 @@ export const leaveRequestRoutes = Router();
 leaveRequestRoutes.get(
     "/approvers",
     authenticate,
-    requireRole("EMPLOYEE"),
+    requireRole("EMPLOYEE", "ADMIN"),
     leaveRequestController.getEligibleApprovers,
 );
 
