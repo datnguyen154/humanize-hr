@@ -12,6 +12,26 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 
 > **Note:** The backend is hosted on Render Free. The first request may take **30–60 seconds** if the service is waking up.
 
+## Demo Accounts
+
+> Add demo accounts here if you want recruiters to test the project.
+
+```txt
+Admin
+Email: admin@example.com
+Password: 12345678
+
+Employee
+Email: employee@example.com
+Password: Employee@123
+```
+
+If you do not want to publish demo credentials, you can use:
+
+```txt
+Demo accounts will be provided upon request.
+```
+
 ## Features
 
 ### Admin
@@ -20,45 +40,45 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 - Role-based access control
 - Admin dashboard with KPI cards, chart and recent activities
 - Employee management
-  - View employee list
-  - Search, filter, sort and paginate employees
-  - View employee detail
-  - Create employee
-  - Edit employee
-  - Update employee status
+    - View employee list
+    - Search, filter, sort and paginate employees
+    - View employee detail
+    - Create employee
+    - Edit employee
+    - Update employee status
 - Department management
-  - View department list
-  - Search, filter, sort and paginate departments
-  - View department detail
-  - Create department
-  - Edit department
-  - Update department status
+    - View department list
+    - Search, filter, sort and paginate departments
+    - View department detail
+    - Create department
+    - Edit department
+    - Update department status
 - Attendance management
-  - View employee attendance records
-  - Search and filter attendance records
-  - Pagination support
+    - View employee attendance records
+    - Search and filter attendance records
+    - Pagination support
 - Leave request management
-  - View leave request list
-  - View leave request detail
-  - Approve leave request
-  - Reject leave request
+    - View leave request list
+    - View leave request detail
+    - Approve leave request
+    - Reject leave request
 - Responsive admin layout for desktop, tablet and mobile
 
 ### Employee
 
 - Login and logout
 - Employee dashboard
-  - Personalized welcome header
-  - KPI cards
-  - Attendance status widget
-  - Recent activities
-  - Quick actions
+    - Personalized welcome header
+    - KPI cards
+    - Attendance status widget
+    - Recent activities
+    - Quick actions
 - Check in and check out directly from the dashboard
 - View attendance history
 - Leave request self-service
-  - View leave request list
-  - Create leave request
-  - View leave request detail
+    - View leave request list
+    - Create leave request
+    - View leave request detail
 - View personal profile
 - Change password
 - Responsive employee layout for desktop, tablet and mobile
@@ -89,6 +109,7 @@ The system supports two main roles: **Admin** and **Employee**. Admin users can 
 - JWT Authentication
 
 ### Deployment
+
 - Vercel
 - Render
 - Neon PostgreSQL
@@ -265,26 +286,6 @@ VITE_API_BASE_URL="http://localhost:3000/api"
 ### Dashboard
 
 - `GET /api/dashboard/employee`
-
-## Demo Accounts
-
-> Add demo accounts here if you want recruiters to test the project.
-
-```txt
-Admin
-Email: admin@example.com
-Password: 12345678
-
-Employee
-Email: employee@example.com
-Password: Employee@123
-```
-
-If you do not want to publish demo credentials, you can use:
-
-```txt
-Demo accounts will be provided upon request.
-```
 
 ## Project Status
 
