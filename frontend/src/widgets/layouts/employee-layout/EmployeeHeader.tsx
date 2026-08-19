@@ -3,6 +3,7 @@ import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { HeaderProfileAction } from '@/components/ui/header-profile-action'
 import { useAuthStore } from '@/features/auth'
+import { NotificationBell } from '@/shared/components/NotificationBell'
 
 type EmployeeHeaderProps = {
   onMenuClick?: () => void
@@ -34,11 +35,14 @@ export function EmployeeHeader({ onMenuClick }: EmployeeHeaderProps) {
         </div>
       </div>
 
-      <HeaderProfileAction
-        fullName={user?.fullName}
-        fallback="NV"
-        to="/employee/profile"
-      />
+      <div className="flex shrink-0 items-center gap-2">
+        <NotificationBell />
+        <HeaderProfileAction
+          fullName={user?.fullName}
+          fallback="NV"
+          to="/employee/profile"
+        />
+      </div>
     </header>
   )
 }
