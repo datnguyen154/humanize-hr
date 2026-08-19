@@ -67,6 +67,10 @@ export type UpdateLeaveRequestStatusRequest = {
   reviewNote: string
 }
 
+export type UpdateLeaveRequestApproverRequest = {
+  approverId: string
+}
+
 export type LeaveRequestsQueryParams = {
   page: number
   limit: number

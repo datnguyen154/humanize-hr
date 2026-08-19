@@ -7,6 +7,7 @@ import type {
   LeaveRequestDetailResponse,
   LeaveRequestsQueryParams,
   LeaveRequestsResponse,
+  UpdateLeaveRequestApproverRequest,
   UpdateLeaveRequestStatusRequest,
 } from '../types/leaveRequest.types'
 
@@ -74,6 +75,21 @@ export const updateLeaveRequestStatus = async (
 ) => {
   const response = await axiosInstance.patch<LeaveRequestDetailResponse>(
     `/leave-requests/${id}/status`,
+    payload,
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
+}
+
+export const updateLeaveRequestApprover = async (
+  id: string,
+  payload: UpdateLeaveRequestApproverRequest,
+) => {
+  const response = await axiosInstance.patch<LeaveRequestDetailResponse>(
+    `/leave-requests/${id}/approver`,
     payload,
     {
       headers: getAuthHeaders(),
