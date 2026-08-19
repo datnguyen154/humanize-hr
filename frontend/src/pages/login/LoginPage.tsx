@@ -18,6 +18,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DEMO_ACCOUNTS, type DemoAccountKey } from "@/config/demoAccounts";
 import {
     authStorage,
     getDashboardPathByRole,
@@ -69,6 +70,8 @@ const getLoginErrorMessage = (error: unknown) => {
 
 export function LoginPage() {
     const [rememberedEmail] = useState(getRememberedEmail);
+    const [selectedDemoAccount, setSelectedDemoAccount] =
+        useState<DemoAccountKey | null>(null);
     const [isPasswordVisible, setIsPasswordVisible] = useState(false);
     const [rememberMe, setRememberMe] = useState(Boolean(rememberedEmail));
     const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
@@ -78,6 +81,7 @@ export function LoginPage() {
 
     const {
         register,
+        setValue,
         handleSubmit,
         formState: { errors, isSubmitting },
     } = useForm<LoginFormValues>({
@@ -278,6 +282,51 @@ export function LoginPage() {
                             <ArrowRight className="size-4" aria-hidden="true" />
                         </Button>
                     </form>
+
+                    <div className="mt-6 grid gap-3 border-t border-border pt-5">
+                        <div className="grid gap-1">
+                            <h2 className="text-sm font-semibold text-foreground">
+                                Trải nghiệm nhanh
+                            </h2>
+                            <p className="text-xs leading-5 text-muted-foreground">
+                                Chọn tài khoản demo để tự điền thông tin đăng nhập.
+                            </p>
+                        </div>
+
+                        <div className="grid gap-2 sm:grid-cols-2">
+                            {(Object.keys(DEMO_ACCOUNTS) as DemoAccountKey[]).map(
+                                (accountKey) => {
+                                    const account = DEMO_ACCOUNTS[accountKey];
+
+                                    return (
+                                        <Button
+                                            key={accountKey}
+                                            type="button"
+                                            variant="outline"
+                                            className={
+                                                selectedDemoAccount === accountKey
+                                                    ? "border-primary bg-primary/5 text-primary"
+                                                    : undefined
+                                            }
+                                            onClick={() => {
+                                                setValue("email", account.email, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true,
+                                                });
+                                                setValue("password", account.password, {
+                                                    shouldDirty: true,
+                                                    shouldValidate: true,
+                                                });
+                                                setSelectedDemoAccount(accountKey);
+                                            }}
+                                        >
+                                            {account.label}
+                                        </Button>
+                                    );
+                                },
+                            )}
+                        </div>
+                    </div>
                 </CardContent>
 
                 <CardFooter className="flex-col gap-1 border-t border-border bg-muted/60 px-8 py-5 text-center text-sm text-muted-foreground">
