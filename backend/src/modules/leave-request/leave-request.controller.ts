@@ -96,6 +96,9 @@ export const leaveRequestController = {
     async getLeaveRequests(req: Request, res: Response): Promise<Response> {
         try {
             const result = await leaveRequestService.getLeaveRequests({
+                userId: req.user?.userId,
+                role: req.user?.role ?? "EMPLOYEE",
+            }, {
                 page: getSingleQueryValue(req.query.page),
                 limit: getSingleQueryValue(req.query.limit),
                 search: getSingleQueryValue(req.query.search),
@@ -117,7 +120,10 @@ export const leaveRequestController = {
     ): Promise<Response> {
         try {
             const leaveRequest =
-                await leaveRequestService.getLeaveRequestById(req.params.id);
+                await leaveRequestService.getLeaveRequestById(req.params.id, {
+                    userId: req.user?.userId,
+                    role: req.user?.role ?? "EMPLOYEE",
+                });
 
             return res.status(200).json({
                 data: leaveRequest,
@@ -129,11 +135,12 @@ export const leaveRequestController = {
 
     async createLeaveRequest(req: Request, res: Response): Promise<Response> {
         try {
-            const { leaveType, startDate, endDate, reason } = req.body as {
+            const { leaveType, startDate, endDate, reason, approverId } = req.body as {
                 leaveType?: string;
                 startDate?: string;
                 endDate?: string;
                 reason?: string;
+                approverId?: string;
             };
 
             const leaveRequest =
@@ -144,6 +151,7 @@ export const leaveRequestController = {
                         startDate,
                         endDate,
                         reason,
+                        approverId,
                     },
                 );
 
@@ -173,6 +181,44 @@ export const leaveRequestController = {
                         reviewedBy: req.user?.userId,
                         reviewNote,
                     },
+                );
+
+            return res.status(200).json({
+                data: leaveRequest,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async getEligibleApprovers(
+        _req: Request,
+        res: Response,
+    ): Promise<Response> {
+        try {
+            const approvers = await leaveRequestService.getEligibleApprovers();
+
+            return res.status(200).json({
+                data: approvers,
+            });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async reassignLeaveRequest(
+        req: Request,
+        res: Response,
+    ): Promise<Response> {
+        try {
+            const { approverId } = req.body as {
+                approverId?: string;
+            };
+
+            const leaveRequest =
+                await leaveRequestService.reassignLeaveRequest(
+                    req.params.id,
+                    approverId,
                 );
 
             return res.status(200).json({

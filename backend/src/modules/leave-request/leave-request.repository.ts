@@ -1,4 +1,8 @@
-import type { LeaveRequestStatus, Prisma } from "@prisma/client";
+import type {
+    LeaveRequestStatus,
+    Prisma,
+    User,
+} from "@prisma/client";
 
 import { prisma } from "../../config/prisma";
 
@@ -20,6 +24,11 @@ export type CreateLeaveRequestData = Prisma.LeaveRequestUncheckedCreateInput;
 export type UpdateLeaveRequestStatusData =
     Prisma.LeaveRequestUncheckedUpdateInput;
 
+export type LeaveRequestApprover = Pick<
+    User,
+    "id" | "fullName" | "email"
+>;
+
 const leaveRequestRelations = {
     employee: {
         select: {
@@ -32,6 +41,13 @@ const leaveRequestRelations = {
         select: {
             id: true,
             fullName: true,
+        },
+    },
+    approver: {
+        select: {
+            id: true,
+            fullName: true,
+            email: true,
         },
     },
 } satisfies Prisma.LeaveRequestInclude;
@@ -133,6 +149,45 @@ export const leaveRequestRepository = {
         return prisma.leaveRequest.update({
             where: { id },
             data,
+            include: leaveRequestRelations,
+        });
+    },
+
+    findApproverById(id: string): Promise<Pick<User, "id" | "role" | "status"> | null> {
+        return prisma.user.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                role: true,
+                status: true,
+            },
+        });
+    },
+
+    findEligibleApprovers(): Promise<LeaveRequestApprover[]> {
+        return prisma.user.findMany({
+            where: {
+                role: "ADMIN",
+                status: "ACTIVE",
+            },
+            select: {
+                id: true,
+                fullName: true,
+                email: true,
+            },
+            orderBy: {
+                fullName: "asc",
+            },
+        });
+    },
+
+    updateLeaveRequestApprover(
+        id: string,
+        approverId: string,
+    ): Promise<LeaveRequestWithRelations> {
+        return prisma.leaveRequest.update({
+            where: { id },
+            data: { approverId },
             include: leaveRequestRelations,
         });
     },

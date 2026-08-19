@@ -7,6 +7,13 @@ import { leaveRequestController } from "./leave-request.controller";
 export const leaveRequestRoutes = Router();
 
 leaveRequestRoutes.get(
+    "/approvers",
+    authenticate,
+    requireRole("EMPLOYEE"),
+    leaveRequestController.getEligibleApprovers,
+);
+
+leaveRequestRoutes.get(
     "/",
     authenticate,
     leaveRequestController.getLeaveRequests,
@@ -15,6 +22,7 @@ leaveRequestRoutes.get(
 leaveRequestRoutes.post(
     "/",
     authenticate,
+    requireRole("EMPLOYEE"),
     leaveRequestController.createLeaveRequest,
 );
 
@@ -23,6 +31,13 @@ leaveRequestRoutes.patch(
     authenticate,
     requireRole("ADMIN"),
     leaveRequestController.updateLeaveRequestStatus,
+);
+
+leaveRequestRoutes.patch(
+    "/:id/approver",
+    authenticate,
+    requireRole("ADMIN"),
+    leaveRequestController.reassignLeaveRequest,
 );
 
 leaveRequestRoutes.get(

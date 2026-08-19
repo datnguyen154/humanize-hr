@@ -1,10 +1,11 @@
-import { LeaveRequestStatus, LeaveType } from "@prisma/client";
+import { LeaveRequestStatus, LeaveType, Role, UserStatus } from "@prisma/client";
 
 import { employeeRepository } from "../employee/employee.repository";
 import {
     leaveRequestRepository,
     type LeaveRequestSortBy,
     type LeaveRequestSortOrder,
+    type LeaveRequestApprover,
     type LeaveRequestWithRelations,
 } from "./leave-request.repository";
 
@@ -37,6 +38,7 @@ type CreateLeaveRequestInput = {
     startDate?: string;
     endDate?: string;
     reason?: string;
+    approverId?: string;
 };
 
 type UpdateLeaveRequestStatusInput = {
@@ -44,6 +46,13 @@ type UpdateLeaveRequestStatusInput = {
     reviewedBy?: string;
     reviewNote?: string | null;
 };
+
+type GetLeaveRequestsUser = {
+    userId: string | undefined;
+    role: Role;
+};
+
+type LeaveRequestStatusUpdateResult = LeaveRequestWithRelations;
 
 export class LeaveRequestServiceError extends Error {
     constructor(
@@ -182,6 +191,7 @@ const normalizePagination = (
 
 export const leaveRequestService = {
     async getLeaveRequests(
+        user: GetLeaveRequestsUser,
         query: GetLeaveRequestsQuery = {},
     ): Promise<GetLeaveRequestsResult> {
         const { page, limit, skip, take } = normalizePagination(
@@ -193,12 +203,36 @@ export const leaveRequestService = {
             throw new LeaveRequestServiceError("Invalid employeeId", 400);
         }
 
+        let employeeId = query.employeeId;
+
+        if (user.role === Role.EMPLOYEE) {
+            if (!user.userId || !UUID_REGEX.test(user.userId)) {
+                throw new LeaveRequestServiceError(
+                    "Employee profile not found",
+                    404,
+                );
+            }
+
+            const employee = await employeeRepository.findEmployeeByUserId(
+                user.userId,
+            );
+
+            if (!employee) {
+                throw new LeaveRequestServiceError(
+                    "Employee profile not found",
+                    404,
+                );
+            }
+
+            employeeId = employee.id;
+        }
+
         const repositoryParams = {
             skip,
             take,
             search: query.search,
             status: query.status,
-            employeeId: query.employeeId,
+            employeeId,
             sortBy: query.sortBy,
             sortOrder: query.sortOrder,
         };
@@ -225,6 +259,7 @@ export const leaveRequestService = {
 
     async getLeaveRequestById(
         id: string,
+        user: GetLeaveRequestsUser,
     ): Promise<LeaveRequestWithRelations> {
         if (!UUID_REGEX.test(id)) {
             throw new LeaveRequestServiceError(
@@ -243,6 +278,26 @@ export const leaveRequestService = {
             );
         }
 
+        if (user.role === Role.EMPLOYEE) {
+            if (!user.userId || !UUID_REGEX.test(user.userId)) {
+                throw new LeaveRequestServiceError(
+                    "Leave request not found",
+                    404,
+                );
+            }
+
+            const employee = await employeeRepository.findEmployeeByUserId(
+                user.userId,
+            );
+
+            if (!employee || leaveRequest.employeeId !== employee.id) {
+                throw new LeaveRequestServiceError(
+                    "Leave request not found",
+                    404,
+                );
+            }
+        }
+
         return leaveRequest;
     },
 
@@ -254,6 +309,7 @@ export const leaveRequestService = {
         const startDate = parseRequiredDate(data.startDate, "startDate");
         const endDate = parseRequiredDate(data.endDate, "endDate");
         const reason = parseRequiredString(data.reason, "reason");
+        const approverId = parseRequiredUuid(data.approverId, "approverId");
 
         if (startDate > endDate) {
             throw new LeaveRequestServiceError(
@@ -279,8 +335,27 @@ export const leaveRequestService = {
             );
         }
 
+        const approver = await leaveRequestRepository.findApproverById(
+            approverId,
+        );
+
+        if (!approver) {
+            throw new LeaveRequestServiceError("Approver not found", 404);
+        }
+
+        if (
+            approver.role !== Role.ADMIN ||
+            approver.status !== UserStatus.ACTIVE
+        ) {
+            throw new LeaveRequestServiceError(
+                "Approver is not eligible",
+                409,
+            );
+        }
+
         return leaveRequestRepository.createLeaveRequest({
             employeeId: employee.id,
+            approverId,
             leaveType,
             startDate,
             endDate,
@@ -295,7 +370,7 @@ export const leaveRequestService = {
     async updateLeaveRequestStatus(
         id: string,
         data: UpdateLeaveRequestStatusInput,
-    ): Promise<LeaveRequestWithRelations> {
+    ): Promise<LeaveRequestStatusUpdateResult> {
         if (!UUID_REGEX.test(id)) {
             throw new LeaveRequestServiceError(
                 "Leave request not found",
@@ -323,6 +398,14 @@ export const leaveRequestService = {
         }
 
         const reviewedBy = parseRequiredUuid(data.reviewedBy, "reviewedBy");
+
+        if (leaveRequest.approverId !== reviewedBy) {
+            throw new LeaveRequestServiceError(
+                "You are not assigned to review this leave request",
+                403,
+            );
+        }
+
         const reviewNote = normalizeOptionalString(data.reviewNote);
 
         return leaveRequestRepository.updateLeaveRequestStatus(id, {
@@ -331,5 +414,62 @@ export const leaveRequestService = {
             reviewedAt: new Date(),
             reviewNote,
         });
+    },
+
+    async getEligibleApprovers(): Promise<LeaveRequestApprover[]> {
+        return leaveRequestRepository.findEligibleApprovers();
+    },
+
+    async reassignLeaveRequest(
+        id: string,
+        approverIdInput: string | undefined,
+    ): Promise<LeaveRequestWithRelations> {
+        if (!UUID_REGEX.test(id)) {
+            throw new LeaveRequestServiceError(
+                "Leave request not found",
+                404,
+            );
+        }
+
+        const leaveRequest =
+            await leaveRequestRepository.findLeaveRequestById(id);
+
+        if (!leaveRequest) {
+            throw new LeaveRequestServiceError(
+                "Leave request not found",
+                404,
+            );
+        }
+
+        if (leaveRequest.status !== LeaveRequestStatus.PENDING) {
+            throw new LeaveRequestServiceError(
+                "Only pending leave requests can be reassigned",
+                400,
+            );
+        }
+
+        const approverId = parseRequiredUuid(approverIdInput, "approverId");
+        const approver = await leaveRequestRepository.findApproverById(
+            approverId,
+        );
+
+        if (!approver) {
+            throw new LeaveRequestServiceError("Approver not found", 404);
+        }
+
+        if (
+            approver.role !== Role.ADMIN ||
+            approver.status !== UserStatus.ACTIVE
+        ) {
+            throw new LeaveRequestServiceError(
+                "Approver is not eligible",
+                409,
+            );
+        }
+
+        return leaveRequestRepository.updateLeaveRequestApprover(
+            id,
+            approverId,
+        );
     },
 };

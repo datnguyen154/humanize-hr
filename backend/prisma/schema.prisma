@@ -20,6 +20,7 @@ model User {
   employee              Employee?
   refreshTokens         RefreshToken[]
   reviewedLeaveRequests LeaveRequest[] @relation("LeaveRequestReviewer")
+  assignedLeaveRequests LeaveRequest[] @relation("LeaveRequestApprover")
 }
 
 model Employee {
@@ -82,6 +83,7 @@ model LeaveRequest {
   endDate    DateTime
   reason     String
   status     LeaveRequestStatus @default(PENDING)
+  approverId String?            @db.Uuid
   reviewedBy String?            @db.Uuid
   reviewedAt DateTime?
   reviewNote String?
@@ -89,6 +91,7 @@ model LeaveRequest {
   updatedAt  DateTime           @updatedAt
 
   employee Employee @relation(fields: [employeeId], references: [id])
+  approver User?    @relation("LeaveRequestApprover", fields: [approverId], references: [id], onDelete: SetNull)
   reviewer User?    @relation("LeaveRequestReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
 
   @@index([employeeId, createdAt])
@@ -96,6 +99,7 @@ model LeaveRequest {
   @@index([createdAt])
   @@index([startDate])
   @@index([endDate])
+  @@index([approverId, status])
   @@index([reviewedBy])
 }
 
