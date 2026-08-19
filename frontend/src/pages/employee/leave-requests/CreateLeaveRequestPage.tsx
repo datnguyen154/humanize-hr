@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { useLeaveApproversQuery } from '@/features/leave-request/hooks/useLeaveApproversQuery'
 import { DatePicker } from '@/shared/components/DatePicker'
 import { useCreateLeaveRequestMutation } from '@/features/leave-request/hooks/useCreateLeaveRequestMutation'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
@@ -25,6 +26,7 @@ const createLeaveRequestSchema = z
     leaveType: z.enum(['ANNUAL', 'SICK', 'UNPAID', 'OTHER'], {
       message: 'Vui lòng chọn loại nghỉ phép',
     }),
+    approverId: z.string().min(1, 'Vui lòng chọn người duyệt.'),
     startDate: z.string().min(1, 'Vui lòng chọn ngày bắt đầu'),
     endDate: z.string().min(1, 'Vui lòng chọn ngày kết thúc'),
     reason: z.string().trim().min(1, 'Vui lòng nhập lý do nghỉ phép'),
@@ -60,6 +62,22 @@ const getCreateLeaveRequestErrorMessage = (error: unknown) => {
     if (message === 'reason is required') {
       return 'Vui lòng nhập lý do nghỉ phép'
     }
+
+    if (message === 'approverId is required') {
+      return 'Vui lòng chọn người duyệt.'
+    }
+
+    if (message === 'Invalid approverId') {
+      return 'Người duyệt không hợp lệ.'
+    }
+
+    if (message === 'Approver not found') {
+      return 'Không tìm thấy người duyệt đã chọn.'
+    }
+
+    if (message === 'Approver is not eligible') {
+      return 'Người duyệt đã chọn hiện không khả dụng.'
+    }
   }
 
   return 'Không thể tạo đơn nghỉ phép'
@@ -71,6 +89,7 @@ const toIsoDate = (date: string) =>
 export function CreateLeaveRequestPage() {
   const navigate = useNavigate()
   const createLeaveRequestMutation = useCreateLeaveRequestMutation()
+  const approversQuery = useLeaveApproversQuery()
   const [formError, setFormError] = useState<string | null>(null)
 
   const {
@@ -82,6 +101,7 @@ export function CreateLeaveRequestPage() {
     resolver: zodResolver(createLeaveRequestSchema),
     defaultValues: {
       leaveType: 'ANNUAL',
+      approverId: '',
       startDate: '',
       endDate: '',
       reason: '',
@@ -94,6 +114,7 @@ export function CreateLeaveRequestPage() {
     try {
       await createLeaveRequestMutation.mutateAsync({
         leaveType: values.leaveType,
+        approverId: values.approverId,
         startDate: toIsoDate(values.startDate),
         endDate: toIsoDate(values.endDate),
         reason: values.reason,
@@ -166,6 +187,55 @@ export function CreateLeaveRequestPage() {
                 {errors.leaveType ? (
                   <p className="text-sm text-destructive" role="alert">
                     {errors.leaveType.message}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="grid gap-2 md:col-span-2">
+                <Label htmlFor="approverId" className="text-sm font-medium">
+                  Người duyệt <span className="text-destructive">*</span>
+                </Label>
+                <select
+                  id="approverId"
+                  aria-label="Chọn người duyệt"
+                  disabled={approversQuery.isLoading || approversQuery.isError}
+                  className="h-10 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                  {...register('approverId')}
+                >
+                  <option value="">
+                    {approversQuery.isLoading
+                      ? 'Đang tải người duyệt...'
+                      : 'Chọn người duyệt'}
+                  </option>
+                  {approversQuery.data?.map((approver) => (
+                    <option key={approver.id} value={approver.id}>
+                      {approver.fullName} - {approver.email}
+                    </option>
+                  ))}
+                </select>
+                {approversQuery.isError ? (
+                  <div className="flex flex-wrap items-center gap-2 text-sm text-destructive">
+                    <span role="alert">Không thể tải danh sách người duyệt.</span>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void approversQuery.refetch()}
+                    >
+                      Thử lại
+                    </Button>
+                  </div>
+                ) : null}
+                {!approversQuery.isLoading &&
+                !approversQuery.isError &&
+                approversQuery.data?.length === 0 ? (
+                  <p className="text-sm text-muted-foreground" role="alert">
+                    Hiện chưa có người duyệt khả dụng.
+                  </p>
+                ) : null}
+                {errors.approverId ? (
+                  <p className="text-sm text-destructive" role="alert">
+                    {errors.approverId.message}
                   </p>
                 ) : null}
               </div>
@@ -246,7 +316,12 @@ export function CreateLeaveRequestPage() {
               <Button
                 type="submit"
                 className="inline-flex w-full items-center justify-center gap-2 sm:w-[190px]"
-                disabled={createLeaveRequestMutation.isPending}
+                disabled={
+                  createLeaveRequestMutation.isPending ||
+                  approversQuery.isLoading ||
+                  approversQuery.isError ||
+                  approversQuery.data?.length === 0
+                }
               >
                 {createLeaveRequestMutation.isPending ? (
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />

@@ -17,10 +17,18 @@ export type LeaveRequestReviewer = {
   fullName: string
 }
 
+export type LeaveRequestApprover = {
+  id: string
+  fullName: string
+  email: string
+}
+
 export type LeaveRequest = {
   id: string
   employeeId: string
   employee: LeaveRequestEmployee
+  approverId: string | null
+  approver: LeaveRequestApprover | null
   leaveType: LeaveType
   startDate: string
   endDate: string
@@ -45,6 +53,11 @@ export type CreateLeaveRequestRequest = {
   startDate: string
   endDate: string
   reason: string
+  approverId: string
+}
+
+export type LeaveApproversResponse = {
+  data: LeaveRequestApprover[]
 }
 
 export type LeaveRequestReviewStatus = 'APPROVED' | 'REJECTED'

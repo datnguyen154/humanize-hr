@@ -3,6 +3,7 @@ import { axiosInstance } from '@/shared/api'
 
 import type {
   CreateLeaveRequestRequest,
+  LeaveApproversResponse,
   LeaveRequestDetailResponse,
   LeaveRequestsQueryParams,
   LeaveRequestsResponse,
@@ -29,6 +30,17 @@ export const getLeaveRequests = async (params: LeaveRequestsQueryParams) => {
   )
 
   return response.data
+}
+
+export const getLeaveApprovers = async () => {
+  const response = await axiosInstance.get<LeaveApproversResponse>(
+    '/leave-requests/approvers',
+    {
+      headers: getAuthHeaders(),
+    },
+  )
+
+  return response.data.data
 }
 
 export const getLeaveRequestById = async (id: string) => {

@@ -247,6 +247,15 @@ export function EmployeeLeaveRequestListPage() {
                       </dd>
                     </div>
 
+                    <div className="min-w-0">
+                      <dt className="text-xs font-medium text-muted-foreground">
+                        Người duyệt
+                      </dt>
+                      <dd className="mt-1 break-words text-foreground">
+                        {leaveRequest.approver?.fullName ?? 'Chưa phân công'}
+                      </dd>
+                    </div>
+
                     {leaveRequest.reason?.trim() ? (
                       <div className="min-w-0">
                         <dt className="text-xs font-medium text-muted-foreground">
@@ -314,6 +323,7 @@ export function EmployeeLeaveRequestListPage() {
               <TableHeader className="bg-muted/50">
                 <TableRow>
                   <TableHead>Loại nghỉ phép</TableHead>
+                  <TableHead>Người duyệt</TableHead>
                   <TableHead>Ngày bắt đầu</TableHead>
                   <TableHead>Ngày kết thúc</TableHead>
                   <TableHead className="text-center">Trạng thái</TableHead>
@@ -322,7 +332,7 @@ export function EmployeeLeaveRequestListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRowsSkeleton columns={6} />
+                  <TableRowsSkeleton columns={7} />
               </TableBody>
             </Table>
           ) : null}
@@ -347,6 +357,7 @@ export function EmployeeLeaveRequestListPage() {
                 <TableHeader className="bg-muted/50">
                   <TableRow>
                     <TableHead>Loại nghỉ phép</TableHead>
+                    <TableHead>Người duyệt</TableHead>
                     <TableHead>Ngày bắt đầu</TableHead>
                     <TableHead>Ngày kết thúc</TableHead>
                     <TableHead className="text-center">Trạng thái</TableHead>
@@ -363,6 +374,9 @@ export function EmployeeLeaveRequestListPage() {
                     >
                       <TableCell className="font-medium">
                         {leaveTypeLabel[leaveRequest.leaveType]}
+                      </TableCell>
+                      <TableCell>
+                        {leaveRequest.approver?.fullName ?? 'Chưa phân công'}
                       </TableCell>
                       <TableCell>{formatDate(leaveRequest.startDate)}</TableCell>
                       <TableCell>{formatDate(leaveRequest.endDate)}</TableCell>

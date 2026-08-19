@@ -298,7 +298,19 @@ export function LeaveRequestDetailPage({
                       label={statusLabel[leaveRequest.status]}
                       tone={statusTone[leaveRequest.status]}
                       className="ring-1 ring-current/10"
-                    />
+                      />
+                  </DetailField>
+                  <DetailField icon={User} label="Người duyệt được phân công">
+                    {leaveRequest.approver ? (
+                      <span className="grid gap-0.5">
+                        <span>{leaveRequest.approver.fullName}</span>
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {leaveRequest.approver.email}
+                        </span>
+                      </span>
+                    ) : (
+                      'Chưa phân công'
+                    )}
                   </DetailField>
                   <DetailField icon={User} label="Người duyệt">
                     {leaveRequest.reviewer?.fullName ?? 'Chưa có'}

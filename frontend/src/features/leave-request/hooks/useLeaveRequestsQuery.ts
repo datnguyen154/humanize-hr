@@ -8,6 +8,7 @@ import type { LeaveRequestsQueryParams } from '../types/leaveRequest.types'
 
 export const leaveRequestQueryKeys = {
   all: ['leave-requests'] as const,
+  approvers: () => [...leaveRequestQueryKeys.all, 'approvers'] as const,
   lists: () => [...leaveRequestQueryKeys.all, 'list'] as const,
   list: (params: LeaveRequestsQueryParams, scope = 'admin') =>
     [...leaveRequestQueryKeys.lists(), scope, params] as const,

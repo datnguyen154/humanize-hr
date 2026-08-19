@@ -226,7 +226,7 @@ export function LeaveRequestListPage() {
               <div className="hidden md:block">
                 <Table>
                   <TableBody>
-                    <TableRowsSkeleton columns={8} />
+                    <TableRowsSkeleton columns={9} />
                   </TableBody>
                 </Table>
               </div>
@@ -297,6 +297,14 @@ export function LeaveRequestListPage() {
                           {formatDate(leaveRequest.endDate)}
                         </dd>
                       </div>
+                      <div className="min-w-0">
+                        <dt className="text-xs font-medium text-muted-foreground">
+                          Người duyệt
+                        </dt>
+                        <dd className="mt-1 break-words text-foreground">
+                          {leaveRequest.approver?.fullName ?? 'Chưa phân công'}
+                        </dd>
+                      </div>
                       <div>
                         <dt className="text-xs font-medium text-muted-foreground">
                           Ngày tạo
@@ -338,6 +346,7 @@ export function LeaveRequestListPage() {
                       <TableHead>Mã nhân viên</TableHead>
                       <TableHead>Họ tên</TableHead>
                       <TableHead>Loại nghỉ phép</TableHead>
+                      <TableHead>Người duyệt</TableHead>
                       <TableHead>
                         {renderSortableHeader('Ngày bắt đầu', 'startDate')}
                       </TableHead>
@@ -373,6 +382,9 @@ export function LeaveRequestListPage() {
                         <TableCell>{leaveRequest.employee.fullName}</TableCell>
                         <TableCell>
                           {leaveTypeLabel[leaveRequest.leaveType]}
+                        </TableCell>
+                        <TableCell>
+                          {leaveRequest.approver?.fullName ?? 'Chưa phân công'}
                         </TableCell>
                         <TableCell>
                           {formatDate(leaveRequest.startDate)}
