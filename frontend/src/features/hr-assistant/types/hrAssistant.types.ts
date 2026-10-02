@@ -1,3 +1,5 @@
+export type HrAssistantAudience = 'employee' | 'admin'
+
 export type HrAssistantQuestion = {
   key: string
   label: string

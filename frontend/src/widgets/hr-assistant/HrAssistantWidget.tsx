@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios'
 import {
-  Bot, CalendarDays, ChevronRight, Clock3, Loader2,
+  Bot, Building2, CalendarDays, ChevronRight, Clock3, Loader2,
   MessageCircle, RefreshCw, UserRound, Wallet, X,
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
@@ -12,27 +12,37 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import {
   useHrAssistantQuestionsQuery,
   useHrAssistantQueryMutation,
+  type HrAssistantAudience,
   type HrAssistantMessage,
   type HrAssistantQuestion,
 } from '@/features/hr-assistant'
 
 const GREETING = 'Bạn cần tra cứu gì?'
 
-const topics = [
+const employeeTopics = [
   { label: 'Chấm công', icon: Clock3, keys: ['TODAY_ATTENDANCE_STATUS', 'TODAY_LATE_STATUS', 'CURRENT_MONTH_LATE_COUNT', 'WHERE_TO_VIEW_ATTENDANCE'] },
   { label: 'Nghỉ phép', icon: CalendarDays, keys: ['LATEST_LEAVE_REQUEST', 'HOW_TO_REQUEST_LEAVE'] },
   { label: 'Bảng lương', icon: Wallet, keys: ['LATEST_PAYROLL', 'WHERE_TO_VIEW_PAYROLL'] },
   { label: 'Hồ sơ', icon: UserRound, keys: ['MY_DEPARTMENT'] },
 ]
-const popularKeys = ['TODAY_ATTENDANCE_STATUS', 'LATEST_PAYROLL', 'LATEST_LEAVE_REQUEST']
+const employeePopularKeys = ['TODAY_ATTENDANCE_STATUS', 'LATEST_PAYROLL', 'LATEST_LEAVE_REQUEST']
+const adminTopics = [
+  { label: 'Nhân viên', icon: UserRound, keys: ['ADMIN_TOTAL_EMPLOYEES', 'ADMIN_ACTIVE_EMPLOYEES', 'ADMIN_INACTIVE_EMPLOYEES'] },
+  { label: 'Phòng ban', icon: Building2, keys: ['ADMIN_TOTAL_DEPARTMENTS', 'ADMIN_ACTIVE_DEPARTMENTS'] },
+  { label: 'Chấm công', icon: Clock3, keys: ['ADMIN_TODAY_ATTENDANCE', 'ADMIN_TODAY_LATE'] },
+  { label: 'Nghỉ phép', icon: CalendarDays, keys: ['ADMIN_PENDING_LEAVE', 'ADMIN_TOTAL_LEAVE'] },
+]
+const adminPopularKeys = ['ADMIN_TOTAL_EMPLOYEES', 'ADMIN_TODAY_ATTENDANCE', 'ADMIN_PENDING_LEAVE']
 
 const createMessageId = () =>
   globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
-const getAssistantErrorMessage = (error: unknown) => {
+const getAssistantErrorMessage = (error: unknown, audience: HrAssistantAudience) => {
   if (error instanceof AxiosError) {
     if (error.response?.status === 404) {
-      return 'Không tìm thấy hồ sơ nhân viên của bạn.'
+      return audience === 'admin'
+        ? 'Không tìm thấy dữ liệu tra cứu. Vui lòng thử lại sau.'
+        : 'Không tìm thấy hồ sơ nhân viên của bạn.'
     }
 
     if (error.response?.status === 400) {
@@ -66,15 +76,19 @@ function MessageBubble({ message }: { message: HrAssistantMessage }) {
 }
 
 function QuestionSuggestions({
+  audience,
   questions,
   disabled,
   onSelect,
 }: {
+  audience: HrAssistantAudience
   questions: HrAssistantQuestion[]
   disabled: boolean
   onSelect: (question: HrAssistantQuestion) => void
 }) {
   const [topicIndex, setTopicIndex] = useState<number | null>(null)
+  const topics = audience === 'admin' ? adminTopics : employeeTopics
+  const popularKeys = audience === 'admin' ? adminPopularKeys : employeePopularKeys
   const visibleQuestions = questions.filter((question) => topicIndex === null
     ? popularKeys.includes(question.key) || !topics.some((topic) => topic.keys.includes(question.key))
     : topics[topicIndex].keys.includes(question.key))
@@ -121,15 +135,16 @@ function QuestionSuggestions({
   )
 }
 
-export function HrAssistantWidget() {
+export function HrAssistantWidget({ audience = 'employee' }: { audience?: HrAssistantAudience }) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<HrAssistantMessage[]>([])
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const [showQuestions, setShowQuestions] = useState(true)
   const [failure, setFailure] = useState<{ question: HrAssistantQuestion; message: string } | null>(null)
   const hasConversation = messages.length > 0
-  const questionsQuery = useHrAssistantQuestionsQuery(open)
-  const queryMutation = useHrAssistantQueryMutation()
+  const questionsQuery = useHrAssistantQuestionsQuery(open, audience)
+  const queryMutation = useHrAssistantQueryMutation(audience)
+  const requestPendingRef = useRef(false)
 
   useEffect(() => {
     const viewport = scrollRef.current
@@ -141,7 +156,8 @@ export function HrAssistantWidget() {
   }
 
   const handleQuestionSelect = async (question: HrAssistantQuestion, retry = false) => {
-    if (queryMutation.isPending) return
+    if (requestPendingRef.current) return
+    requestPendingRef.current = true
     setFailure(null)
     setShowQuestions(false)
 
@@ -162,7 +178,9 @@ export function HrAssistantWidget() {
         questionKey: result.questionKey,
       })
     } catch (error) {
-      setFailure({ question, message: getAssistantErrorMessage(error) })
+      setFailure({ question, message: getAssistantErrorMessage(error, audience) })
+    } finally {
+      requestPendingRef.current = false
     }
   }
 
@@ -194,7 +212,7 @@ export function HrAssistantWidget() {
                   Trợ lý HR
                 </CardTitle>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Tra cứu thông tin của bạn
+                  {audience === 'admin' ? 'Hỗ trợ quản trị nhân sự' : 'Tra cứu thông tin của bạn'}
                 </p>
               </div>
             </div>
@@ -217,7 +235,9 @@ export function HrAssistantWidget() {
                 <div className="pb-2 pt-1">
                   <h3 className="text-lg font-semibold">{GREETING}</h3>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Chấm công, nghỉ phép và bảng lương cá nhân.
+                    {audience === 'admin'
+                      ? 'Nhân viên, phòng ban, chấm công và nghỉ phép.'
+                      : 'Chấm công, nghỉ phép và bảng lương cá nhân.'}
                   </p>
                 </div>
               ) : null}
@@ -287,6 +307,7 @@ export function HrAssistantWidget() {
 
               {!hasConversation && questionsQuery.isSuccess && questionsQuery.data.length > 0 ? (
                 <QuestionSuggestions
+                  audience={audience}
                   questions={questionsQuery.data}
                   disabled={queryMutation.isPending}
                   onSelect={(question) => void handleQuestionSelect(question)}
@@ -310,6 +331,7 @@ export function HrAssistantWidget() {
               {showQuestions ? (
                 <div id="hr-assistant-follow-up" className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
                   <QuestionSuggestions
+                    audience={audience}
                     questions={questionsQuery.data}
                     disabled={queryMutation.isPending}
                     onSelect={(question) => void handleQuestionSelect(question)}

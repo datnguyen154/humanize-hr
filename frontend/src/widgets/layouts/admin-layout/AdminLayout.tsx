@@ -1,5 +1,7 @@
 import { Outlet } from 'react-router-dom'
 
+import { HrAssistantWidget } from '@/widgets/hr-assistant/HrAssistantWidget'
+
 import { MobileSidebarOverlay } from '../shared/MobileSidebarOverlay'
 import { useMobileSidebar } from '../shared/useMobileSidebar'
 
@@ -27,6 +29,7 @@ export function AdminLayout() {
           </div>
         </main>
       </div>
+      <HrAssistantWidget audience="admin" />
     </div>
   )
 }

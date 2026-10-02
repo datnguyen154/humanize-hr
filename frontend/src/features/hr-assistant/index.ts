@@ -2,6 +2,7 @@ export { getHrAssistantQuestions, queryHrAssistant } from './api/hrAssistant.api
 export { useHrAssistantQuestionsQuery } from './hooks/useHrAssistantQuestionsQuery'
 export { useHrAssistantQueryMutation } from './hooks/useHrAssistantQueryMutation'
 export type {
+  HrAssistantAudience,
   HrAssistantMessage,
   HrAssistantQueryRequest,
   HrAssistantQueryResponse,
