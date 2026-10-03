@@ -10,10 +10,10 @@ Tận dụng Render Free và backend hiện có; không thêm dịch vụ trả 
 
 1. **Đã implement, chờ manual test dữ liệu thật:** sửa Admin Dashboard: KPI hôm nay,
    biểu đồ đủ dữ liệu theo kỳ, trạng thái lỗi/loading và query gọn. Tổng hợp tại backend hiện có.
-2. **Tiếp theo:** chuẩn hóa bảng và form. Bắt đầu Employee List: filter trên URL,
+2. **Đã implement Employee List, chờ manual test:** chuẩn hóa bảng và form. Filter trên URL,
    debounce search, giữ bộ lọc khi reload/quay lại, không nhảy layout khi refetch.
    Sau khi pattern được xác nhận mới áp dụng cho các list khác.
-3. Kiểm thử luồng quan trọng: auth/role, import preview và partial success,
+3. **Tiếp theo sau manual test:** kiểm thử tương tác URL/debounce/Back-Forward và luồng quan trọng: auth/role, import preview và partial success,
    thay file, cập nhật thất bại/retry và chống submit trùng.
 4. Báo cáo tổng hợp công tháng và export Excel.
 5. Nhân viên yêu cầu điều chỉnh công, Admin xét duyệt có lịch sử.

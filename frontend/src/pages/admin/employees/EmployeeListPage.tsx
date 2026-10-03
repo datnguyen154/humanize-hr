@@ -47,10 +47,11 @@ import {
   useEmployeesQuery,
   type ExportEmployeesParams,
   type EmployeeSortBy,
-  type EmployeeSortOrder,
   type EmployeeStatus,
 } from '@/features/employee'
 import { showErrorToast } from '@/lib/toast'
+import { useEmployeeListFilters } from '@/features/employee/hooks/useEmployeeListFilters'
+import { EMPLOYEE_PAGE_SIZE } from '@/features/employee/lib/employee-list.params'
 
 import { EmployeeDetailDialog } from './components/EmployeeDetailDialog'
 import { ImportEmployeesDialog } from './components/ImportEmployeesDialog'
@@ -130,12 +131,8 @@ export function EmployeeListPage() {
   const navigate = useNavigate()
   const exportEmployeesMutation = useExportEmployeesMutation()
   const departmentOptionsQuery = useDepartmentOptionsQuery()
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
-  const [status, setStatus] = useState<StatusFilter>('ALL')
-  const [departmentId, setDepartmentId] = useState<string | undefined>()
-  const [sortBy, setSortBy] = useState<EmployeeSortBy>('employeeCode')
-  const [sortOrder, setSortOrder] = useState<EmployeeSortOrder>('asc')
+  const { filters, searchInput, setSearchInput, isSearchPending, updateFilters } = useEmployeeListFilters()
+  const { page, search, status, departmentId, sortBy, sortOrder } = filters
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(
     null,
   )
@@ -143,7 +140,7 @@ export function EmployeeListPage() {
 
   const employeesQuery = useEmployeesQuery({
     page,
-    limit: 10,
+    limit: EMPLOYEE_PAGE_SIZE,
     search: search.trim() || undefined,
     status: status === 'ALL' ? undefined : status,
     departmentId,
@@ -154,36 +151,27 @@ export function EmployeeListPage() {
   const employees = employeesQuery.data?.data ?? []
   const meta = employeesQuery.data?.meta
   const totalPages = meta?.totalPages ?? 1
-  const pageSize = meta?.limit ?? 10
+  const pageSize = meta?.limit ?? EMPLOYEE_PAGE_SIZE
+  const displayedPage = meta?.page ?? page
+  const isUpdating = employeesQuery.isFetching || isSearchPending
   const totalItems = meta?.totalItems ?? 0
-  const fromItem = totalItems === 0 ? 0 : (page - 1) * pageSize + 1
-  const toItem = Math.min(page * pageSize, totalItems)
+  const fromItem = totalItems === 0 ? 0 : (displayedPage - 1) * pageSize + 1
+  const toItem = Math.min(displayedPage * pageSize, totalItems)
 
   const handleSearchChange = (value: string) => {
-    setSearch(value)
-    setPage(1)
+    setSearchInput(value)
   }
 
   const handleStatusChange = (value: StatusFilter) => {
-    setStatus(value)
-    setPage(1)
+    updateFilters({ status: value })
   }
 
   const handleDepartmentChange = (value: string) => {
-    setDepartmentId(value || undefined)
-    setPage(1)
+    updateFilters({ departmentId: value || undefined })
   }
 
   const handleSort = (column: EmployeeSortBy) => {
-    setPage(1)
-
-    if (sortBy === column) {
-      setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'))
-      return
-    }
-
-    setSortBy(column)
-    setSortOrder('asc')
+    updateFilters({ sortBy: column, sortOrder: sortBy === column && sortOrder === 'asc' ? 'desc' : 'asc' })
   }
 
   const renderSortIcon = (column: EmployeeSortBy) => {
@@ -257,7 +245,7 @@ export function EmployeeListPage() {
                 type="button"
                 variant="outline"
                 className="w-full shrink-0 gap-2 sm:w-auto"
-                disabled={exportEmployeesMutation.isPending}
+                disabled={exportEmployeesMutation.isPending || isUpdating}
                 onClick={() => void handleExportEmployees()}
               >
                 {exportEmployeesMutation.isPending ? (
@@ -290,7 +278,8 @@ export function EmployeeListPage() {
                 aria-hidden="true"
               />
               <Input
-                value={search}
+                value={searchInput}
+                aria-label="Tìm nhân viên theo tên hoặc email"
                 placeholder="Tìm theo tên hoặc email..."
                 className="h-10 pl-10"
                 onChange={(event) => handleSearchChange(event.target.value)}
@@ -343,7 +332,10 @@ export function EmployeeListPage() {
           </div>
         </CardHeader>
 
-        <CardContent>
+        <CardContent aria-busy={isUpdating}>
+          <p role="status" className="min-h-6 text-sm text-muted-foreground">
+            {isUpdating && !employeesQuery.isLoading ? 'Đang cập nhật danh sách...' : ''}
+          </p>
           {employeesQuery.isLoading ? (
             <>
               <div className="grid gap-3 md:hidden">
@@ -379,17 +371,21 @@ export function EmployeeListPage() {
           ) : null}
 
           {employeesQuery.isError ? (
-            <p className="py-8 text-center text-destructive">
+            <div role="alert" className="py-8 text-center text-destructive">
               Không thể tải danh sách nhân viên
-            </p>
+              <Button variant="outline" className="ml-3" disabled={employeesQuery.isFetching} onClick={() => void employeesQuery.refetch()}>Thử lại</Button>
+            </div>
           ) : null}
 
           {employeesQuery.isSuccess && employees.length === 0 ? (
+            <div>
             <EmptyState
               icon={Users}
               title="Chưa có nhân viên"
-              description="Hãy tạo nhân viên đầu tiên để bắt đầu quản lý nhân sự."
+              description={search || status !== 'ALL' || departmentId ? 'Không có nhân viên phù hợp với bộ lọc hiện tại.' : 'Hãy tạo nhân viên đầu tiên để bắt đầu quản lý nhân sự.'}
             />
+            {page > 1 ? <Button variant="outline" onClick={() => updateFilters({ page: 1 })}>Về trang đầu</Button> : null}
+            </div>
           ) : null}
 
           {employees.length > 0 ? (
@@ -583,27 +579,27 @@ export function EmployeeListPage() {
                     variant="outline"
                     size="icon"
                     className="size-8"
-                    disabled={!meta?.hasPreviousPage}
+                    disabled={isUpdating || employeesQuery.isPlaceholderData || !meta?.hasPreviousPage}
                     aria-label="Trang trước"
                     title="Trang trước"
                     onClick={() =>
-                      setPage((current) => Math.max(current - 1, 1))
+                      updateFilters({ page: Math.max(page - 1, 1) })
                     }
                   >
                     <ChevronLeft className="size-4" aria-hidden="true" />
                   </Button>
                   <span className="inline-flex h-8 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
-                    Trang {page} / {totalPages}
+                    Trang {displayedPage} / {totalPages}
                   </span>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     className="size-8"
-                    disabled={!meta?.hasNextPage}
+                    disabled={isUpdating || employeesQuery.isPlaceholderData || !meta?.hasNextPage}
                     aria-label="Trang sau"
                     title="Trang sau"
-                    onClick={() => setPage((current) => current + 1)}
+                    onClick={() => updateFilters({ page: page + 1 })}
                   >
                     <ChevronRight className="size-4" aria-hidden="true" />
                   </Button>
