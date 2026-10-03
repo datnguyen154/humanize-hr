@@ -3,11 +3,12 @@ import {
     Building2,
     ClipboardList,
     Clock3,
+    RefreshCw,
     Sparkles,
     Users,
     type LucideIcon,
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
     Bar,
     BarChart,
@@ -29,15 +30,15 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import type { AttendanceRecord } from "@/features/attendance/types/attendance.types";
 import {
     DashboardActivitySkeleton,
     DashboardChartSkeleton,
     DashboardKPISkeleton,
 } from "@/features/dashboard/components/DashboardLoadingSkeletons";
-import { useDashboardQueries } from "@/features/dashboard/hooks/useDashboardQueries";
+import { useAdminDashboardQuery } from "@/features/dashboard/hooks/useAdminDashboardQuery";
+import { ADMIN_DASHBOARD_PERIODS, DEFAULT_ADMIN_DASHBOARD_DAYS, formatDashboardDate } from "@/features/dashboard/lib/admin-dashboard.config";
 import { mapDashboardActivities } from "@/features/dashboard/lib/dashboard-activity.mapper";
-import type { DashboardActivityType } from "@/features/dashboard/types/dashboard.types";
+import type { AdminDashboardDays, AdminDashboardSummary, DashboardActivityType } from "@/features/dashboard/types/dashboard.types";
 
 type KpiCard = {
     label: string;
@@ -50,21 +51,6 @@ type QuickAction = {
     description: string;
     path: string;
     icon: LucideIcon;
-};
-
-type DashboardKpiValues = {
-    totalEmployees: number;
-    totalDepartments: number;
-    totalLeaveRequests: number;
-    totalAttendance: number;
-};
-
-type AttendanceTrendItem = {
-    dateKey: string;
-    dateLabel: string;
-    total: number;
-    present: number;
-    late: number;
 };
 
 const attendanceDateFormatter = new Intl.DateTimeFormat("vi-VN", {
@@ -82,30 +68,25 @@ const activityTimeFormatter = new Intl.DateTimeFormat("vi-VN", {
     timeZone: "Asia/Bangkok",
 });
 
-const createKpiCards = ({
-    totalEmployees,
-    totalDepartments,
-    totalLeaveRequests,
-    totalAttendance,
-}: DashboardKpiValues): KpiCard[] => [
+const kpiDefinitions: { key: keyof AdminDashboardSummary; label: string; icon: LucideIcon }[] = [
     {
         label: "Tổng nhân viên",
-        value: totalEmployees.toLocaleString("vi-VN"),
+        key: "totalEmployees",
         icon: Users,
     },
     {
         label: "Tổng phòng ban",
-        value: totalDepartments.toLocaleString("vi-VN"),
+        key: "totalDepartments",
         icon: Building2,
     },
     {
         label: "Đơn nghỉ phép",
-        value: totalLeaveRequests.toLocaleString("vi-VN"),
+        key: "totalLeaveRequests",
         icon: ClipboardList,
     },
     {
         label: "Chấm công hôm nay",
-        value: totalAttendance.toLocaleString("vi-VN"),
+        key: "todayAttendance",
         icon: Clock3,
     },
 ];
@@ -140,39 +121,6 @@ const quickActions: QuickAction[] = [
 const formatAttendanceDateLabel = (date: string) =>
     attendanceDateFormatter.format(new Date(date));
 
-const buildAttendanceTrendData = (
-    records: AttendanceRecord[],
-): AttendanceTrendItem[] => {
-    const groupedRecords = new Map<string, AttendanceTrendItem>();
-
-    records.forEach((record) => {
-        const dateKey = record.attendanceDate.slice(0, 10);
-        const existingItem = groupedRecords.get(dateKey) ?? {
-            dateKey,
-            dateLabel: formatAttendanceDateLabel(record.attendanceDate),
-            total: 0,
-            present: 0,
-            late: 0,
-        };
-
-        existingItem.total += 1;
-
-        if (record.status === "PRESENT") {
-            existingItem.present += 1;
-        }
-
-        if (record.status === "LATE") {
-            existingItem.late += 1;
-        }
-
-        groupedRecords.set(dateKey, existingItem);
-    });
-
-    return Array.from(groupedRecords.values()).sort((a, b) =>
-        a.dateKey.localeCompare(b.dateKey),
-    );
-};
-
 const attendanceChartLabels: Record<string, string> = {
     total: "Tổng lượt",
     present: "Đúng giờ",
@@ -189,56 +137,22 @@ const formatActivityTime = (date: string) =>
     activityTimeFormatter.format(new Date(date));
 
 export function AdminDashboardPage() {
-    const {
-        employees,
-        departments,
-        attendance,
-        leaveRequests,
-        isLoading,
-        isError,
-    } = useDashboardQueries();
-    const employeeData = employees.data;
-    const departmentData = departments.data;
-    const attendanceData = attendance.data;
-    const leaveRequestData = leaveRequests.data;
-    const isRetrying =
-        employees.isFetching ||
-        departments.isFetching ||
-        attendance.isFetching ||
-        leaveRequests.isFetching;
-
-    const totalEmployees = employeeData?.meta.totalItems ?? 0;
-    const totalDepartments = departmentData?.meta.totalItems ?? 0;
-    const totalLeaveRequests = leaveRequestData?.meta.totalItems ?? 0;
-    const totalAttendance = attendanceData?.meta.totalItems ?? 0;
-    const attendanceTrendData = useMemo(
-        () => buildAttendanceTrendData(attendanceData?.data ?? []),
-        [attendanceData?.data],
-    );
+    const [days, setDays] = useState<AdminDashboardDays>(DEFAULT_ADMIN_DASHBOARD_DAYS);
+    const { data, isLoading, isError, isFetching, refetch } = useAdminDashboardQuery(days);
+    const attendanceTrendData = data?.attendanceTrend ?? [];
     const recentActivities = useMemo(
         () =>
-            mapDashboardActivities({
-                attendanceRecords: attendanceData?.data ?? [],
-                leaveRequests: leaveRequestData?.data ?? [],
-                departments: departmentData?.data ?? [],
-            }),
-        [attendanceData?.data, departmentData?.data, leaveRequestData?.data],
+            mapDashboardActivities(data?.recentActivities ?? []),
+        [data?.recentActivities],
     );
 
-    const kpiCards = createKpiCards({
-        totalEmployees,
-        totalDepartments,
-        totalLeaveRequests,
-        totalAttendance,
-    });
+    const kpiCards: KpiCard[] = kpiDefinitions.map(({ key, ...item }) => ({
+        ...item,
+        value: data?.summary[key].toLocaleString("vi-VN") ?? "--",
+    }));
 
     const handleRetryDashboardQueries = () => {
-        void Promise.all([
-            employees.refetch(),
-            departments.refetch(),
-            attendance.refetch(),
-            leaveRequests.refetch(),
-        ]);
+        void refetch();
     };
 
     return (
@@ -262,6 +176,10 @@ export function AdminDashboardPage() {
                                 động hệ thống.
                             </p>
                         </div>
+                        <Button variant="outline" onClick={handleRetryDashboardQueries} disabled={isFetching}>
+                            <RefreshCw className={isFetching ? "size-4 animate-spin" : "size-4"} aria-hidden="true" />
+                            Làm mới
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
@@ -271,12 +189,13 @@ export function AdminDashboardPage() {
                     <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
                         <p className="text-sm font-medium text-destructive">
                             Không thể tải dữ liệu dashboard
+                            {data ? " · Đang hiển thị dữ liệu tải trước đó." : ""}
                         </p>
                         <Button
                             type="button"
                             variant="outline"
                             onClick={handleRetryDashboardQueries}
-                            disabled={isRetrying}
+                            disabled={isFetching}
                         >
                             Thử lại
                         </Button>
@@ -372,12 +291,24 @@ export function AdminDashboardPage() {
                         <CardDescription>
                             Tổng hợp lượt chấm công đúng giờ và đi muộn theo
                             ngày.
+                            {data ? ` ${formatDashboardDate(data.period.fromDate)} - ${formatDashboardDate(data.period.toDate)}` : ""}
                         </CardDescription>
+                        <select
+                            aria-label="Khoảng thời gian chấm công"
+                            value={days}
+                            onChange={(event) => {
+                                const period = ADMIN_DASHBOARD_PERIODS.find((item) => String(item.value) === event.target.value);
+                                if (period) setDays(period.value);
+                            }}
+                            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:w-auto"
+                        >
+                            {ADMIN_DASHBOARD_PERIODS.map((period) => <option key={period.value} value={period.value}>{period.label}</option>)}
+                        </select>
                     </CardHeader>
                     <CardContent>
                         {isLoading ? (
                             <DashboardChartSkeleton />
-                        ) : attendanceTrendData.length > 0 ? (
+                        ) : attendanceTrendData.some((point) => point.total > 0) ? (
                             <div className="h-72">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart
@@ -394,7 +325,8 @@ export function AdminDashboardPage() {
                                             vertical={false}
                                         />
                                         <XAxis
-                                            dataKey="dateLabel"
+                                            dataKey="date"
+                                            tickFormatter={formatAttendanceDateLabel}
                                             tickLine={false}
                                             axisLine={false}
                                             tick={{
@@ -422,7 +354,7 @@ export function AdminDashboardPage() {
                                                 ] ?? name,
                                             ]}
                                             labelFormatter={(label) =>
-                                                `Ngày ${label}`
+                                                `Ngày ${formatDashboardDate(String(label))}`
                                             }
                                         />
                                         <Legend
@@ -452,7 +384,7 @@ export function AdminDashboardPage() {
                             </div>
                         ) : (
                             <div className="flex h-72 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
-                                Chưa có dữ liệu chấm công
+                                {isError && !data ? "Chưa tải được dữ liệu chấm công" : "Chưa có dữ liệu chấm công"}
                             </div>
                         )}
                     </CardContent>
@@ -503,7 +435,7 @@ export function AdminDashboardPage() {
                         </div>
                     ) : (
                         <div className="flex min-h-32 items-center justify-center rounded-lg border border-dashed border-border bg-muted/30 p-5 text-center text-sm text-muted-foreground">
-                            Chưa có hoạt động nào
+                            {isError && !data ? "Chưa tải được hoạt động gần đây" : "Chưa có hoạt động nào"}
                         </div>
                     )}
                 </CardContent>

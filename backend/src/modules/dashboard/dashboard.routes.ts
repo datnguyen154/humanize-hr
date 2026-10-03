@@ -7,6 +7,13 @@ import { dashboardController } from "./dashboard.controller";
 export const dashboardRoutes = Router();
 
 dashboardRoutes.get(
+    "/admin",
+    authenticate,
+    requireRole("ADMIN"),
+    dashboardController.getAdminDashboard,
+);
+
+dashboardRoutes.get(
     "/employee",
     authenticate,
     requireRole("EMPLOYEE"),

@@ -1,26 +1,17 @@
-import type { UseQueryResult } from '@tanstack/react-query'
+export type AdminDashboardDays = 7 | 30
 
-import type {
-  AttendanceListResponse,
-  AttendanceRecord,
-} from '../../attendance/types/attendance.types'
-import type {
-  Department,
-  DepartmentsResponse,
-} from '../../department/types/department.types'
-import type { EmployeesResponse } from '../../employee/types/employee.types'
-import type {
-  LeaveRequest,
-  LeaveRequestsResponse,
-} from '../../leave-request/types/leaveRequest.types'
+export type AdminDashboardSummary = {
+  totalEmployees: number
+  totalDepartments: number
+  totalLeaveRequests: number
+  todayAttendance: number
+}
 
-export type DashboardQueriesResult = {
-  employees: UseQueryResult<EmployeesResponse, Error>
-  departments: UseQueryResult<DepartmentsResponse, Error>
-  attendance: UseQueryResult<AttendanceListResponse, Error>
-  leaveRequests: UseQueryResult<LeaveRequestsResponse, Error>
-  isLoading: boolean
-  isError: boolean
+export type AdminAttendanceTrendPoint = {
+  date: string
+  total: number
+  present: number
+  late: number
 }
 
 export type DashboardActivityType =
@@ -35,8 +26,22 @@ export type DashboardActivity = {
   createdAt: string
 }
 
-export type DashboardActivityMapperInput = {
-  attendanceRecords: AttendanceRecord[]
-  leaveRequests: LeaveRequest[]
-  departments: Department[]
+export type AdminDashboardActivity = Omit<DashboardActivity, 'message'> & {
+  subject: string
+}
+
+export type AdminDashboard = {
+  generatedAt: string
+  period: {
+    days: AdminDashboardDays
+    fromDate: string
+    toDate: string
+  }
+  summary: AdminDashboardSummary
+  attendanceTrend: AdminAttendanceTrendPoint[]
+  recentActivities: AdminDashboardActivity[]
+}
+
+export type AdminDashboardResponse = {
+  data: AdminDashboard
 }

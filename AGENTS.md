@@ -55,7 +55,23 @@ Plan → Review → Implement → Review → Manual Test → Lint/Build → Comm
 
 Không implement trước khi plan đã được người dùng phê duyệt nếu task được giao theo workflow planning.
 
-## Verification
+## Portfolio Direction And Task Close-Out
+
+- Mục tiêu dự án: portfolio ứng tuyển Frontend Developer; ưu tiên trải nghiệm thực tế, code dễ bảo trì và bằng chứng kiểm thử.
+- Hạ tầng hiện dùng gói miễn phí. Ưu tiên API/dịch vụ hiện có, không bổ sung dịch vụ trả phí nếu chưa được yêu cầu.
+- Lộ trình và trạng thái task: `docs/plans/frontend-portfolio-roadmap.md`. Đọc khi lập kế hoạch công việc tiếp theo.
+- Sau mỗi task: giải thích luồng hoạt động bằng tiếng Việt dễ hiểu, thêm cách trình bày trong phỏng vấn và nhắc task tiếp theo trong lộ trình. Chỉ bắt đầu task tiếp theo khi người dùng yêu cầu.
+
+## Verification Commands
+
+## Portfolio Direction And Task Close-Out
+
+- Mục tiêu dự án: portfolio ứng tuyển Frontend Developer; ưu tiên trải nghiệm thực tế, code dễ bảo trì và bằng chứng kiểm thử.
+- Hạ tầng hiện dùng gói miễn phí. Ưu tiên API/dịch vụ hiện có, không bổ sung dịch vụ trả phí nếu chưa được yêu cầu.
+- Lộ trình và trạng thái task: `docs/plans/frontend-portfolio-roadmap.md`. Đọc khi lập kế hoạch công việc tiếp theo.
+- Sau mỗi task: giải thích luồng hoạt động bằng tiếng Việt dễ hiểu, thêm cách trình bày trong phỏng vấn và nhắc task tiếp theo trong lộ trình. Chỉ bắt đầu task tiếp theo khi người dùng yêu cầu.
+
+## Verification Commands
 
 Không mặc định chạy lint/build sau mỗi thay đổi nhỏ.
 

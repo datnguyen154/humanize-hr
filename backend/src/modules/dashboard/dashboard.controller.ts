@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 
+import { adminDashboardService } from "./admin-dashboard.service";
+
 import {
     DashboardServiceError,
     dashboardService,
@@ -20,6 +22,15 @@ const handleError = (error: unknown, res: Response): Response => {
 };
 
 export const dashboardController = {
+    async getAdminDashboard(req: Request, res: Response): Promise<Response> {
+        try {
+            const dashboard = await adminDashboardService.getDashboard(req.query.days);
+            return res.status(200).json({ data: dashboard });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getEmployeeDashboard(
         req: Request,
         res: Response,
