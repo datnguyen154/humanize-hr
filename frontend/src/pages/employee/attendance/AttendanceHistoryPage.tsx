@@ -165,7 +165,7 @@ export function AttendanceHistoryPage() {
                 </TableBody>
               </Table>
 
-              <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 border-t pr-16 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pr-40">
                 <p className="text-sm text-muted-foreground">
                   Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} bản ghi
                 </p>

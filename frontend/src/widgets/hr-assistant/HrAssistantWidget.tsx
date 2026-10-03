@@ -185,17 +185,17 @@ export function HrAssistantWidget({ audience = 'employee' }: { audience?: HrAssi
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-40 sm:bottom-6 sm:right-6">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] right-4 z-40 sm:bottom-[calc(1.5rem+env(safe-area-inset-bottom))] sm:right-6">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
         <Button
           type="button"
-          className="h-12 gap-2 rounded-full px-4 shadow-lg"
+          className="size-12 gap-2 rounded-full p-0 shadow-lg sm:w-auto sm:px-4"
           aria-label="Mở Trợ lý HR"
           title="Trợ lý HR"
         >
           <MessageCircle className="size-5" aria-hidden="true" />
-          Trợ lý HR
+          <span className="hidden sm:inline">Trợ lý HR</span>
         </Button>
         </PopoverTrigger>
         <PopoverContent side="top" align="end" sideOffset={12} collisionPadding={12} aria-labelledby="hr-assistant-title" className="w-[min(400px,calc(100vw-2rem))] overflow-hidden shadow-xl">

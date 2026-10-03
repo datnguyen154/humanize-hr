@@ -1,5 +1,4 @@
 import { Outlet } from 'react-router-dom'
-
 import { HrAssistantWidget } from '@/widgets/hr-assistant/HrAssistantWidget'
 
 import { MobileSidebarOverlay } from '../shared/MobileSidebarOverlay'

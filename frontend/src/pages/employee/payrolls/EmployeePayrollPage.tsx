@@ -136,12 +136,12 @@ function PaginationControls({
     onNext,
 }: PaginationControlsProps) {
     return (
-        <div className="mt-4 flex flex-col gap-3 border-t pb-2 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pb-0">
+        <div className="mt-4 flex flex-col gap-3 border-t pb-2 pr-16 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pb-0 sm:pr-40">
             <p className="min-w-0 text-center text-sm text-muted-foreground sm:text-left">
                 Hiển thị {fromItem}-{toItem} trong tổng số {totalItems} bảng
                 lương
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
+            <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 sm:justify-end">
                 <Button
                     type="button"
                     variant="outline"

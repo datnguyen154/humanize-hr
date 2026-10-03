@@ -484,7 +484,7 @@ export function DepartmentDetailPage() {
                                     </div>
 
                                     {employeeMeta && employeeMeta.totalPages > 1 ? (
-                                        <div className="mt-4 flex flex-col gap-3 border-t pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-4 flex flex-col gap-3 border-t pr-16 pt-4 sm:flex-row sm:items-center sm:justify-between sm:pr-40">
                                             <p className="text-sm text-muted-foreground">
                                                 Trang {employeePage} / {employeeMeta.totalPages}
                                             </p>
