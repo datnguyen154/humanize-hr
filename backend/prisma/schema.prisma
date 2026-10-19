@@ -22,6 +22,7 @@ model User {
   reviewedLeaveRequests LeaveRequest[] @relation("LeaveRequestReviewer")
   assignedLeaveRequests LeaveRequest[] @relation("LeaveRequestApprover")
   notifications         Notification[]
+  reviewedAttendanceAdjustments AttendanceAdjustmentRequest[] @relation("AttendanceAdjustmentReviewer")
 }
 
 model Employee {
@@ -43,6 +44,7 @@ model Employee {
   user          User?          @relation(fields: [userId], references: [id])
   leaveRequests LeaveRequest[]
   attendances   Attendance[]
+  attendanceAdjustments AttendanceAdjustmentRequest[]
   payrolls      Payroll[]
 
   @@index([email])
@@ -116,10 +118,41 @@ model Attendance {
 
   employee Employee @relation(fields: [employeeId], references: [id])
 
+  adjustmentRequests AttendanceAdjustmentRequest[]
+
   @@unique([employeeId, attendanceDate])
   @@index([attendanceDate])
   @@index([status, attendanceDate])
   @@index([employeeId, attendanceDate])
+}
+
+model AttendanceAdjustmentRequest {
+  id                    String                     @id @default(uuid()) @db.Uuid
+  employeeId            String                     @db.Uuid
+  attendanceId          String?                    @db.Uuid
+  attendanceDate        DateTime                   @db.Date
+  originalCheckInTime   DateTime?
+  originalCheckOutTime  DateTime?
+  originalUpdatedAt     DateTime?
+  requestedCheckInTime  DateTime
+  requestedCheckOutTime DateTime?
+  reason                String
+  status                AttendanceAdjustmentStatus @default(PENDING)
+  reviewedBy            String?                    @db.Uuid
+  reviewedAt            DateTime?
+  reviewNote            String?
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+
+  employee   Employee    @relation(fields: [employeeId], references: [id])
+  attendance Attendance? @relation(fields: [attendanceId], references: [id], onDelete: SetNull)
+  reviewer   User?       @relation("AttendanceAdjustmentReviewer", fields: [reviewedBy], references: [id], onDelete: SetNull)
+
+  @@index([employeeId, createdAt])
+  @@index([employeeId, attendanceDate])
+  @@index([attendanceId])
+  @@index([status, createdAt])
+  @@index([reviewedBy])
 }
 
 model Payroll {
@@ -199,6 +232,12 @@ enum AttendanceStatus {
   LATE
 }
 
+enum AttendanceAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 enum PayrollStatus {
   DRAFT
   PUBLISHED
@@ -211,6 +250,7 @@ enum Gender {
 }
 
 enum NotificationType {
+  ATTENDANCE_ADJUSTMENT_CREATED
   LEAVE_REQUEST_CREATED
   LEAVE_REQUEST_APPROVED
   LEAVE_REQUEST_REJECTED
@@ -218,5 +258,6 @@ enum NotificationType {
 }
 
 enum NotificationEntityType {
+  ATTENDANCE_ADJUSTMENT
   LEAVE_REQUEST
 }

@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  ClipboardClock,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -84,13 +85,16 @@ export function AttendanceHistoryPage() {
         Quay lại tổng quan
       </Link>
 
-      <div>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
           Lịch sử chấm công
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
           Theo dõi thời gian vào, ra và lịch sử chấm công của bạn.
         </p>
+        </div>
+        <Button variant="outline" asChild><Link to="/employee/attendance/adjustments"><ClipboardClock className="size-4" /> Yêu cầu điều chỉnh</Link></Button>
       </div>
 
       <Card className="border-border shadow-sm">

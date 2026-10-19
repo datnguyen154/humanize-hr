@@ -41,6 +41,55 @@ Trước khi thực hiện task:
 9. Ưu tiên production-ready, maintainable, type-safe và accessible.
 10. Chỉ thay đổi những file cần thiết cho scope hiện tại.
 
+## Local Skills — Chủ động lựa chọn
+
+Nguồn skill của dự án là `.agents/skills/<skill-name>/SKILL.md`.
+Agent phải chủ động chọn skill phù hợp, không chờ người dùng nhắc lại ở mỗi task.
+
+Trước khi phân tích hoặc triển khai task:
+
+1. Xem danh sách thư mục trong `.agents/skills/` và metadata `name`/`description`
+   của các `SKILL.md` khi chưa có trong context. Danh sách thực tế trên disk là
+   nguồn cập nhật; không chỉ dựa vào bảng tham khảo bên dưới.
+2. Chọn bộ skill nhỏ nhất có ích cho mục tiêu và phạm vi người dùng yêu cầu.
+   Đọc đầy đủ `SKILL.md` đã chọn trước khi áp dụng, kể cả task chỉ audit hoặc lập plan.
+3. Nếu skill dẫn tới skill/tài liệu khác, chỉ đọc phần liên quan theo điều kiện
+   của skill. Đường dẫn tương đối được tính từ thư mục chứa `SKILL.md`.
+4. Thông báo ngắn bằng tiếng Việt skill đang áp dụng và mục đích trong cập nhật
+   đầu tiên sau khi chọn. Không cần xin xác nhận chỉ để đọc hoặc dùng skill.
+5. Không đọc lại nội dung không đổi đã có trong context cùng task. Nếu task đổi
+   phạm vi hoặc xuất hiện skill mới, đánh giá lại lựa chọn.
+6. Nếu không có skill phù hợp, tiếp tục theo rule và pattern hiện tại của dự án.
+   Nếu skill được người dùng yêu cầu bị thiếu/không đọc được, báo rõ và không
+   khẳng định đã dùng skill đó.
+
+### Hướng chọn skill hiện tại
+
+| Task | Skill cần xem |
+| --- | --- |
+| Audit, plan, thêm hoặc sửa UI | `.agents/skills/design-taste-frontend/SKILL.md` để chọn mode và skill liên quan |
+| Thêm component, trạng thái UI hoặc đồng bộ shared UI | Qua dispatcher: `runtime-branding` và Minimal checklist của `web-design-guidelines`; giữ layout xung quanh |
+| Redesign hoặc polish sâu UI hiện có đã được yêu cầu | Qua dispatcher: `redesign-existing-projects`, `runtime-branding`, `high-end-visual-design`, `web-design-guidelines` |
+| Tạo UI/page mới | Qua dispatcher: `runtime-branding`, `high-end-visual-design`, `web-design-guidelines`; tiếp tục dùng architecture HRM hiện có |
+| Animation/motion được yêu cầu hoặc cần để thể hiện chuyển trạng thái | `.agents/skills/emil-design-eng/SKILL.md`; hover/focus thông thường không tự yêu cầu motion |
+| Review code, kiểm tra regression hoặc self-review thay đổi code | `.agents/skills/code-review/SKILL.md` |
+
+Các tên rút gọn trong bảng đều trỏ tới `.agents/skills/<tên>/SKILL.md`.
+Task chỉ sửa API, dữ liệu, backend hoặc tài liệu không tự kích hoạt bộ skill UI.
+
+### Giới hạn áp dụng
+
+- Yêu cầu người dùng và chỉ dẫn có độ ưu tiên cao hơn phải được tôn trọng.
+  Skill bổ trợ cho `AGENTS.md`, `.agents/rules/`, Backend contract và architecture;
+  không dùng sở thích thiết kế trong skill để mở rộng scope hoặc thay đổi nghiệp vụ.
+- Audit/plan không cho phép tự sửa application. Tôn trọng workflow planning nếu
+  người dùng yêu cầu review plan trước khi implement.
+- Humanize HR là application UI phục vụ công việc. Reuse tokens, shadcn/ui,
+  Tailwind và pattern thực tế; không tự thêm hero, hiệu ứng marketing, dependency,
+  theme hoặc hệ branding mới chỉ vì skill đề cập khả năng đó.
+- Xác minh bằng kiểm tra phù hợp với thay đổi. Phân biệt rõ đã đọc source, đã test,
+  đã xem UI chạy thực tế và phần chưa kiểm chứng; không kết luận UI PASS chỉ từ code.
+
 ## Frontend
 
 Khi thay đổi frontend, đọc:
@@ -64,15 +113,6 @@ Không implement trước khi plan đã được người dùng phê duyệt n�
 
 ## Verification Commands
 
-## Portfolio Direction And Task Close-Out
-
-- Mục tiêu dự án: portfolio ứng tuyển Frontend Developer; ưu tiên trải nghiệm thực tế, code dễ bảo trì và bằng chứng kiểm thử.
-- Hạ tầng hiện dùng gói miễn phí. Ưu tiên API/dịch vụ hiện có, không bổ sung dịch vụ trả phí nếu chưa được yêu cầu.
-- Lộ trình và trạng thái task: `docs/plans/frontend-portfolio-roadmap.md`. Đọc khi lập kế hoạch công việc tiếp theo.
-- Sau mỗi task: giải thích luồng hoạt động bằng tiếng Việt dễ hiểu, thêm cách trình bày trong phỏng vấn và nhắc task tiếp theo trong lộ trình. Chỉ bắt đầu task tiếp theo khi người dùng yêu cầu.
-
-## Verification Commands
-
 Không mặc định chạy lint/build sau mỗi thay đổi nhỏ.
 
 Khi hoàn thành milestone hoặc thay đổi có ảnh hưởng đáng kể:
@@ -80,37 +120,4 @@ Khi hoàn thành milestone hoặc thay đổi có ảnh hưởng đáng kể:
 ```bash
 npm run lint
 npm run build
-```
-
-`AGENTS.md` là format dành cho repository-level agent instructions và phù hợp để truyền setup, conventions và behavior cho coding agents. :contentReference[oaicite:2]{index=2}
-
----
-
-# 3. XÓA `web-design-backbone.md`
-
-Mình chốt **xóa file hiện tại**.
-
-Không sửa.
-
-Nó không phù hợp HRM.
-
-Hiện file bắt Agent:
-
-- phải "WOW";
-- Google Font;
-- Hero;
-- CTA glow;
-- scroll animation;
-- card hover lift;
-- gradient;
-- section 80px;
-- cấu trúc HTML/CSS/JS;
-- so với Apple/Stripe/Linear. :contentReference[oaicite:3]{index=3}
-
-Đó là guideline tốt cho marketing page, nhưng HRM là application UI.
-
-Thay bằng:
-
-```text
-.agents/rules/frontend.md
 ```

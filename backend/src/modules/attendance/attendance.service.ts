@@ -56,6 +56,10 @@ export class AttendanceServiceError extends Error {
 
 const COMPANY_TIME_ZONE = "Asia/Bangkok";
 const CHECK_IN_CUTOFF_SECONDS = 8 * 60 * 60;
+export const getAttendanceStatus = (secondsSinceMidnight: number): AttendanceStatus =>
+    secondsSinceMidnight <= CHECK_IN_CUTOFF_SECONDS
+        ? AttendanceStatus.PRESENT
+        : AttendanceStatus.LATE;
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 100;
@@ -241,10 +245,7 @@ export const attendanceService = {
             );
         }
 
-        const status =
-            secondsSinceMidnight <= CHECK_IN_CUTOFF_SECONDS
-                ? AttendanceStatus.PRESENT
-                : AttendanceStatus.LATE;
+        const status = getAttendanceStatus(secondsSinceMidnight);
 
         try {
             return await attendanceRepository.createAttendance({

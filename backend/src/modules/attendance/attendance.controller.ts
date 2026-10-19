@@ -1,5 +1,6 @@
 import { AttendanceStatus } from "@prisma/client";
 import type { Request, Response } from "express";
+import { attendanceReportService, parseAttendanceReportPeriod } from "./attendance-report.service";
 
 import type {
     AttendanceSortBy,
@@ -115,6 +116,27 @@ const handleError = (error: unknown, res: Response): Response => {
 };
 
 export const attendanceController = {
+    async getMonthlyReport(req: Request, res: Response): Promise<Response> {
+        try {
+            const period = parseAttendanceReportPeriod(req.query.year, req.query.month);
+            const report = await attendanceReportService.getMonthlyReport(period);
+            return res.status(200).json({ data: report });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async exportMonthlyReport(req: Request, res: Response): Promise<Response> {
+        try {
+            const period = parseAttendanceReportPeriod(req.query.year, req.query.month);
+            const result = await attendanceReportService.exportMonthlyReport(period);
+            res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            res.setHeader("Content-Disposition", `attachment; filename="${result.filename}"`);
+            return res.status(200).send(result.buffer);
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
     async checkIn(req: Request, res: Response): Promise<Response> {
         try {
             const attendance = await attendanceService.checkIn(

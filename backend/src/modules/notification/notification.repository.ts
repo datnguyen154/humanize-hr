@@ -42,6 +42,16 @@ const buildNotificationWhere = (
 const getDb = (db?: NotificationDbClient) => db ?? prisma;
 
 export const notificationRepository = {
+    findActiveAdminIds(db: NotificationDbClient) {
+        return db.user.findMany({
+            where: { role: "ADMIN", status: "ACTIVE" },
+            select: { id: true },
+        });
+    },
+
+    createNotifications(data: Prisma.NotificationCreateManyInput[], db: NotificationDbClient) {
+        return db.notification.createMany({ data });
+    },
     findNotifications(
         params: NotificationQueryParams,
     ): Promise<NotificationRow[]> {

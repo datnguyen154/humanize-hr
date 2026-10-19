@@ -123,6 +123,21 @@ const requireNotificationId = (id: string): string => {
 };
 
 export const notificationService = {
+    async createAttendanceAdjustmentCreatedNotifications(
+        context: { id: string; employeeFullName: string; attendanceDate: Date },
+        db: NotificationDbClient,
+    ) {
+        const admins = await notificationRepository.findActiveAdminIds(db);
+        if (admins.length === 0) return;
+        await notificationRepository.createNotifications(admins.map(({ id }) => ({
+            userId: id,
+            type: NotificationType.ATTENDANCE_ADJUSTMENT_CREATED,
+            title: "Có yêu cầu điều chỉnh chấm công mới",
+            message: `${context.employeeFullName} vừa gửi yêu cầu điều chỉnh chấm công ngày ${formatDate(context.attendanceDate)}.`,
+            entityType: NotificationEntityType.ATTENDANCE_ADJUSTMENT,
+            entityId: context.id,
+        })), db);
+    },
     async getNotifications(
         userIdInput: string | undefined,
         query: GetNotificationsQuery,

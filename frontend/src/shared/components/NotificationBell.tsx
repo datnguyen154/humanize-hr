@@ -2,6 +2,7 @@ import {
   Bell,
   CheckCircle2,
   ClipboardList,
+  ClipboardClock,
   UserRoundCheck,
   XCircle,
   type LucideIcon,
@@ -30,6 +31,7 @@ import type {
 } from '@/features/notification/types/notification.types'
 
 const notificationIcon: Record<NotificationType, LucideIcon> = {
+  ATTENDANCE_ADJUSTMENT_CREATED: ClipboardClock,
   LEAVE_REQUEST_CREATED: ClipboardList,
   LEAVE_REQUEST_APPROVED: CheckCircle2,
   LEAVE_REQUEST_REJECTED: XCircle,
@@ -43,6 +45,11 @@ const formatNotificationDate = (date: string) =>
   }).format(new Date(date))
 
 const getNotificationPath = (role: 'ADMIN' | 'EMPLOYEE', notification: Notification) => {
+  if (notification.entityType === 'ATTENDANCE_ADJUSTMENT') {
+    return role === 'ADMIN'
+      ? `/admin/attendance/adjustments/${notification.entityId}`
+      : `/employee/attendance/adjustments/${notification.entityId}`
+  }
   if (notification.entityType !== 'LEAVE_REQUEST') {
     return null
   }

@@ -14,6 +14,8 @@ type DatePickerProps = {
   id?: string
   disabled?: boolean
   allowClear?: boolean
+  popoverClassName?: string
+  modal?: boolean
   'aria-invalid'?: boolean
 }
 
@@ -34,6 +36,8 @@ export function DatePicker({
   id,
   disabled = false,
   allowClear = false,
+  popoverClassName,
+  modal = false,
   'aria-invalid': ariaInvalid,
 }: DatePickerProps) {
   const [open, setOpen] = useState(false)
@@ -46,7 +50,7 @@ export function DatePicker({
   }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={modal}>
       <PopoverTrigger asChild>
         <Button
           id={id}
@@ -63,7 +67,7 @@ export function DatePicker({
           <CalendarDays className="size-4 shrink-0 opacity-70" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="max-w-[calc(100vw-2rem)]">
+      <PopoverContent align="start" className={cn('max-w-[calc(100vw-2rem)]', popoverClassName)}>
         <Calendar
           mode="single"
           selected={selectedDate}

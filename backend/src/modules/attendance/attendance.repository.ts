@@ -1,4 +1,5 @@
-import type { AttendanceStatus, Prisma } from "@prisma/client";
+import { Prisma, type AttendanceStatus } from "@prisma/client";
+import type { AttendanceReportRow } from "./attendance-report.types";
 
 import { prisma } from "../../config/prisma";
 
@@ -113,6 +114,41 @@ const buildAttendanceOrderBy = (
 });
 
 export const attendanceRepository = {
+    async getMonthlyReportRows(fromDate: Date, toDate: Date): Promise<AttendanceReportRow[]> {
+        // A shared snapshot keeps counts and employee names consistent during check-out.
+        return prisma.$transaction(async (tx) => {
+            const where = { attendanceDate: { gte: fromDate, lt: toDate } };
+            const counts = await tx.attendance.groupBy({
+                by: ["employeeId", "status"], where, _count: { _all: true },
+            });
+            const missing = await tx.attendance.groupBy({
+                by: ["employeeId"], where: { ...where, checkOutTime: null }, _count: { _all: true },
+            });
+            const employeeIds = [...new Set(counts.map((row) => row.employeeId))];
+            if (employeeIds.length === 0) return [];
+            const employees = await tx.employee.findMany({
+                where: { id: { in: employeeIds } },
+                select: { id: true, employeeCode: true, fullName: true },
+                orderBy: { employeeCode: "asc" },
+            });
+            const byEmployee = new Map<string, { present: number; late: number }>();
+            for (const row of counts) {
+                const entry = byEmployee.get(row.employeeId) ?? { present: 0, late: 0 };
+                if (row.status === "PRESENT") entry.present += row._count._all;
+                if (row.status === "LATE") entry.late += row._count._all;
+                byEmployee.set(row.employeeId, entry);
+            }
+            const missingByEmployee = new Map(missing.map((row) => [row.employeeId, row._count._all]));
+            return employees.map((employee) => {
+                const count = byEmployee.get(employee.id)!;
+                return {
+                    employeeId: employee.id, employeeCode: employee.employeeCode, fullName: employee.fullName,
+                    ...count, totalRecords: count.present + count.late,
+                    missingCheckOut: missingByEmployee.get(employee.id) ?? 0,
+                };
+            });
+        }, { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead });
+    },
     findAttendanceByEmployeeAndDate(
         employeeId: string,
         attendanceDate: Date,

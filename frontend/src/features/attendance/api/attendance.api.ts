@@ -1,5 +1,6 @@
 import { authStorage } from '@/features/auth'
 import { axiosInstance } from '@/shared/api'
+import type { AttendanceMonthlyReport, AttendanceReportPeriod } from '../types/attendance-report.types'
 
 import type {
   AttendanceHistoryQueryParams,
@@ -17,6 +18,20 @@ const getAuthHeaders = () => {
         Authorization: `Bearer ${accessToken}`,
       }
     : undefined
+}
+
+export async function getAttendanceMonthlyReport(params: AttendanceReportPeriod, signal?: AbortSignal) {
+  const response = await axiosInstance.get<{ data: AttendanceMonthlyReport }>('/attendance/monthly-report', {
+    params, signal, headers: getAuthHeaders(),
+  })
+  return response.data.data
+}
+
+export async function exportAttendanceMonthlyReport(params: AttendanceReportPeriod) {
+  const response = await axiosInstance.get<Blob>('/attendance/monthly-report/export', {
+    params, responseType: 'blob', headers: getAuthHeaders(),
+  })
+  return response.data
 }
 
 export const getAttendanceHistory = async (

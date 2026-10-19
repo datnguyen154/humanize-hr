@@ -1,5 +1,53 @@
 # Attendance Management Module
 
+## Bổ sung: báo cáo tháng cho ADMIN
+
+Hai API đọc dữ liệu, yêu cầu Bearer token và ADMIN:
+
+- `GET /api/attendance/monthly-report?year=2026&month=10`
+- `GET /api/attendance/monthly-report/export?year=2026&month=10`
+
+`year` và `month` bắt buộc: năm nguyên 1–9999, tháng nguyên 1–12;
+giá trị thiếu/sai hoặc query lặp dạng array trả 400.
+Không đặt năm bắt đầu dữ liệu hoặc quy tắc ngày công mới.
+
+Response JSON:
+
+```json
+{
+  "data": {
+    "period": { "year": 2026, "month": 10 },
+    "employees": [
+      {
+        "employeeId": "uuid",
+        "employeeCode": "EMP001",
+        "fullName": "Nguyễn Văn An",
+        "totalRecords": 22,
+        "present": 20,
+        "late": 2,
+        "missingCheckOut": 1
+      }
+    ],
+    "totals": {
+      "totalEmployees": 1,
+      "totalRecords": 22,
+      "present": 20,
+      "late": 2,
+      "missingCheckOut": 1
+    }
+  }
+}
+```
+
+Tổng hợp toàn kỳ theo attendanceDate, không bị giới hạn bởi pagination của list API.
+Chỉ trả nhân viên có chấm công trong kỳ, sắp xếp employeeCode tăng dần.
+totalRecords = present + late; missingCheckOut là checkOutTime null, không phải nghỉ không phép.
+Tháng rỗng trả employees rỗng và totals bằng 0.
+
+Export dùng cùng service tổng hợp và trả XLSX binary với Content-Disposition filename
+`attendance-YYYY-MM.xlsx`; ô số numeric, header tiếng Việt. Export lấy snapshot mới,
+không lấy dữ liệu trang đang hiển thị hay cache Frontend. Route UI: `/admin/attendance/report`.
+
 ## 1. Mục Tiêu Module
 
 Attendance Management là module quản lý việc chấm công hằng ngày trong hệ thống HRM.
@@ -531,3 +579,31 @@ Luồng check out cơ bản:
 3. Kiểm tra đã check in chưa.
 4. Kiểm tra `checkOutTime` còn `null`.
 5. Cập nhật `checkOutTime` bằng thời gian hiện tại.
+
+---
+
+## 10. Yêu Cầu Điều Chỉnh Chấm Công
+
+Nhân viên gửi yêu cầu sửa giờ của bản ghi hiện có hoặc bổ sung ngày quên chấm
+công. `employeeId` luôn được tìm từ access token, không nhận từ request body.
+Yêu cầu lưu giờ gốc, phiên bản (`originalUpdatedAt`), giờ đề xuất, lý do và
+lịch sử duyệt. Mỗi nhân viên chỉ có tối đa một yêu cầu PENDING trên cùng ngày.
+
+| Endpoint | Role | Response |
+| --- | --- | --- |
+| `GET /api/attendance/adjustment-requests?page=1&limit=10&status=PENDING&search=...` | ADMIN, EMPLOYEE | `{ data: [], meta }`; employee chỉ thấy của mình, `search` chỉ dành cho Admin |
+| `POST /api/attendance/adjustment-requests` | EMPLOYEE | `201 { data }` |
+| `GET /api/attendance/adjustment-requests/:id` | ADMIN, EMPLOYEE sở hữu | `{ data }` |
+| `PATCH /api/attendance/adjustment-requests/:id/review` | ADMIN | `{ data }` |
+
+POST body: `{ attendanceDate: "YYYY-MM-DD", checkInTime: ISO timestamp,
+checkOutTime: ISO timestamp | null, reason: string }`. ISO timestamp cần timezone.
+Giờ vào/ra phải cùng ngày theo `Asia/Bangkok`, giờ ra sau giờ vào, không được ở
+tương lai; lý do tối đa 1000 ký tự. PATCH body: `{ status: "APPROVED" | "REJECTED",
+reviewNote: string | null }`; từ chối bắt buộc ghi chú.
+
+Admin duyệt trong transaction: claim yêu cầu đang PENDING, kiểm tra attendance
+chưa đổi từ lúc gửi, tạo/cập nhật attendance rồi lưu reviewer/time/status.
+Từ chối chỉ lưu kết quả duyệt, không sửa attendance. Duyệt trùng hoặc dữ liệu
+đã thay đổi trả 409. Status PRESENT/LATE tính lại theo 08:00 giờ công ty.
+Điều chỉnh không tự tính lại bảng lương đã phát hành; chưa có rule khóa kỳ.

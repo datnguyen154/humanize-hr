@@ -6,9 +6,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock3,
+  ClipboardClock,
   Search,
 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -146,11 +148,17 @@ export function AttendanceListPage() {
     <section className="min-w-0 overflow-x-hidden">
       <Card className="min-w-0">
         <CardHeader className="gap-4">
-          <div className="grid gap-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="grid gap-1.5">
             <CardTitle className="text-lg">Danh sách chấm công</CardTitle>
             <CardDescription>
               Theo dõi lịch sử vào, ra và trạng thái chấm công của nhân viên.
             </CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" asChild><Link to="/admin/attendance/adjustments"><ClipboardClock className="size-4" aria-hidden="true" />Yêu cầu điều chỉnh</Link></Button>
+              <Button variant="outline" asChild><Link to="/admin/attendance/report"><CalendarDays className="size-4" aria-hidden="true" />Tổng hợp tháng</Link></Button>
+            </div>
           </div>
 
           <div className="grid gap-4">

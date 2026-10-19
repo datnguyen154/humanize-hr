@@ -1,10 +1,11 @@
 export type NotificationType =
+  | 'ATTENDANCE_ADJUSTMENT_CREATED'
   | 'LEAVE_REQUEST_CREATED'
   | 'LEAVE_REQUEST_APPROVED'
   | 'LEAVE_REQUEST_REJECTED'
   | 'LEAVE_REQUEST_ASSIGNED'
 
-export type NotificationEntityType = 'LEAVE_REQUEST'
+export type NotificationEntityType = 'LEAVE_REQUEST' | 'ATTENDANCE_ADJUSTMENT'
 
 export type Notification = {
   id: string

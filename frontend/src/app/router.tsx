@@ -1,7 +1,11 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { AttendanceAdjustmentDetailPage } from '../pages/attendance-adjustments/AttendanceAdjustmentDetailPage'
+import { AttendanceAdjustmentListPage } from '../pages/attendance-adjustments/AttendanceAdjustmentListPage'
+import { CreateAttendanceAdjustmentPage } from '../pages/attendance-adjustments/CreateAttendanceAdjustmentPage'
 
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
 import { AttendanceListPage } from '../pages/admin/attendance/AttendanceListPage'
+import { AttendanceMonthlyReportPage } from '../pages/admin/attendance/AttendanceMonthlyReportPage'
 import { CreateDepartmentPage } from '../pages/admin/departments/CreateDepartmentPage'
 import { DepartmentDetailPage } from '../pages/admin/departments/DepartmentDetailPage'
 import { EditDepartmentPage } from '../pages/admin/departments/EditDepartmentPage'
@@ -58,6 +62,12 @@ export const router = createBrowserRouter([
         path: 'attendance',
         element: <AttendanceListPage />,
       },
+      {
+        path: 'attendance/report',
+        element: <AttendanceMonthlyReportPage />,
+      },
+      { path: 'attendance/adjustments', element: <AttendanceAdjustmentListPage audience="ADMIN" /> },
+      { path: 'attendance/adjustments/:id', element: <AttendanceAdjustmentDetailPage audience="ADMIN" /> },
       {
         path: 'departments',
         element: <DepartmentListPage />,
@@ -134,6 +144,9 @@ export const router = createBrowserRouter([
         path: 'attendance',
         element: <AttendanceHistoryPage />,
       },
+      { path: 'attendance/adjustments', element: <AttendanceAdjustmentListPage audience="EMPLOYEE" /> },
+      { path: 'attendance/adjustments/new', element: <CreateAttendanceAdjustmentPage /> },
+      { path: 'attendance/adjustments/:id', element: <AttendanceAdjustmentDetailPage audience="EMPLOYEE" /> },
       {
         path: 'leave-requests',
         element: <EmployeeLeaveRequestListPage />,
