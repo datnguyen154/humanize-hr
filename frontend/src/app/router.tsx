@@ -6,6 +6,7 @@ import { CreateAttendanceAdjustmentPage } from '../pages/attendance-adjustments/
 import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
 import { AttendanceListPage } from '../pages/admin/attendance/AttendanceListPage'
 import { AttendanceMonthlyReportPage } from '../pages/admin/attendance/AttendanceMonthlyReportPage'
+import { WorkScheduleSettingsPage } from '../pages/admin/attendance/WorkScheduleSettingsPage'
 import { CreateDepartmentPage } from '../pages/admin/departments/CreateDepartmentPage'
 import { DepartmentDetailPage } from '../pages/admin/departments/DepartmentDetailPage'
 import { EditDepartmentPage } from '../pages/admin/departments/EditDepartmentPage'
@@ -68,6 +69,10 @@ export const router = createBrowserRouter([
       },
       { path: 'attendance/adjustments', element: <AttendanceAdjustmentListPage audience="ADMIN" /> },
       { path: 'attendance/adjustments/:id', element: <AttendanceAdjustmentDetailPage audience="ADMIN" /> },
+      {
+        path: 'attendance/settings',
+        element: <WorkScheduleSettingsPage />,
+      },
       {
         path: 'departments',
         element: <DepartmentListPage />,

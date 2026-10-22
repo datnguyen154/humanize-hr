@@ -11,6 +11,7 @@ import { leaveRequestRoutes } from "./modules/leave-request/leave-request.routes
 import { hrAssistantRoutes } from "./modules/hr-assistant/hr-assistant.routes";
 import { payrollRoutes } from "./modules/payroll/payroll.routes";
 import { notificationRoutes } from "./modules/notification/notification.routes";
+import { workScheduleRoutes } from "./modules/work-calendar/work-schedule.routes";
 
 const app = express();
 
@@ -51,5 +52,6 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/payrolls", payrollRoutes);
 app.use("/api/hr-assistant", hrAssistantRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/work-calendar", workScheduleRoutes);
 
 export default app;

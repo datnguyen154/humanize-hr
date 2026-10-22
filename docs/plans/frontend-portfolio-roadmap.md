@@ -9,6 +9,12 @@ Tận dụng Render Free và backend hiện có; không thêm dịch vụ trả 
 
 ## Thứ tự thực hiện
 
+### Ưu tiên mới sau Attendance Adjustment
+
+Theo quyết định ngày 19/10/2026, tạm hoãn Admin tạo thông báo nội bộ; ưu tiên **Attendance Calculation → đối soát/khóa kỳ → Payroll Configuration MVP**. [Kế hoạch nghiệp vụ/schema](attendance-calculation-payroll-mvp.md), [vertical slices và checklist tiến độ](attendance-payroll-mvp-slices.md), [context cho Anti](../agents/ANTIGRAVITY_CONTEXT.md) là bộ tài liệu hiện hành. Người dùng đã xác nhận S0 liên quan draft; **Backend S1 READY**, migration additive local + tests PASS theo [report/brief Anti](../codex-reports/attendance-payroll-s1-work-schedule-drafts.md). Chờ Anti frontend S1, Codex integration review và người dùng QA/done; không mở S2. Mục 1–7 bên dưới giữ lịch sử roadmap, không có nghĩa tự bắt đầu mục 6.
+
+Mỗi slice: Codex hoàn tất Backend/API/tests nhỏ → Anti làm Frontend kết nối API thật/tests → Codex review tích hợp → người dùng QA localhost và xác nhận `done` → mới chuyển slice. Không làm hết backend trước frontend. Backend READY không phải task DONE; chỉ ghi QA PASS theo kết quả thật. LOCKED không unlock trực tiếp; sai sót ghi thành request có lý do/audit, không tự sửa công/lương lịch sử.
+
 1. **Đã implement, chờ manual test dữ liệu thật:** sửa Admin Dashboard: KPI hôm nay,
    biểu đồ đủ dữ liệu theo kỳ, trạng thái lỗi/loading và query gọn. Tổng hợp tại backend hiện có.
 2. **Đã implement Employee List, chờ manual test:** chuẩn hóa bảng và form. Filter trên URL,

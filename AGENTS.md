@@ -98,6 +98,17 @@ Khi thay đổi frontend, đọc:
 
 ## Workflow
 
+### Attendance → Payroll MVP Collaboration
+
+Khi làm Attendance Calculation/Payroll Configuration, đọc [kế hoạch](docs/plans/attendance-calculation-payroll-mvp.md) và [checklist vertical slices](docs/plans/attendance-payroll-mvp-slices.md). Frontend agent mới bắt đầu từ [ANTIGRAVITY_CONTEXT](docs/agents/ANTIGRAVITY_CONTEXT.md). Mỗi slice phải có Backend/API thật → Frontend → Codex review → người dùng QA localhost và xác nhận `done` trước slice tiếp theo. Không implement toàn bộ backend trước frontend; policy còn OPEN không được tự chốt. Checklist là nguồn tiến độ, không tự ghi người dùng đã QA/done.
+
+Phân công hiện hành, áp dụng từ lượt re-review S1 và các slice sau:
+
+- **Codex:** nghiệp vụ, architecture, Prisma/Backend/API contract, mọi logic/state/data flow/validation/API integration/concurrency ở cả Backend lẫn Frontend, tests tương ứng và integration review. Phát hiện lỗi logic trong frontend thì chủ động sửa/test trong scope, không chỉ giao lại Anti vì vị trí file là frontend.
+- **Anti:** React UI/UX, CSS, layout, responsive, visual và kiểm thử giao diện. Chỉ giao Anti lỗi thuần giao diện; không giao lỗi logic/API/state dưới nhãn UI.
+- Lỗi có cả logic và giao diện: Codex xử lý logic trước, bàn giao rõ phần visual còn lại cho Anti. Không hai agent sửa cùng file đồng thời; không tự nhắn agent/thread khác khi chưa được người dùng cho phép.
+- Người dùng quyết định chính sách còn OPEN, QA localhost và xác nhận `done`; test tự động hoặc review PASS không thay thế xác nhận này. Quy tắc trên thay thế phân công cũ chỉ dựa vào ranh giới frontend/backend trong tài liệu bàn giao lịch sử.
+
 Task thông thường:
 
 Plan → Review → Implement → Review → Manual Test → Lint/Build → Commit

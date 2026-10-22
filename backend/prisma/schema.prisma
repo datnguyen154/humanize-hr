@@ -23,6 +23,56 @@ model User {
   assignedLeaveRequests LeaveRequest[] @relation("LeaveRequestApprover")
   notifications         Notification[]
   reviewedAttendanceAdjustments AttendanceAdjustmentRequest[] @relation("AttendanceAdjustmentReviewer")
+  createdWorkSchedules WorkScheduleVersion[] @relation("WorkScheduleCreator")
+  updatedWorkSchedules WorkScheduleVersion[] @relation("WorkScheduleUpdater")
+  workScheduleAudits WorkScheduleAudit[]
+}
+
+model WorkScheduleVersion {
+  id               String @id @default(uuid()) @db.Uuid
+  version          Int @unique @default(autoincrement())
+  revision         Int @default(1)
+  status           WorkScheduleStatus @default(DRAFT)
+  effectiveFrom    DateTime @db.Date
+  timezone         String
+  weekdays         Int[]
+  startMinute      Int
+  endMinute        Int
+  breakStartMinute Int
+  breakEndMinute   Int
+  createdBy        String @db.Uuid
+  updatedBy        String @db.Uuid
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  creator          User @relation("WorkScheduleCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater          User @relation("WorkScheduleUpdater", fields: [updatedBy], references: [id], onDelete: Restrict)
+  audits           WorkScheduleAudit[]
+
+  @@index([status, version])
+}
+
+model WorkScheduleAudit {
+  id                String @id @default(uuid()) @db.Uuid
+  scheduleVersionId String @db.Uuid
+  action            WorkScheduleAuditAction
+  before            Json?
+  after             Json
+  actorId           String @db.Uuid
+  createdAt         DateTime @default(now())
+  scheduleVersion   WorkScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+  actor             User @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([scheduleVersionId, createdAt])
+}
+
+enum WorkScheduleStatus {
+  DRAFT
+  ACTIVE
+}
+
+enum WorkScheduleAuditAction {
+  CREATE
+  UPDATE
 }
 
 model Employee {
