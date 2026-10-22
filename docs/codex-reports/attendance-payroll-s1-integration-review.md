@@ -2,7 +2,7 @@
 
 Ngày: 22/10/2026. Reviewer: Codex.
 
-**Kết luận hiện tại sau re-review: PASS F01–F05 và kiểm thử tích hợp tự động; sẵn sàng người dùng QA localhost.** Codex đã sửa bổ sung logic theo phân công mới; không đổi contract/Backend/Attendance nghiệp vụ, không chuyển S2, chưa người dùng QA/done. Chi tiết mới nhất ở mục 5.
+**Kết luận hiện tại: S1 DONE — re-review PASS F01–F05, người dùng QA localhost PASS và xác nhận `done` ngày 22/10/2026.** Evidence kỹ thuật ở mục 5, xác nhận đóng slice ở mục 6. Chưa implement S2; không suy QA S1 thành phê duyệt policy/contract S2.
 
 Lịch sử vòng 1: FAIL acceptance, chỉ review/tài liệu và giao Anti sửa. Findings và evidence vòng 1 ở mục 1–4 được giữ để truy vết; không dùng trạng thái DB/lỗi cũ làm kết luận hiện tại.
 
@@ -151,3 +151,11 @@ QA tại **http://localhost:5173/admin/attendance/settings**, ADMIN local:
 4. Regression lịch sử chấm công, check-in/out, duyệt điều chỉnh và báo cáo tháng. Dùng dữ liệu QA được phép; không tạo hàng loạt draft hoặc thao tác công thật chỉ để đủ phân trang.
 
 **Gate hiện tại: Codex re-review PASS → chờ người dùng QA localhost và xác nhận `done`. S1 chưa DONE; S2 chưa bắt đầu.**
+
+## 6. User QA và đóng S1 — 22/10/2026
+
+- Người xác nhận: người dùng/chủ dự án, qua yêu cầu trực tiếp: **“Tôi đã QA localhost S1 và xác nhận done.”**
+- Kết quả ghi nhận: **QA localhost PASS; S1 DONE**. Không tự tạo bằng chứng testcase, thiết bị hoặc log chi tiết chưa được cung cấp. Các trạng thái chờ QA ở mục 1–5 là lịch sử trước xác nhận này.
+- Không có thay đổi application trong lượt đóng slice; không chạy lại tests/lint/build chỉ vì sửa tài liệu. Giữ evidence cuối: 61 Frontend tests + lint/build PASS; 52 Backend tests (PostgreSQL/HTTP thật) + compile PASS.
+- Source S1 đã có commit `71f85081` (`feat(attendance): add work schedule draft management`) trước lượt đóng slice; Git lúc bắt đầu sạch. Không amend/reset hoặc tạo lại source đã commit. Lượt này chỉ commit tài liệu ghi nhận QA thuộc S1 theo message người dùng yêu cầu; đề xuất S2 tách khỏi commit đó.
+- Bước tiếp theo được phép: lập đề xuất S2 và xin xác nhận gate. **Chưa Backend/Frontend S2, migration hoặc giao Anti triển khai.**

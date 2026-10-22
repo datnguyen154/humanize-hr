@@ -169,7 +169,7 @@ Trạng thái dưới được cập nhật theo xác nhận người dùng; ph�
 | A0-09 / S6 | Yêu cầu sai sót sau khóa: ai ghi/ai nhận/quy trình xử lý | **Không unlock và phải ghi nhận request có lý do/audit đã chốt.** Còn cần quyền tạo/xem, người tiếp nhận, lifecycle và căn cứ xử lý. RECORDED là trạng thái receipt đề xuất; có bù kỳ sau hay chứng từ riêng phải duyệt, không tự áp vào lương hoặc hỏi lại việc cho unlock trước publish |
 | A0-10 / S7–S9 | Lương hợp đồng, rule tùy chọn và nghĩa vụ | Nguồn rate/effective, whitelist/base các khoản, làm tròn VND và giới hạn Decimal? Thuế/BH nhập số HR đối soát hay demo trước nghĩa vụ? Không tự phát hành như net hoàn chỉnh khi chưa đủ dữ liệu, không biến “đối soát” thành phạt |
 
-**Gate slice đầu đã được người dùng xác nhận.** Contract v1 S1 đã chốt; Backend/Frontend và Codex re-review đã có evidence trong checklist. Còn người dùng QA/done S1. Các quyết định lễ/quy đổi công/khóa/Payroll vẫn OPEN và chặn slice tương ứng, không bị đóng ngầm vì S1 hoàn thành kiểm thử tự động.
+**S1 DONE ngày 22/10/2026:** người dùng xác nhận QA localhost PASS và `done`, sau Backend/Frontend và Codex re-review có evidence trong checklist. Các quyết định lễ/quy đổi công/khóa/Payroll vẫn OPEN và chặn slice tương ứng; QA S1 không tự duyệt gate S2.
 
 ### Ranh giới pháp lý cần review
 
@@ -181,6 +181,6 @@ Cấm phạt tiền/cắt lương thay xử lý kỷ luật là ranh giới cầ
 
 ## 9. Điểm dừng và bước tiếp theo
 
-Backend S1 và migration additive local đã hoàn tất theo report/tests; Frontend S1 đã có và re-review PASS theo checklist, không seed/activate hoặc thay check-in/out. Bước tiếp theo là người dùng QA/done; lỗi logic tiếp tục thuộc Codex dù nằm ở frontend, chỉ lỗi thuần UI giao Anti. Không tự chuyển S2. Tests/acceptance của các slice sau vẫn là kế hoạch, không phải kết quả PASS.
+Backend/Frontend S1, Codex re-review và người dùng QA/done đã hoàn tất ngày 22/10/2026 theo checklist; không seed/activate hoặc thay check-in/out. Bước tiếp theo chỉ chuẩn bị gate/contract S2; lỗi logic tiếp tục thuộc Codex dù nằm ở frontend, chỉ lỗi thuần UI giao Anti. Chưa code S2. Tests/acceptance của các slice sau vẫn là kế hoạch, không phải kết quả PASS.
 
 Cách giải thích khi phỏng vấn sau khi đã triển khai: “Hệ thống tách chấm công thô, tính công và chốt công. Backend kết hợp lịch có hiệu lực, ngày lễ, phép hợp lệ và các điều chỉnh được duyệt; HR giải quyết bất thường trước khi khóa snapshot. Payroll đọc snapshot đó nên thay lịch hay sửa chấm công sau này không làm đổi lương lịch sử.” Hiện đây là kiến trúc dự kiến, chưa mô tả như tính năng đã hoàn thành trong CV.

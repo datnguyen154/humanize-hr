@@ -56,9 +56,11 @@ Backend local đã được chứng minh bằng server test HTTP tạm thời (p
 
 UI URL sau Anti implement: `http://localhost:5173/admin/attendance/settings` (**chưa tồn tại lúc Backend handoff**). Dùng ADMIN thật của local qua Login, không ghi token/password vào tài liệu. Hiện không có draft mặc định trong DB; tạo qua form/API, chọn ngày hiệu lực hợp lệ tùy QA. Không sử dụng ngày ví dụ trong contract như lịch được activate.
 
-## 6. Acceptance còn lại
+## 6. Acceptance — S1 DONE ngày 22/10/2026
 
-- [ ] Anti frontend + tests/lint/build và API integration thật.
-- [ ] Codex review FE so contract, CORS/route/auth/DTO/date/concurrency và regression.
-- [ ] Người dùng QA localhost: tạo/reload/sửa, stale conflict, role denial, responsive và trạng thái UI.
-- [ ] Người dùng xác nhận done cho S1. Chỉ sau đó mới xem xét gate S2, không tự activate ngay.
+- [x] Frontend hoàn tất; evidence cuối 61 tests + lint/build PASS tại [re-review](attendance-payroll-s1-integration-review.md).
+- [x] Codex review F01–F05 PASS, PostgreSQL/HTTP thật và regression PASS; xem report re-review để phân biệt tests/fixture/QA.
+- [x] Người dùng xác nhận QA localhost tổng thể PASS ngày 22/10/2026; không tự điền kết quả từng case/device.
+- [x] Người dùng xác nhận trực tiếp “Tôi đã QA localhost S1 và xác nhận done.” S1 DONE; S2 cần duyệt gate/contract trước code.
+
+Các mô tả “frontend chưa có/chờ QA” bên trên là trạng thái tại thời điểm Backend handoff. Source đã commit `71f85081`; đóng slice không thay application/Prisma hoặc chạy migration.

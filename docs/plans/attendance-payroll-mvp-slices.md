@@ -1,6 +1,6 @@
 # Attendance → Payroll MVP — Vertical Slices & Checklist
 
-Cập nhật sau re-review 22/10/2026. **S1 Codex integration review PASS F01–F05**, Anti đã sửa và Codex bổ sung logic/tests theo phân công mới; xem [review mục 5](../codex-reports/attendance-payroll-s1-integration-review.md). Frontend 61 tests/lint/build PASS, Backend 52 tests (gồm PostgreSQL thật) PASS; DB blocker trước đã hết. **Chờ người dùng QA/done, chưa chuyển S2.** Nghiệp vụ/schema tổng quan: [plan](attendance-calculation-payroll-mvp.md). Handoff frontend: [Anti context](../agents/ANTIGRAVITY_CONTEXT.md). Tài liệu này là nguồn tiến độ chính, thay cách triển khai hết backend rồi mới làm UI.
+Cập nhật 22/10/2026. **S1 DONE: người dùng xác nhận QA localhost PASS và `done`**, sau Codex re-review PASS F01–F05; xem [review](../codex-reports/attendance-payroll-s1-integration-review.md). Evidence kiểm thử trước QA: Frontend 61 tests/lint/build PASS, Backend 52 tests (gồm PostgreSQL thật) PASS. S2 chưa implement, còn gate nghiệp vụ/contract. Nghiệp vụ/schema tổng quan: [plan](attendance-calculation-payroll-mvp.md). Handoff frontend: [Anti context](../agents/ANTIGRAVITY_CONTEXT.md). Tài liệu này là nguồn tiến độ chính, thay cách triển khai hết backend rồi mới làm UI.
 
 ## 1. Gate và trách nhiệm
 
@@ -19,7 +19,7 @@ Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backen
 | Slice | Contract APPROVED | Codex BE + tests READY | Anti FE + tests READY | Codex integration review | Người dùng QA + done | Trạng thái |
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 — Quyết định/handoff | [x] Gate/contract S1 | N/A | N/A | [x] Source/context | N/A: người dùng đã xác nhận policy S1 và yêu cầu triển khai BE | Gate S1 đã duyệt; A0 của các slice sau còn OPEN |
-| S1 — Lịch draft | [x] v1 | [x] Retest 52 PASS | [x] Anti UI + Codex logic/tests | [x] Re-review PASS 22/10 | [ ] | 61 FE tests/lint/build PASS, 52 BE tests PASS; chờ người dùng QA/done |
+| S1 — Lịch draft | [x] v1 | [x] Retest 52 PASS | [x] Anti UI + Codex logic/tests | [x] Re-review PASS 22/10 | [x] Người dùng QA PASS + done 22/10 | DONE |
 | S2 — Lễ/ngoại lệ + kích hoạt lịch | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 | S3 — Preview công một nhân viên/tháng | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 | S4 — Bảng công nháp toàn kỳ | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
@@ -37,7 +37,7 @@ Checklist bàn giao cho **slice hiện tại S1**, không tạo nhiều nguồn 
 - [x] Anti đã tích hợp API layer thật; Codex xác minh source/contract, bổ sung logic/tests: 56 Vitest + 5 Node helper = 61 tests PASS, lint/build PASS. Không đồng nhất API fixtures với QA end-to-end bằng tài khoản thật.
 - [x] Vòng 1 có findings F01–F05, lịch sử giữ trong [review](../codex-reports/attendance-payroll-s1-integration-review.md). Anti đã sửa; Codex chủ động xử lý logic còn sót theo phân công mới.
 - [x] Codex re-review F01–F05 PASS; Chrome actual focus/state/pagination/responsive PASS; PostgreSQL CRUD/CAS/audit/rollback và CORS preflight localhost:5173 PASS. Sau save 1 refetch list. Không còn lỗi UI S1 mới cần giao Anti trong scope đã kiểm tra.
-- [ ] Người dùng có URL + dữ liệu/steps QA + expected results; ghi kết quả QA thật và nhận `done`.
+- [x] Người dùng xác nhận ngày 22/10/2026: “Tôi đã QA localhost S1 và xác nhận done.” Ghi nhận QA tổng thể PASS, không tự bổ sung log/case/device mà người dùng chưa cung cấp. S1 DONE; không suy thành duyệt policy S2.
 
 ## 3. Localhost và bộ dữ liệu QA
 
@@ -139,4 +139,4 @@ Report từng slice đặt tại `docs/codex-reports/attendance-payroll-s<N>-<to
 
 Backend chưa có npm script lint/test: Codex ghi build và `node --test` file liên quan thực chạy; Anti ghi `npm run test`, `npm run lint`, `npm run build` trong frontend. Test mock/Playwright giả API không thay bằng chứng QA API thật. Task tài liệu hiện tại chỉ kiểm tra tài liệu/liên kết/whitespace, không báo application PASS.
 
-**Bước tiếp theo:** người dùng QA S1 tại http://localhost:5173/admin/attendance/settings theo [review mục 5](../codex-reports/attendance-payroll-s1-integration-review.md). Nếu phát hiện lỗi logic, Codex sửa/test trực tiếp; chỉ bàn giao lỗi visual thuần UI cho Anti. Chưa tự gửi message agent khác; chờ người dùng xác nhận `done`, không chuyển S2.
+**Bước tiếp theo:** S1 đã DONE theo xác nhận người dùng; rà soát gate và lập đề xuất S2 để người dùng duyệt. Chưa code/migration/giao Anti triển khai S2. Workflow vẫn Codex Backend → Anti Frontend → Codex review/sửa logic → người dùng QA + done; lỗi logic thuộc Codex, lỗi thuần visual thuộc Anti.

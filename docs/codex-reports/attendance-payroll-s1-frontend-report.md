@@ -2,7 +2,7 @@
 
 Ngày: 22/10/2026.
 Tác giả: Anti (Frontend Agent).
-Trạng thái mới nhất sau Codex re-review 22/10: **F01–F05 PASS sau Anti fixes và Codex bổ sung logic; tests/lint/build và PostgreSQL integration PASS. Chờ người dùng QA/done.** Nội dung bàn giao/vòng review đầu giữ lịch sử; kết luận mới nhất ở mục 7 và [review mục 5](attendance-payroll-s1-integration-review.md#5-re-review-sau-anti-fixes--22102026).
+Trạng thái mới nhất 22/10/2026: **S1 DONE — người dùng QA localhost PASS và xác nhận `done`**, sau Codex re-review F01–F05 PASS. Nội dung bàn giao/vòng review đầu giữ lịch sử; đóng slice ở mục 8 và [integration review mục 6](attendance-payroll-s1-integration-review.md).
 
 ---
 
@@ -108,3 +108,9 @@ Chi tiết evidence, file/line, owner và steps: [S1 integration review](attenda
 - Chrome production bundle với controlled API fixtures xác minh focus/transition, reload pending/error/retry, pagination, role guard và 1440/768/375/390px; 1 list refetch sau save. Local API health/UI 200, CORS preflight Origin localhost:5173 trả 204 đúng allow-origin.
 - Workflow mới: Codex chủ động sửa logic/state/API/validation/concurrency cả trong frontend; Anti chỉ nhận lỗi thuần UI/UX/CSS/layout/responsive/visual. Người dùng vẫn QA và xác nhận `done`.
 - **Chờ QA localhost, chưa DONE, chưa chuyển S2.**
+
+## 8. User QA PASS — S1 DONE
+
+Ngày 22/10/2026, người dùng xác nhận trực tiếp: **“Tôi đã QA localhost S1 và xác nhận done.”** Ghi nhận QA tổng thể PASS; S1 hoàn thành. Không tự bổ sung kết quả từng case/device chưa được người dùng cung cấp. Evidence kỹ thuật vòng trước vẫn giữ nguyên; lượt đóng slice chỉ sửa tài liệu, không chạy lại hoặc nhận vơ tests mới.
+
+Source S1 đã nằm trong commit `71f85081`; tài liệu QA được commit riêng, không trộn đề xuất/code S2. S2 chỉ được chuẩn bị plan/contract, chưa triển khai hoặc giao Anti.

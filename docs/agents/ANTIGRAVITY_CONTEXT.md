@@ -1,6 +1,6 @@
 # Antigravity Context — Humanize HR
 
-Cập nhật workflow ngày 22/10/2026; bản đồ source gốc ngày 19/10. Đọc tài liệu này khi nhận task frontend Attendance → Payroll. Đây là bản đồ handoff, không thay thế source hoặc contract được duyệt. S1 đã có frontend và đang re-review; xem [checklist hiện hành](../plans/attendance-payroll-mvp-slices.md) thay vì suy trạng thái từ brief lịch sử. Các slice sau chưa implement. Đọc [brief S1](../codex-reports/attendance-payroll-s1-work-schedule-drafts.md) và [exact API contract v1](../modules/work-schedule.md).
+Cập nhật workflow ngày 22/10/2026; bản đồ source gốc ngày 19/10. Đọc tài liệu này khi nhận task frontend Attendance → Payroll. Đây là bản đồ handoff, không thay thế source hoặc contract được duyệt. **S1 DONE: người dùng QA localhost PASS và xác nhận done 22/10/2026**; xem [checklist hiện hành](../plans/attendance-payroll-mvp-slices.md) thay vì suy trạng thái từ brief lịch sử. Các slice sau chưa implement. Đọc [brief S1](../codex-reports/attendance-payroll-s1-work-schedule-drafts.md) và [exact API contract v1](../modules/work-schedule.md).
 
 ## 1. Đọc theo thứ tự
 
@@ -117,4 +117,4 @@ Repo có `.codegraph/`: dùng CodeGraph MCP trước khi định vị/đọc cod
 - Backend do Codex chạy: build và `node --test` các file liên quan trong `backend/tests/`; hiện package backend chưa có script lint/test. Không báo `npm run lint` backend PASS khi script không tồn tại. `npm start` backend có migrate deploy, không chạy nó hoặc Prisma commands chỉ để mở UI.
 - Báo rõ source review, automated tests/mock và QA API thật là ba loại bằng chứng khác nhau. Không tự ghi QA PASS. Trong `docs/codex-reports/`, mỗi slice ghi changed files, flow, commands/results, URL, known limitations; cập nhật checklist phần mình, không đánh dấu người dùng `done` thay họ.
 
-**Điểm bắt đầu của Anti:** xem [checklist hiện hành](../plans/attendance-payroll-mvp-slices.md) và phạm vi UI được bàn giao, không lấy trạng thái trong brief lịch sử làm tiến độ mới. S1 đã có frontend và re-review; hiện chờ người dùng QA/done. Chỉ nhận phần UI/UX/visual theo phân công mới; không tự chuyển S2, activate hoặc tính công/lương. Backend local dùng `npm run dev` nếu cần và port chưa có server; không tự migrate/seed lại.
+**Điểm bắt đầu của Anti:** xem [checklist hiện hành](../plans/attendance-payroll-mvp-slices.md) và phạm vi UI được bàn giao, không lấy trạng thái trong brief lịch sử làm tiến độ mới. S1 đã DONE theo xác nhận người dùng ngày 22/10/2026. S2 mới chuẩn bị plan/contract, chưa được giao triển khai. Chỉ nhận phần UI/UX/visual theo phân công mới; không tự activate hoặc tính công/lương. Backend local dùng `npm run dev` nếu cần và port chưa có server; không tự migrate/seed lại.
