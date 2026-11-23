@@ -279,6 +279,13 @@ export function HolidayBatchDialog({
   const yearInputId = useId()
   const compOffId = useId()
 
+  const previewRows = (batchPlan?.calendarDays ?? []).map((day: CalendarPreviewDay) => ({
+    day,
+    isSkipped: batchPlan?.skipped.some((s) => s.date === day.date) ?? false,
+    proposed: batchPlan?.toCreate.find((p) => p.kind !== 'SWAP' && p.date === day.date),
+    weekdayLabel: day.weekday === 7 ? 'Chủ Nhật' : `Thứ ${day.weekday + 1}`,
+  }))
+
   return (
     <Dialog
       open={open}
@@ -815,9 +822,9 @@ export function HolidayBatchDialog({
                   </div>
                 ) : null}
 
-                {/* Calendar Days Table */}
+                {/* Calendar Days: table from sm up, compact rows on mobile */}
                 <div className="max-h-60 overflow-y-auto rounded-lg border border-border bg-card">
-                  <table className="w-full text-left text-xs">
+                  <table className="hidden w-full text-left text-xs sm:table">
                     <thead className="sticky top-0 border-b border-border bg-muted/80 text-[11px] text-muted-foreground">
                       <tr>
                         <th className="px-3 py-2 font-medium">Ngày</th>
@@ -827,60 +834,40 @@ export function HolidayBatchDialog({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {batchPlan.calendarDays.map((day: CalendarPreviewDay) => {
-                        const isSkipped = batchPlan.skipped.some((s) => s.date === day.date)
-                        const proposed = batchPlan.toCreate.find((p) => p.kind !== 'SWAP' && p.date === day.date)
-                        const weekdayLabel =
-                          day.weekday === 7
-                            ? 'Chủ Nhật'
-                            : `Thứ ${day.weekday + 1}`
-
-                        return (
-                          <tr key={day.date} className="hover:bg-muted/20">
-                            <td className="px-3 py-2 font-semibold text-foreground">
-                              {formatCivilDateVN(day.date)}
-                            </td>
-                            <td className="px-3 py-2 text-muted-foreground">{weekdayLabel}</td>
-                            <td className="px-3 py-2">
-                              <span
-                                className={cn(
-                                  'rounded px-1.5 py-0.5 text-[10px] font-medium',
-                                  day.dayType === 'HOLIDAY'
-                                    ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
-                                    : day.dayType === 'COMPENSATORY_OFF'
-                                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                                      : day.dayType === 'WEEKLY_OFF'
-                                        ? 'bg-muted text-muted-foreground'
-                                        : 'bg-primary/10 text-primary',
-                                )}
-                              >
-                                {DAY_TYPE_LABELS[day.dayType] ?? day.dayType}
-                              </span>
-                              {day.holidayCategory ? <p>{day.holidayCategory === 'STATUTORY' ? 'Lễ pháp định' : day.holidayCategory === 'COMPANY' ? 'Nghỉ doanh nghiệp' : 'Chưa phân loại'}</p> : null}
-                              {day.holidayPayPolicy ? <p>{day.holidayPayPolicy === 'PAID' ? 'Có hưởng lương' : day.holidayPayPolicy === 'UNPAID' ? 'Không hưởng lương' : 'Chưa xác định hưởng lương'}</p> : null}
-                              {day.dayType === 'HOLIDAY' && day.isBaseWeeklyOff ? <p>Trùng ngày nghỉ tuần</p> : null}
-                              {proposed ? <p>{proposed.reason}</p> : null}
-                            </td>
-                            <td className="px-3 py-2">
-                              {isSkipped ? (
-                                <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">
-                                  Đã tồn tại, không tạo lại
-                                </span>
-                              ) : proposed ? (
-                                <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
-                                  Sẽ tạo mới
-                                </span>
-                              ) : (
-                                <span className="text-[11px] text-muted-foreground">
-                                  Đã có trong lịch (không tạo ngoại lệ mới)
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        )
-                      })}
+                      {previewRows.map(({ day, isSkipped, proposed, weekdayLabel }) => (
+                        <tr key={day.date} className="hover:bg-muted/20">
+                          <td className="px-3 py-2 font-semibold text-foreground">
+                            {formatCivilDateVN(day.date)}
+                          </td>
+                          <td className="px-3 py-2 text-muted-foreground">{weekdayLabel}</td>
+                          <td className="px-3 py-2">
+                            <DayTypeBadge day={day} />
+                            <DayDetails day={day} reason={proposed?.reason} />
+                          </td>
+                          <td className="px-3 py-2">
+                            <DayStatus isSkipped={isSkipped} isProposed={Boolean(proposed)} />
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
+                  <ul className="divide-y divide-border text-xs sm:hidden">
+                    {previewRows.map(({ day, isSkipped, proposed, weekdayLabel }) => (
+                      <li key={day.date} className="grid gap-1 px-3 py-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="min-w-0">
+                            <span className="font-semibold text-foreground">{formatCivilDateVN(day.date)}</span>
+                            <span className="text-muted-foreground"> · {weekdayLabel}</span>
+                          </p>
+                          <DayTypeBadge day={day} />
+                        </div>
+                        <div className="grid gap-0.5 break-words text-muted-foreground">
+                          <DayDetails day={day} reason={proposed?.reason} />
+                        </div>
+                        <DayStatus isSkipped={isSkipped} isProposed={Boolean(proposed)} />
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             ) : null}
@@ -939,4 +926,44 @@ export function HolidayBatchDialog({
       </DialogContent>
     </Dialog>
   )
+}
+
+function DayTypeBadge({ day }: { day: CalendarPreviewDay }) {
+  return (
+    <span
+      className={cn(
+        'shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium',
+        day.dayType === 'HOLIDAY'
+          ? 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300'
+          : day.dayType === 'COMPENSATORY_OFF'
+            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+            : day.dayType === 'WEEKLY_OFF'
+              ? 'bg-muted text-muted-foreground'
+              : 'bg-primary/10 text-primary',
+      )}
+    >
+      {DAY_TYPE_LABELS[day.dayType] ?? day.dayType}
+    </span>
+  )
+}
+
+function DayDetails({ day, reason }: { day: CalendarPreviewDay; reason?: string }) {
+  return (
+    <>
+      {day.holidayCategory ? <p>{day.holidayCategory === 'STATUTORY' ? 'Lễ pháp định' : day.holidayCategory === 'COMPANY' ? 'Nghỉ doanh nghiệp' : 'Chưa phân loại'}</p> : null}
+      {day.holidayPayPolicy ? <p>{day.holidayPayPolicy === 'PAID' ? 'Có hưởng lương' : day.holidayPayPolicy === 'UNPAID' ? 'Không hưởng lương' : 'Chưa xác định hưởng lương'}</p> : null}
+      {day.dayType === 'HOLIDAY' && day.isBaseWeeklyOff ? <p>Trùng ngày nghỉ tuần</p> : null}
+      {reason ? <p>{reason}</p> : null}
+    </>
+  )
+}
+
+function DayStatus({ isSkipped, isProposed }: { isSkipped: boolean; isProposed: boolean }) {
+  if (isSkipped) {
+    return <span className="text-[11px] font-medium text-amber-600 dark:text-amber-400">Đã tồn tại, không tạo lại</span>
+  }
+  if (isProposed) {
+    return <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Sẽ tạo mới</span>
+  }
+  return <span className="text-[11px] text-muted-foreground">Đã có trong lịch (không tạo ngoại lệ mới)</span>
 }

@@ -22,14 +22,9 @@ Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backen
 | S0 — Quyết định/handoff | [x] Gate/contract S1 | N/A | N/A | [x] Source/context | N/A: người dùng đã xác nhận policy S1 và yêu cầu triển khai BE | Gate S1 đã duyệt; A0 của các slice sau còn OPEN |
 | S1 — Lịch draft | [x] v1 | [x] Retest 52 PASS | [x] Anti UI + Codex logic/tests | [x] Re-review PASS 22/10 | [x] Người dùng QA PASS + done 22/10 | DONE |
 | S2A — Calendar Exceptions + Monthly Preview | [x] v1 duyệt; mở rộng v1.1 theo yêu cầu người dùng | [x]137 tests PostgreSQL/full build PASS, không migration mới | [ ] v1.1 có; còn FUI-01 mobile batch table | [ ] Logic đã sửa,110 Vitest+5 Node/lint/build PASS; chờ UI fix re-review | [ ] | Chưa PASS toàn slice/QA done |
-| S2B — Schedule Activation + Attendance Integration | [ ] Nghiệp vụ đã chốt, schema/DTO còn review | [ ] | [ ] | [ ] | [ ] | Chờ S2A QA/done; OUT_OF_SCHEDULE vẫn cho check-in/out, chưa chọn enum/schema |
-| S3 — Preview công một nhân viên/tháng | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
-| S4 — Bảng công nháp toàn kỳ | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
-| S5 — Đối soát từng ngày | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
-| S6 — Khóa kỳ + ghi nhận sai sót sau khóa | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
-| S7 — Template và preview cấu hình | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu; chờ S6 |
-| S8 — Gán lương + preview từ công khóa | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
-| S9 — Lưu nháp/phát hành/PDF snapshot | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
+| P1 — Kích hoạt lịch + gắn chấm công (gộp S2B) | [ ] Nghiệp vụ đã chốt, schema/DTO cần contract ngắn | [ ] | [ ] | [ ] | [ ] | Chờ S2A QA/done |
+| P2 — Bảng công tháng tính on-demand (gộp S3–S5) | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu; đối soát dùng Attendance Adjustment có sẵn |
+| P3 — Tạo bảng lương từ bảng công (gộp S6–S9 rút gọn) | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu; lương tháng nhập tay khi tạo bảng lương |
 
 Checklist **S1 đã hoàn tất**, giữ evidence lịch sử:
 
@@ -58,7 +53,7 @@ Checklist hiện tại **S2A**, Backend có [implementation evidence](../codex-r
 - [x] Backend v1.1: catalog có nguồn, phân loại HOLIDAY, batch-preview/commit atomic/CAS/fingerprint/audit, dedup/compensation và legacy compatibility;137 tests thật PASS. Reuse payload/audit Json, không migration.
 - [x] [Brief Anti cập nhật](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md) gộp cải thiện form nghiệp vụ và F11; frontend application không đổi trong lượt Backend v1.1.
 - [x] Anti triển khai UIv1.1; Codex review/sửa fresh snapshot, payload company, preview/commit/race,409/dirty/focus, phân loại/catalog/year và test envelope.110 Vitest+5 Node/lint/build PASS;137 Backend tests/full build PASS.
-- [ ] Anti sửa FUI-01/P2: batch preview table375/390 có scroll ngang nội bộ và khó đọc; mobile cards/rows, giữ desktop và logic. [Brief](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md), [evidence/QA](../codex-reports/attendance-payroll-s2a-v11-integration-review.md). Codex re-review sau sửa.
+- [x] FUI-01/P2 (Claude, 23/11/2026): batch preview dùng bảng từ `sm` trở lên, danh sách gọn trên mobile; dùng chung `DayTypeBadge`/`DayDetails`/`DayStatus`, không đổi logic. `tsc -b`, eslint, 54 Vitest work-calendar PASS. Playwright với API giả lập bằng planner thuần của backend (chưa phải API/PostgreSQL thật): 375/390/390x560/768/1440 không tràn ngang (375px: 275/275), footer hiển thị, Escape mở xác nhận bỏ thay đổi, Hủy giữ dialog.
 - [ ] Người dùng QA localhost và xác nhận done S2A trước mở S2B.
 
 ## 3. Localhost và bộ dữ liệu QA
@@ -94,6 +89,8 @@ Codex bàn giao dữ liệu QA local được người dùng cho phép, không d
 - **Owner/workflow:** Codex Backend/logic/tests → Backend READY/brief được phép → Anti Frontend/UI → Codex review/sửa logic → người dùng QA/done S2A. Không backend S2B trước frontend/QA S2A.
 - **Acceptance có evidence:** leap/year boundary, SWAP/cross-month, dependencies/null/blockers, CAS/audit/repeatable snapshots; preset/classification/batch atomic/dedup/rollback theo [v1.1](../modules/work-calendar-s2a-holiday-batch.md).137 Backend tests/full build PASS,110 Vitest+5 Node/lint/build Frontend PASS. Browser API thật preview/focus và trang chính responsive PASS; còn FUI-01 mobile review table giao Anti. Chờ re-review/UI và người dùng QA/done.
 - **QA URL đã có:** `http://localhost:5173/admin/attendance/settings?tab=calendar`; steps và giới hạn kiểm thử tại report review.
+
+> **23/11/2026 — người dùng duyệt gộp S2B–S9 thành P1–P3** theo [roadmap portfolio](frontend-portfolio-roadmap.md). Các mục S2B–S9 bên dưới chỉ giữ làm tham chiếu nghiệp vụ; phạm vi thực hiện theo P1–P3.
 
 ### S2B — Schedule Activation + Attendance Integration
 
