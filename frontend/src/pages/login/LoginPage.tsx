@@ -29,6 +29,9 @@ import {
 import { showInfoToast } from "@/lib/toast";
 import type { ApiErrorResponse } from "@/shared/types";
 
+import { useServerWarmup } from "@/shared/lib/server-warmup";
+
+import { ServerWarmupNotice } from "./ServerWarmupNotice";
 import { SupportDialog } from "./SupportDialog";
 
 const loginSchema = z.object({
@@ -55,6 +58,10 @@ const AUTH_ERROR_MESSAGES: Record<string, string> = {
 };
 
 const getLoginErrorMessage = (error: unknown) => {
+    if (error instanceof AxiosError && !error.response) {
+        return "Không kết nối được máy chủ. Máy chủ demo có thể đang khởi động (30–60 giây), vui lòng thử lại sau ít phút.";
+    }
+
     if (error instanceof AxiosError) {
         const message = (error.response?.data as ApiErrorResponse | undefined)
             ?.message;
@@ -77,6 +84,7 @@ export function LoginPage() {
     const [isSupportDialogOpen, setIsSupportDialogOpen] = useState(false);
     const [loginError, setLoginError] = useState<string | null>(null);
     const setUser = useAuthStore((state) => state.setUser);
+    const warmup = useServerWarmup();
     const navigate = useNavigate();
 
     const {
@@ -146,6 +154,11 @@ export function LoginPage() {
                         aria-labelledby="login-title"
                         onSubmit={handleSubmit(onSubmit)}
                     >
+                        <ServerWarmupNotice
+                            state={warmup.state}
+                            elapsedSeconds={warmup.elapsedSeconds}
+                            onRetry={warmup.retry}
+                        />
                         {loginError ? (
                             <p className="rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                                 {loginError}
