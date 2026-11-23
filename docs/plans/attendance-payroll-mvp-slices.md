@@ -1,14 +1,15 @@
 # Attendance → Payroll MVP — Vertical Slices & Checklist
 
-Cập nhật 22/10/2026. **S1 DONE: người dùng xác nhận QA localhost PASS và `done`**, sau Codex re-review PASS F01–F05; xem [review](../codex-reports/attendance-payroll-s1-integration-review.md). Evidence kiểm thử trước QA: Frontend 61 tests/lint/build PASS, Backend 52 tests (gồm PostgreSQL thật) PASS. S2 chưa implement, còn gate nghiệp vụ/contract. Nghiệp vụ/schema tổng quan: [plan](attendance-calculation-payroll-mvp.md). Handoff frontend: [Anti context](../agents/ANTIGRAVITY_CONTEXT.md). Tài liệu này là nguồn tiến độ chính, thay cách triển khai hết backend rồi mới làm UI.
+Cập nhật22/10/2026. **S1 DONE, người dùng QA PASS/done. S2A v1.1 đã integration re-review:** Backend137 PostgreSQL/HTTP/regression tests và full build PASS; Frontend110 Vitest+5 Node tests/lint/build PASS sau sửa logic. F11 tab/toolbar/calendar trang chính đã PASS; còn FUI-01/P2 batch review table375/390 giao Anti. [Evidence mới](../codex-reports/attendance-payroll-s2a-v11-integration-review.md), [contract v1.1](../modules/work-calendar-s2a-holiday-batch.md). Chưa user QA/done S2A, chưa S2B. Nghiệp vụ: [plan](attendance-calculation-payroll-mvp.md), [S2](attendance-payroll-s2-calendar-proposal.md), [contract v1](../modules/work-calendar-s2a.md). Tài liệu này là nguồn tiến độ chính.
 
 ## 1. Gate và trách nhiệm
 
 Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backend/API/tests → Anti Frontend/API thật/tests → Codex review tích hợp → người dùng QA localhost → người dùng xác nhận done**. Sau đó mới bắt đầu slice tiếp theo. Backend READY chỉ là mốc bàn giao, không phải slice DONE.
 
 - Phân công mới từ re-review S1 (22/10): Codex sở hữu business/architecture/Prisma/backend/contract, mọi logic/state/data flow/validation/API integration/concurrency và tests ở cả frontend/backend; chủ động sửa lỗi logic ngay trong review. Anti chỉ nhận UI/UX, CSS/layout/responsive/visual và tests giao diện. Lỗi hỗn hợp: Codex logic trước, Anti visual sau. Các mô tả Anti theo slice bên dưới chỉ là bề mặt UI; phần logic/integration thuộc Codex theo quy tắc này, thay phân công cũ. Người dùng quyết định policy và QA. Không sửa cùng file đồng thời, không tự nhắn thread khác khi chưa được người dùng cho phép.
-- Mỗi slice chỉ xử lý blocker liên quan đã được duyệt; blocker của phần tính lương không mặc nhiên cấm làm UI draft lịch, nhưng không được áp policy chưa duyệt. Người dùng đã xác nhận gate S0 liên quan draft và ủy quyền Codex chốt contract/implement Backend S1; chưa cho làm S2.
-- Contract S1 v1 đã chốt/implement tại [work-schedule.md](../modules/work-schedule.md). API/URL mới của **các slice còn lại** vẫn PROPOSED. Trước code Codex phải chốt exact request/response/examples/errors/null/date/Decimal/revision; người dùng duyệt nghiệp vụ. Trước Anti code cần contract APPROVED + backend chạy được, không chỉ có interface/mock.
+- Mỗi slice chỉ xử lý blocker liên quan; không dùng policy tiền/công hoặc schema S2B còn OPEN để chặn calendar DRAFT S2A. Người dùng đã chốt nghiệp vụ S2, thay chặn check-in ngày nghỉ bằng ghi raw OUT_OF_SCHEDULE không tự có công/OT. Đã cho phép Backend S2A và migration additive; lượt Backend không tự làm Frontend hoặc mở S2B.
+- S1 v1 đã implement tại [work-schedule.md](../modules/work-schedule.md). S2A v1 [APPROVED/Backend READY](../modules/work-calendar-s2a.md), có endpoints thật/brief cho Anti. S2B và các slice sau vẫn PROPOSED; phải chốt exact contract trước code và Backend READY trước Anti Frontend.
+- Từ S2 người dùng tự commit/push sau QA PASS; không tự stage/commit/push trong lượt chuẩn bị/triển khai/review khi chưa có yêu cầu rõ ràng mới.
 - Mỗi endpoint mới dùng `/api` và ADMIN theo đề xuất hiện tại, chưa tự thêm role HR. Auth 401/403 theo middleware hiện có; lỗi business mới dự kiến `{code,message,details?}`. 400 validation, 404 nguồn không có, 409 conflict/stale/locked; mã/trường cụ thể chỉ thành contract khi được duyệt.
 - Không unlock trực tiếp kỳ LOCKED. Mọi yêu cầu sai sót sau khóa chỉ được ghi nhận riêng, không tự áp vào raw/snapshot/lương hoặc tự bù kỳ sau. Không có endpoint unlock, kể cả “chưa phát hành Payroll”.
 
@@ -20,7 +21,8 @@ Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backen
 | --- | --- | --- | --- | --- | --- | --- |
 | S0 — Quyết định/handoff | [x] Gate/contract S1 | N/A | N/A | [x] Source/context | N/A: người dùng đã xác nhận policy S1 và yêu cầu triển khai BE | Gate S1 đã duyệt; A0 của các slice sau còn OPEN |
 | S1 — Lịch draft | [x] v1 | [x] Retest 52 PASS | [x] Anti UI + Codex logic/tests | [x] Re-review PASS 22/10 | [x] Người dùng QA PASS + done 22/10 | DONE |
-| S2 — Lễ/ngoại lệ + kích hoạt lịch | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
+| S2A — Calendar Exceptions + Monthly Preview | [x] v1 duyệt; mở rộng v1.1 theo yêu cầu người dùng | [x]137 tests PostgreSQL/full build PASS, không migration mới | [ ] v1.1 có; còn FUI-01 mobile batch table | [ ] Logic đã sửa,110 Vitest+5 Node/lint/build PASS; chờ UI fix re-review | [ ] | Chưa PASS toàn slice/QA done |
+| S2B — Schedule Activation + Attendance Integration | [ ] Nghiệp vụ đã chốt, schema/DTO còn review | [ ] | [ ] | [ ] | [ ] | Chờ S2A QA/done; OUT_OF_SCHEDULE vẫn cho check-in/out, chưa chọn enum/schema |
 | S3 — Preview công một nhân viên/tháng | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 | S4 — Bảng công nháp toàn kỳ | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 | S5 — Đối soát từng ngày | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
@@ -29,7 +31,7 @@ Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backen
 | S8 — Gán lương + preview từ công khóa | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 | S9 — Lưu nháp/phát hành/PDF snapshot | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu |
 
-Checklist bàn giao cho **slice hiện tại S1**, không tạo nhiều nguồn tiến độ:
+Checklist **S1 đã hoàn tất**, giữ evidence lịch sử:
 
 - [x] Blocker S1 đã có quyết định người dùng, config demo/fixture và phạm vi không activate/tính công/lương.
 - [x] Contract v1 có JSON request/response/error; report ghi API PostgreSQL/HTTP thật trước Anti code.
@@ -38,6 +40,26 @@ Checklist bàn giao cho **slice hiện tại S1**, không tạo nhiều nguồn 
 - [x] Vòng 1 có findings F01–F05, lịch sử giữ trong [review](../codex-reports/attendance-payroll-s1-integration-review.md). Anti đã sửa; Codex chủ động xử lý logic còn sót theo phân công mới.
 - [x] Codex re-review F01–F05 PASS; Chrome actual focus/state/pagination/responsive PASS; PostgreSQL CRUD/CAS/audit/rollback và CORS preflight localhost:5173 PASS. Sau save 1 refetch list. Không còn lỗi UI S1 mới cần giao Anti trong scope đã kiểm tra.
 - [x] Người dùng xác nhận ngày 22/10/2026: “Tôi đã QA localhost S1 và xác nhận done.” Ghi nhận QA tổng thể PASS, không tự bổ sung log/case/device mà người dùng chưa cung cấp. S1 DONE; không suy thành duyệt policy S2.
+
+Checklist hiện tại **S2A**, Backend có [implementation evidence](../codex-reports/attendance-payroll-s2a-backend.md), Frontend có [review tích hợp](../codex-reports/attendance-payroll-s2a-integration-review.md), chưa user QA/done:
+
+- [x] Người dùng chốt nghiệp vụ S2, sửa S2-04: cho chấm công ngày nghỉ/ngoài lịch và đánh dấu OUT_OF_SCHEDULE, không tự tính công/OT.
+- [x] Source compatibility review status/dashboard/report đã ghi tại [plan S2 mục 7](attendance-payroll-s2-calendar-proposal.md); chưa chọn schema Attendance, không lấy đây làm blocker S2A.
+- [x] Chuẩn bị [Exact Contract S2A v1](../modules/work-calendar-s2a.md): 6 endpoints, payload/DTO/query/errors/null/revision, atomic SWAP, preview đủ tháng và edge cases.
+- [x] Người dùng review/duyệt Exact Contract v1 và cho phép triển khai Backend/logic S2A + migration additive.
+- [x] Codex Backend S2A: 6 API thật, strict validation, parent CAS/audit, resolver/preview; 115 tests PASS, 0 fail/skip, gồm PostgreSQL/HTTP thật và regression S1/Attendance/report/dashboard; build/Prisma validate PASS.
+- [x] Migration additive S2A đã áp localhost/hrm_db/public, migrate status up to date và schema diff không lệch. Không seed/reset/đổi Attendance/Payroll hoặc production migration.
+- [x] Chuẩn bị [brief Anti](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md) và contract thực tế. Chưa tự nhắn/giao agent triển khai hoặc làm Frontend thay Anti.
+- [x] Anti đã implement Frontend S2A; Codex đối chiếu6 API, DTO,4 loại ngoại lệ, preview và sửa logic/state/validation/concurrency/cache;100 frontend tests/lint/build PASS.
+- [x] Review v1 trước đó:115 Backend/PostgreSQL/HTTP tests và tsc PASS, full build lúc đó bị khóa DLL. V1.1 đã xác minh lại full build PASS và137 tests; không migration/reset/seed public trong hai lượt.
+- [x] Browser API thật: ADMIN, preview tháng partial/complete, đổi tháng, dirty discard/cancel/focus; dialog thấp và desktop/tablet. Không suy automated CRUD thành browser E2E.
+- [x] Anti sửa F11 tab/toolbar/grid; Codex browser re-review375/390/768/1440 đo bounds thực tế PASS. Không đồng nghĩa batch table mới cũng PASS.
+- [x] Người dùng đã dừng backend; full Backend build Prisma generate+tsc PASS ở lượt mở rộng presets/batch. Block DLL vòng review trước đã được xử lý, không tự dừng process.
+- [x] Backend v1.1: catalog có nguồn, phân loại HOLIDAY, batch-preview/commit atomic/CAS/fingerprint/audit, dedup/compensation và legacy compatibility;137 tests thật PASS. Reuse payload/audit Json, không migration.
+- [x] [Brief Anti cập nhật](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md) gộp cải thiện form nghiệp vụ và F11; frontend application không đổi trong lượt Backend v1.1.
+- [x] Anti triển khai UIv1.1; Codex review/sửa fresh snapshot, payload company, preview/commit/race,409/dirty/focus, phân loại/catalog/year và test envelope.110 Vitest+5 Node/lint/build PASS;137 Backend tests/full build PASS.
+- [ ] Anti sửa FUI-01/P2: batch preview table375/390 có scroll ngang nội bộ và khó đọc; mobile cards/rows, giữ desktop và logic. [Brief](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md), [evidence/QA](../codex-reports/attendance-payroll-s2a-v11-integration-review.md). Codex re-review sau sửa.
+- [ ] Người dùng QA localhost và xác nhận done S2A trước mở S2B.
 
 ## 3. Localhost và bộ dữ liệu QA
 
@@ -65,14 +87,20 @@ Codex bàn giao dữ liệu QA local được người dùng cho phép, không d
 - **Test/QA acceptance:** dùng mẫu demo → lưu → reload vẫn đúng; sửa draft → revision tăng; payload sai bị server từ chối; stale 409 không ghi đè; Employee không được sửa; desktop/mobile/keyboard và loading/error/retry đạt. QA không cần chọn chính sách prorate/lễ để lưu draft.
 - **QA URL mới đề xuất:** `http://localhost:5173/admin/attendance/settings`.
 
-### S2 — Ngày lễ/ngoại lệ, preview lịch và kích hoạt version
+### S2A — Calendar Exceptions + Monthly Preview
 
-- **Scope:** cấu hình ngày lễ/nghỉ bù/hoán đổi/đổi giờ; calendar preview theo tháng và activate lịch đã validate. Chưa tính payableDays. Khi tích hợp cutoff lịch với check-in/điều chỉnh phải dùng ngày hiệu lực, không sửa status lịch sử hàng loạt.
-- **Gate:** lịch lễ/nghỉ bù hợp lệ, nguồn/người xác nhận, semantics breaks, timezone, hạn mức thời giờ/nghỉ bắt buộc, phạm vi hiệu lực và cách xử lý ngày chưa có lịch phải được duyệt. Không tự coi lịch nghỉ khối nhà nước là lịch mọi doanh nghiệp.
-- **Contract PROPOSED:** `GET/POST /work-calendar/exceptions`, `PATCH .../:id`; `GET /work-calendar/preview?year&month&versionId`; `POST /work-calendar/versions/:id/activate` có expectedRevision. Exception body `{date,kind,details,replacementForDate?,reason}`/PATCH thêm expectedRevision. Preview `{data:{days,requiredWorkingMinutes,issues,sourceFingerprint}}` chưa phải số công lương; các kind/date/replacement/error cases phải có examples. 409 hiệu lực trùng/nguồn stale; phần bảo vệ kỳ LOCKED sẽ dùng guard ở S6 trước khi có capability khóa.
-- **Codex:** lịch hiệu lực/ngoại lệ/audit, preview toàn tháng, activate transaction; regressions check-in/out/approve adjustment. **Anti:** cùng settings page: preview tháng, dialog ngoại lệ, confirm activate, hiển thị effect/warning, query invalidation đúng lịch.
-- **Test/QA acceptance:** tháng nhuận, lễ tuần/nghỉ tuần/nghỉ bù/hoán đổi, không double-count; breaks sai bị chặn; đổi version chỉ ảnh hưởng ngày đúng hiệu lực. Preview/activate dùng API thật; snapshot sources để test chống thay đổi cũ ở S6.
-- **QA URL mới đề xuất:** `http://localhost:5173/admin/attendance/settings?tab=calendar`; regression tại `http://localhost:5173/employee/attendance`.
+- **Scope:** HOLIDAY/COMPENSATORY_OFF/SWAP/WORK_OVERRIDE trên DRAFT, một cặp swap atomic, CRUD + revision/audit và preview tháng. Không activate, Attendance integration, công/lương/OT.
+- **Contract:** [Exact v1 APPROVED / Backend IMPLEMENTED](../modules/work-calendar-s2a.md), thay shape sơ bộ S2 trước đây. List/detail/create/replace/delete ngoại lệ theo version; GET preview bắt buộc versionId DRAFT. Giữ S1 API/envelope; thiếu nguồn dùng null/issues, không lấp bằng lịch demo.
+- **Owner/workflow:** Codex Backend/logic/tests → Backend READY/brief được phép → Anti Frontend/UI → Codex review/sửa logic → người dùng QA/done S2A. Không backend S2B trước frontend/QA S2A.
+- **Acceptance có evidence:** leap/year boundary, SWAP/cross-month, dependencies/null/blockers, CAS/audit/repeatable snapshots; preset/classification/batch atomic/dedup/rollback theo [v1.1](../modules/work-calendar-s2a-holiday-batch.md).137 Backend tests/full build PASS,110 Vitest+5 Node/lint/build Frontend PASS. Browser API thật preview/focus và trang chính responsive PASS; còn FUI-01 mobile review table giao Anti. Chờ re-review/UI và người dùng QA/done.
+- **QA URL đã có:** `http://localhost:5173/admin/attendance/settings?tab=calendar`; steps và giới hạn kiểm thử tại report review.
+
+### S2B — Schedule Activation + Attendance Integration
+
+- **Đã chốt:** ADMIN, lịch chung/ca ban ngày; activate từ ngày mai, không hồi tố, ACTIVE bất biến; chưa có ACTIVE giữ legacy. Đi muộn theo giờ bắt đầu lịch ngày đó, chưa grace. **Ngày nghỉ/ngoài lịch vẫn check-in/out + OUT_OF_SCHEDULE**, không tự có công/OT.
+- **Trước code/schema:** compatibility review status/dashboard/report đã có; Codex phải chốt representation và cách đếm raw total/punctuality/ngoài lịch, snapshot/approve/filter/Excel/DTO theo nguồn, không thêm enum rồi bỏ rơi consumers cũ. Đây là gate S2B, không phải blocker S2A.
+- **Contract còn đề xuất:** timeline/activate expectedRevision + fingerprint/reason/snapshot và additive employee context; chưa được implement. Chưa đổi enum/nullability Attendance, chưa mở activation trong S2A.
+- **Acceptance dự kiến:** race/stale/midnight/hiệu lực, snapshot lịch sử, raw ngoài lịch vẫn được lưu/checkout/hiển thị/tổng hợp, không cấp công/OT hoặc PRESENT/LATE giả; regression S1/Attendance/dashboard/report. Đi đủ Backend/logic → Anti UI → Codex review → người dùng QA/done S2B.
 
 ### S3 — Preview công của một nhân viên/tháng
 
@@ -137,6 +165,6 @@ Codex bàn giao dữ liệu QA local được người dùng cho phép, không d
 
 Report từng slice đặt tại `docs/codex-reports/attendance-payroll-s<N>-<topic>.md` khi thực sự bắt đầu; đây là quy ước tên dự kiến, chưa tạo report rỗng hàng loạt. Chứa contract approved/version, backend/frontend changed files, test commands/results, integration findings, URL local thật + test data ids, manual steps/expected, QA result và user done. Không lưu token/credential/PII thật trong report.
 
-Backend chưa có npm script lint/test: Codex ghi build và `node --test` file liên quan thực chạy; Anti ghi `npm run test`, `npm run lint`, `npm run build` trong frontend. Test mock/Playwright giả API không thay bằng chứng QA API thật. Task tài liệu hiện tại chỉ kiểm tra tài liệu/liên kết/whitespace, không báo application PASS.
+Backend chưa có npm script lint/test: Codex ghi build và `node --test` file liên quan thực chạy; Anti ghi `npm run test`, `npm run lint`, `npm run build` trong frontend. Test mock/Playwright giả API không thay bằng chứng QA API thật. Task chỉ tài liệu thì không báo application PASS; S2A Backend hiện có evidence thực chạy tại report, không thay QA UI người dùng.
 
-**Bước tiếp theo:** S1 đã DONE theo xác nhận người dùng; rà soát gate và lập đề xuất S2 để người dùng duyệt. Chưa code/migration/giao Anti triển khai S2. Workflow vẫn Codex Backend → Anti Frontend → Codex review/sửa logic → người dùng QA + done; lỗi logic thuộc Codex, lỗi thuần visual thuộc Anti.
+**Bước tiếp theo:** giao [brief FUI-01](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md) để Anti sửa riêng mobile batch review → Codex re-review → người dùng QA/done S2A. Logic/API hiện PASS, S2A chưa slice DONE, không tự chuyển S2B hoặc commit/push.

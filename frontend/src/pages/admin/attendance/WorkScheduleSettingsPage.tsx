@@ -9,9 +9,9 @@ import {
   Pencil,
   RotateCw,
 } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -41,12 +41,32 @@ import {
   type WorkScheduleDto,
   type WorkScheduleListResponse,
 } from '@/features/work-schedule'
+import { cn } from '@/lib/utils'
 
+import { CalendarTabContent } from './components/CalendarTabContent'
 import { WorkScheduleDetailDialog } from './components/WorkScheduleDetailDialog'
 import { WorkScheduleFormDialog } from './components/WorkScheduleFormDialog'
 
 export function WorkScheduleSettingsPage() {
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentTab = searchParams.get('tab') === 'calendar' ? 'calendar' : 'schedules'
+  const selectTab = (tab: 'schedules' | 'calendar') => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous)
+      if (tab === 'calendar') next.set('tab', tab)
+      else next.delete('tab')
+      return next
+    }, { replace: true })
+  }
+  const handleTabKey = (event: KeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+    event.preventDefault()
+    const next = event.key === 'Home' ? 'schedules' : event.key === 'End' ? 'calendar' : currentTab === 'calendar' ? 'schedules' : 'calendar'
+    selectTab(next)
+    event.currentTarget.parentElement?.querySelector<HTMLButtonElement>(`#settings-${next}-tab`)?.focus()
+  }
+
   const [page, setPage] = useState(1)
   const pageSize = 10
 
@@ -57,7 +77,7 @@ export function WorkScheduleSettingsPage() {
     isSuccess,
     refetch,
     isFetching,
-  } = useWorkScheduleListQuery({ page, limit: pageSize })
+  } = useWorkScheduleListQuery({ page, limit: pageSize }, currentTab === 'schedules')
 
   const schedules = listResponse?.data ?? []
   const meta = listResponse?.meta
@@ -170,48 +190,101 @@ export function WorkScheduleSettingsPage() {
             Cài đặt lịch làm việc
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Quản lý các bản nháp lịch làm việc và giờ làm việc tiêu chuẩn của công ty.
+            Quản lý các bản nháp lịch làm việc, ngày lễ, ngoại lệ và xem trước lịch tháng.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isFetching}
-            className="gap-1.5"
-          >
-            <RotateCw
-              className={isFetching ? 'size-4 animate-spin' : 'size-4'}
-              aria-hidden="true"
-            />
-            Làm mới
-          </Button>
+        {currentTab === 'schedules' ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="gap-1.5"
+            >
+              <RotateCw
+                className={isFetching ? 'size-4 animate-spin' : 'size-4'}
+                aria-hidden="true"
+              />
+              Làm mới
+            </Button>
 
-          <Button
-            ref={createButtonRef}
-            type="button"
-            onClick={(e) => handleOpenCreate(e.currentTarget)}
-            className="gap-1.5"
-          >
-            <CalendarPlus className="size-4" aria-hidden="true" />
-            Tạo bản nháp mới
-          </Button>
-        </div>
+            <Button
+              ref={createButtonRef}
+              type="button"
+              onClick={(e) => handleOpenCreate(e.currentTarget)}
+              className="gap-1.5"
+            >
+              <CalendarPlus className="size-4" aria-hidden="true" />
+              Tạo bản nháp mới
+            </Button>
+          </div>
+        ) : null}
       </div>
 
-      {/* Main Content Card */}
-      <Card className="border-border shadow-sm">
-        <CardHeader className="border-b border-border">
-          <CardTitle className="text-lg">Danh sách bản nháp (DRAFT)</CardTitle>
-          <CardDescription>
-            Các bản nháp cấu hình ca làm việc. Chưa kích hoạt hoặc tác động đến việc tính công.
-          </CardDescription>
-        </CardHeader>
+      {/* Tabs Navigation Bar */}
+      <div
+        role="tablist"
+        aria-label="Cài đặt lịch làm việc"
+        className="flex w-full min-w-0 flex-wrap sm:flex-nowrap border-b border-border text-sm"
+      >
+        <button
+          role="tab"
+          id="settings-schedules-tab"
+          aria-controls="settings-schedules-panel"
+          tabIndex={currentTab === 'schedules' ? 0 : -1}
+          onKeyDown={handleTabKey}
+          type="button"
+          aria-selected={currentTab === 'schedules'}
+          onClick={() => selectTab('schedules')}
+          className={cn(
+            'flex min-w-0 items-center gap-2 border-b-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            currentTab === 'schedules'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+          )}
+        >
+          <Clock className="size-4 shrink-0" aria-hidden="true" />
+          <span className="truncate">Bản nháp lịch làm việc (DRAFT)</span>
+        </button>
 
-        <CardContent className="pt-6">
+        <button
+          role="tab"
+          id="settings-calendar-tab"
+          aria-controls="settings-calendar-panel"
+          tabIndex={currentTab === 'calendar' ? 0 : -1}
+          onKeyDown={handleTabKey}
+          type="button"
+          aria-selected={currentTab === 'calendar'}
+          onClick={() => selectTab('calendar')}
+          className={cn(
+            'flex min-w-0 items-center gap-2 border-b-2 px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            currentTab === 'calendar'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',
+          )}
+        >
+          <Calendar className="size-4 shrink-0" aria-hidden="true" />
+          <span className="truncate">Lịch ngoại lệ & Xem trước tháng (S2A)</span>
+        </button>
+      </div>
+
+      {currentTab === 'calendar' ? (
+        <CalendarTabContent />
+      ) : (
+        <>
+          {/* Main Content Card */}
+          <Card className="border-border shadow-sm" id="settings-schedules-panel" role="tabpanel" aria-labelledby="settings-schedules-tab">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-lg">Danh sách bản nháp (DRAFT)</CardTitle>
+              <CardDescription>
+                Các bản nháp cấu hình ca làm việc. Chưa kích hoạt hoặc tác động đến việc tính công.
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="pt-6">
           {/* Initial Loading */}
           {isLoading ? (
             <>
@@ -570,6 +643,8 @@ export function WorkScheduleSettingsPage() {
         }}
         onRestoreFocus={handleRestoreFocus}
       />
+        </>
+      )}
     </section>
   )
 }

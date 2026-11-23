@@ -10,6 +10,8 @@ const handleError = (error: unknown, res: Response) => {
     return res.status(500).json({ code: "INTERNAL_SERVER_ERROR", message: "Không thể xử lý lịch làm việc. Vui lòng thử lại sau." });
 };
 
+export { handleError as handleWorkScheduleError };
+
 export const workScheduleController = {
     async list(req: Request, res: Response) {
         try { return res.json(await service.list(req.query)); }

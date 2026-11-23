@@ -1,6 +1,6 @@
 # Kế hoạch Attendance Calculation → Payroll Configuration MVP
 
-Ngày cập nhật: 22/10/2026. S1 đã có Backend/Frontend và re-review; trạng thái QA/done lấy từ [checklist hiện hành](attendance-payroll-mvp-slices.md). Phần tính công/khóa/Payroll tiếp theo vẫn là kế hoạch, chưa triển khai.
+Ngày cập nhật22/10/2026. S1 DONE; S2 giữ raw check-in/out + OUT_OF_SCHEDULE không cấp công/OT. Backend S2A [v1](../modules/work-calendar-s2a.md) + [addendum v1.1](../modules/work-calendar-s2a-holiday-batch.md) READY với137 tests PostgreSQL/HTTP/full build PASS. Frontend v1 có, còn UI preset/atomic kỳ nghỉ và F11 mobile theo brief; chưa QA/done, chưa S2B. Phần mở rộng reuse Json, không migration mới. Tiến độ ở [checklist](attendance-payroll-mvp-slices.md); tính công/khóa/Payroll vẫn kế hoạch.
 
 Workflow hiện hành (cập nhật 22/10): triển khai **vertical slices**, không làm hết backend trước frontend. Codex phụ trách nghiệp vụ/Prisma/backend/contract, mọi logic/state/data flow/validation/API integration/concurrency ở cả frontend/backend, tests tương ứng và review tích hợp; chủ động sửa lỗi logic kể cả trong frontend. Anti phụ trách UI/UX, CSS/layout/responsive/visual và tests giao diện; lỗi hỗn hợp được Codex sửa logic trước rồi mới bàn giao visual. Người dùng QA localhost và xác nhận `done` rồi mới chuyển slice. Chi tiết scope, API đề xuất, owner, test, URL và tiến độ tại [checklist slices](attendance-payroll-mvp-slices.md); context bắt đầu cho Anti tại [ANTIGRAVITY_CONTEXT](../agents/ANTIGRAVITY_CONTEXT.md).
 
@@ -33,7 +33,7 @@ Tài liệu này cập nhật [audit hiện trạng](../codex-reports/payroll-co
 | `frontend/src/pages/admin/attendance/AttendanceMonthlyReportPage.tsx`, `pages/attendance-adjustments/components/` | Reuse chọn tháng, detail dialog, pending/error/retry, lịch sử duyệt; thêm bảng đối soát riêng, không đổi báo cáo cũ khi chưa duyệt contract |
 | `frontend/src/components/ui/confirm-dialog.tsx`, shared DatePicker, shadcn Table/Dialog/Skeleton | Reuse confirmation khóa kỳ, form cấu hình/đối soát, desktop table/mobile cards; không tạo design system mới |
 
-S1 hiện có model/API cấu hình lịch DRAFT và audit; chưa có activate/ngày lễ, công chuẩn/công hưởng lương, trạng thái khóa kỳ hoặc ngày kết thúc làm việc. Báo cáo tháng hiện bỏ qua người không có Attendance; bộ tính mới phải bắt đầu từ danh sách nhân viên thuộc kỳ, không bắt đầu từ danh sách punch. Không lấy số phép của Dashboard làm số ngày nghỉ hưởng lương.
+S1 có model/API cấu hình lịch DRAFT và audit; S2A đã có ngoại lệ DRAFT/ngày lễ và monthly preview. Chưa có activate/Attendance integration, công chuẩn lương/công hưởng lương, trạng thái khóa kỳ hoặc ngày kết thúc làm việc. Báo cáo tháng hiện bỏ qua người không có Attendance; bộ tính mới phải bắt đầu từ danh sách nhân viên thuộc kỳ, không bắt đầu từ danh sách punch. Không lấy số phép của Dashboard làm số ngày nghỉ hưởng lương.
 
 ## 3. Định nghĩa và pipeline tính công
 
@@ -64,13 +64,13 @@ Case chưa hỗ trợ (ca qua ngày, OT, lịch không xác định) phải hi�
 
 ## 4. Prisma schema đề xuất theo phase
 
-S1 đã implement WorkScheduleVersion và WorkScheduleAudit; schema/migration thực tế cùng contract v1 có ưu tiên hơn đề xuất trước. Các bảng kỳ công/ngoại lệ/policy bên dưới vẫn là thiết kế để review, **không phải schema hoàn chỉnh có thể migrate ngay**. FK người thao tác trỏ `User.id`, nhân viên trỏ `Employee.id`; không cascade xóa snapshot/audit. Trường `Json` có schema/version và backend validation, không chứa công thức tự do.
+S1 đã implement WorkScheduleVersion/WorkScheduleAudit; S2A đã thêm CalendarException và audit actions. Schema/migration thực tế cùng contract S1/S2A có ưu tiên hơn đề xuất trước. Các bảng kỳ công/policy còn là thiết kế để review, **không phải schema hoàn chỉnh có thể migrate ngay**. FK người thao tác trỏ `User.id`, nhân viên trỏ `Employee.id`; không cascade xóa snapshot/audit. Trường `Json` có schema/version và backend validation, không chứa công thức tự do.
 
 | Model / phase | Field chính và Prisma type dự kiến | Ràng buộc / trách nhiệm |
 | --- | --- | --- |
 | `WorkScheduleVersion` / S1 đã có | `id String @db.Uuid`, `version Int @default(autoincrement()) @unique`, `revision Int`, `status DRAFT/ACTIVE`, `effectiveFrom DateTime @db.Date`, `timezone String`, `weekdays Int[]`, `startMinute/endMinute/breakStartMinute/breakEndMinute Int`, `createdBy/updatedBy`, timestamps | Một lịch chung, không assignment per employee. S1 chỉ DRAFT và một nghỉ; API dùng breaks array một interval, DB scalar phút thay đề xuất breaks JSON cũ. Version do sequence chống race; PATCH guard status/revision. ACTIVE chỉ được enum dự trữ; metadata/rule activate và unique active effectiveFrom là việc S2 |
 | `WorkScheduleAudit` / S1 đã có | `id`, `scheduleVersionId`, `action CREATE/UPDATE`, `before Json?`, `after Json`, `actorId`, `createdAt` | Audit chuyên biệt cho draft, FK restrict, ghi cùng transaction; không tạo framework audit chung trước khi có use case kỳ công. Không có API sửa/xóa/đọc audit trong S1 |
-| `CalendarException` / S2 | `id`, `date DateTime @db.Date`, `kind` enum, `details Json`, `replacementForDate DateTime? @db.Date`, `reason String`, `revision Int`, `updatedBy`, timestamps | Một cấu hình ngoại lệ có hiệu lực/ngày (`date` unique); kind phân biệt lễ, nghỉ bù, đổi ngày làm/nghỉ, đổi giờ. Details có discriminated schema và căn cứ hưởng lương, không bool tùy ý mâu thuẫn. Bản trước/sau vào audit; kỳ đã khóa giữ snapshot |
+| `CalendarException` / S2A đã implement | `id`, `scheduleVersionId`, `kind`, `payload Json`, firstAffectedDate/lastAffectedDate `DateTime @db.Date`, actor/timestamps/FK; index version/firstAffectedDate/id | Theo [contract S2A](../modules/work-calendar-s2a.md): mỗi ngày chỉ một event trong version qua validate dưới parent CAS, SWAP lưu atomic; dùng revision parent, không event revision riêng hoặc date unique toàn công ty. Audit cùng transaction. Không chứa căn cứ hưởng lương; S2B mới immutable activation snapshot |
 | `AttendanceCalculationPolicyVersion` / S3 | `id`, `version Int`, `revision Int`, `effectiveFrom DateTime @db.Date`, `status`, `ruleSchemaVersion Int`, `rules Json`, người kích hoạt/timestamps | Lưu cách quy đổi công, mẫu số, làm tròn, grace, phân loại nghỉ theo policy được duyệt. Active bất biến, không mặc định mọi ANNUAL/SICK là đủ quyền. Version ngày nào áp ngày đó; không rewrite lịch sử |
 | `AttendancePeriod` / S4 | `id`, `year Int`, `month Int`, `status DRAFT/CONFIRMED/LOCKED`, `revision Int`, `sourceFingerprint String?`, `engineVersion String?`, `calendarReviewSnapshot Json?`, `calculatedAt`, `confirmedBy/At`, `lockedBy/At` | `@@unique([year, month])`; tháng hợp lệ. CalendarReviewSnapshot giữ lịch/ngoại lệ và xác nhận đủ dữ liệu lễ. Revision tăng khi tính lại/đối soát/mất hiệu lực xác nhận. Lock một kỳ toàn doanh nghiệp là đề xuất cần duyệt |
 | `AttendancePeriodEmployee` / S4 | `id`, `periodId`, `employeeId`, `employeeSnapshot Json`, `standardDays Decimal? @db.Decimal(10,6)`, `actualWorkedDays Decimal?`, `paidLeaveDays Decimal?`, `paidHolidayDays Decimal?`, `payableDays Decimal?`, `unresolvedCount Int`, `summarySnapshot Json` | Unique periodId+employeeId. Các số công dùng cùng Decimal(10,6) dự kiến; chưa biết là null. Snapshot giữ phạm vi làm việc, các lịch/policy nguồn, bằng chứng nghỉ hưởng lương và tổng đã đối soát; chưa đủ dữ liệu không được khóa |
@@ -91,12 +91,14 @@ Constraint quan trọng: khoảng giờ 0–1439, ca kết thúc sau bắt đầ
 
 Tất cả endpoint mới dưới `/api`, ADMIN-only trong MVP; Employee giữ API self-service hiện tại. Không thay response shape của API cũ. Endpoint mới theo convention `{data}`/list `{data,meta}` và lỗi có `code` ổn định để frontend hiển thị tiếng Việt.
 
+S1 theo [contract đã implement](../modules/work-schedule.md); ngoại lệ/preview DRAFT theo [Exact Contract S2A v1 đã implement](../modules/work-calendar-s2a.md). Bảng dưới chỉ tóm tắt; không dùng endpoint/DTO đề xuất cũ thay hai contract này. Activation/timeline vẫn thuộc S2B chưa chốt schema/DTO.
+
 | Endpoint đề xuất | Input / output chính |
 | --- | --- |
 | `GET/POST /work-calendar/versions`, `GET .../:id` | Xem list/detail lịch; tạo draft `{effectiveFrom, timezone, weekdays, startTime, endTime, breaks}`. Giờ config là HH:mm, date-only YYYY-MM-DD |
 | `PATCH /work-calendar/versions/:id`, `POST .../:id/activate` | Chỉ sửa draft; activate có expectedRevision và preview tác động. Không chỉnh lịch đã khóa bằng cách backdate |
-| `GET/POST /work-calendar/exceptions`, `PATCH .../:id` | Lọc khoảng ngày; tạo/sửa ngoại lệ có reason, kind, dữ liệu theo kind và expectedRevision. Hiển thị ngày lễ/nghỉ bù/hoán đổi và kỳ bị ảnh hưởng |
-| `GET /work-calendar/preview?year&month&versionId` | Preview phân loại ngày/giờ làm từ config draft/active, chưa phải công hưởng lương; S2 phải bàn giao UI/API thật trước S3 |
+| `GET/POST /work-calendar/versions/:versionId/exceptions`, `GET/PATCH/DELETE .../:id` | S2A: ngoại lệ DRAFT, SWAP atomic, expectedRevision parent; list/detail/delete envelope riêng theo Exact Contract |
+| `GET /work-calendar/preview?year&month&versionId` | S2A: versionId DRAFT bắt buộc, preview toàn tháng/null/issues, chưa ACTIVE/canActivate/công hưởng lương; S2B bổ sung contract activation sau |
 | `GET/POST /attendance-calculation-policies`, `PATCH .../:id`, `POST .../:id/activate` | Structured policy draft/version/activate, chỉ sửa draft với expectedRevision; chỉ triển khai sau khi mục 8 được duyệt; không nhận JS expression |
 | `POST /attendance-periods/preview` | Preview một nhân viên/tháng/policy bằng engine backend ở S3; không lưu period/Payroll. Contract chưa chốt; phân biệt với calculate lưu kết quả ở S4 |
 | `POST /attendance-periods` | `{year, month}` → tạo/lấy kỳ duy nhất; không sinh công bằng frontend |
@@ -146,7 +148,7 @@ Nguồn scope/contract dự kiến/owner/test/URL/checklist duy nhất là [atte
 | B0/B1 — Payroll contract/engine | Chốt gate Payroll sau S6; S7 template/config/preview, S8 assignment + preview từ công LOCKED. Mỗi slice backend + UI + QA riêng |
 | B2 — Phát hành | S9: lưu nháp/publish atomic + Admin/Employee/PDF snapshot; regression legacy |
 
-A0 chưa hoàn tất toàn bộ. Người dùng đã duyệt gate draft S1 và ủy quyền Codex chốt/implement contract; backend READY được ghi theo tests thực tế. Trước S2/S3 vẫn phải chốt chính sách tác động công/lương. Contract S1 v1 và report là source of truth của phần đã làm; các API còn lại ở mục 5 là danh mục dự kiến. Không triển khai mutation quản lý policy/template rộng hơn scope slice được duyệt.
+A0 chưa hoàn tất toàn bộ. S1 DONE, nghiệp vụ S2 đã xác nhận; S2A contract v1 đã duyệt/Backend READY, đang chờ Frontend và QA. S2B representation OUT_OF_SCHEDULE/KPI/report phải chốt trước schema; các chính sách công/lương S3 trở đi còn OPEN. Contract/report là evidence phần đã làm; Backend READY không phải slice DONE. Không triển khai rộng hơn slice được giao.
 
 Code dự kiến bổ sung trong module `backend/src/modules/attendance/`: service/repository/types cho lịch, calculation policy và period; `attendance-calculation.engine.ts` thuần; helper period guard dùng chung bởi Attendance/Leave/Payroll. Chỉ chia file theo trách nhiệm thực tế, không tạo package framework. Frontend tiếp tục `features/attendance/{api,hooks,types}` và page/components tại khu vực Admin; thêm query keys của kỳ/chi tiết/config vào factory hiện có. Duyệt lịch/đối soát không tự chạy engine trong browser.
 
@@ -159,17 +161,17 @@ Trạng thái dưới được cập nhật theo xác nhận người dùng; ph�
 | ID / gate | Quyết định cần xác nhận | Đề xuất hoặc rủi ro cần xem |
 | --- | --- | --- |
 | A0-01 / S1 CONFIRMED | Timezone, biểu diễn ngày/giờ/lịch draft | Người dùng xác nhận Asia/Ho_Chi_Minh, YYYY-MM-DD, ISO 1–7 và bổ sung HH:mm gồm phút. S1 không sửa timezone Attendance cũ; không cho chọn timezone khác trong payload |
-| A0-02 / S1 CONFIRMED, S2 giới hạn áp dụng OPEN | Một nghỉ giữa ca và mẫu demo | Đã chốt đúng một nghỉ; demo T2–T6 08–17, nghỉ 12–13 không tính làm việc. Không còn hỏi lại một/nhiều khoảng nghỉ. Các giới hạn pháp luật/case ngoài mẫu trước activate phải review ở S2; chưa thêm rule giảm công/lương |
-| A0-03 / S1 CONFIRMED, S2 hiệu lực OPEN | Quyền và phạm vi draft | Đã chốt chỉ ADMIN, một lịch công ty, effectiveFrom nhập trong draft chưa tác động Attendance đến activate S2. Ngày bắt đầu active/demo, backdate/lịch giữa tháng và người xác nhận lễ/nghỉ bù chưa chốt; S1 không seed/backfill hoặc activate |
-| A0-04 / S2 lịch, S3 quy đổi | Lễ/nghỉ bù/ngoại lệ và mẫu số | Duyệt cách tách requiredWorkingDays và salaryStandardDays ở mục 3; định nghĩa nghỉ bù/làm bù và tương quan tử-mẫu. Cần fixture cụ thể, không chỉ chọn nhãn “trừ ngày lễ”; làm đủ điều kiện cả tháng không trả vượt/thiếu vì đếm trùng |
-| A0-05 / S3 | Đi muộn/về sớm, partial day và làm tròn công | Giảm payableDays theo phút, nửa ngày hay HR xác nhận? Grace, giây biên, quy đổi ca ngắn, ngưỡng đủ công và precision? Không phạt tiền không đồng nghĩa được tự trừ lương theo phút |
+| A0-02 / S1/S2 giới hạn MVP CONFIRMED | Một nghỉ giữa ca và mẫu demo | Một lịch/ca ban ngày, demo T2–T6 08–17 nghỉ 12–13; giới hạn trước activate theo S2-06 được chấp thuận, không siết ngược DRAFT S1 hoặc thêm giảm công/lương. Chưa code validator activation S2B |
+| A0-03 / S1/S2 business CONFIRMED | Quyền, hiệu lực và chấm công ngoài lịch | ADMIN xác nhận/cấu hình, activate sớm nhất ngày mai, không hồi tố, ACTIVE bất biến; legacy trước ACTIVE. Ngày nghỉ/ngoài lịch vẫn lưu check-in/out + OUT_OF_SCHEDULE để HR đối soát, không tự cấp công/OT. Schema/DTO/status/KPI là gate kỹ thuật S2B sau review tương thích |
+| A0-04 / S2 calendar CONFIRMED, S3 quy đổi OPEN | Lễ/nghỉ bù/hoán đổi và mẫu số | ADMIN theo nguồn hợp lệ, SWAP atomic, không OT tự động. Calendar draft/preview chốt tại S2A v1; salaryStandardDays/payableDays và tương quan tử-mẫu còn OPEN cho S3, không suy từ requiredWorkingDays |
+| A0-05 / S2 punctuality CONFIRMED, S3 quy đổi OPEN | Đi muộn/về sớm, partial day và làm tròn công | S2B status dựa startTime lịch hiệu lực, chưa grace; không gán đi muộn giả cho ngày không có ca. Cách giảm payableDays/partial day/làm tròn/ngưỡng đủ công còn OPEN S3; không biến ghi raw hoặc đi muộn thành phạt tiền |
 | A0-06 / S3–S5 | Nghỉ hưởng lương hợp lệ | ANNUAL cần ledger tối thiểu hay HR xác nhận theo hồ sơ bên ngoài? SICK do BHXH chi trả hay có thỏa thuận trả thêm? OTHER gồm trường hợp nào? Nguyên/nửa ngày và date bounds? Không tự dùng quota 12 hoặc coi APPROVED là đủ quyền |
 | A0-07 / S3–S4, S8 | Phạm vi nhân viên, mẫu số người vào/nghỉ giữa kỳ | Ngày bắt đầu/kết thúc có tính cả ngày, INACTIVE có phải nghỉ việc, có tái tuyển dụng? Đề xuất mẫu số lịch cả tháng, tử số chỉ phạm vi đủ điều kiện; cắt cả mẫu số có thể trả đủ tháng cho người chỉ làm một phần. Cần fixture và dữ liệu lịch sử HR xác nhận |
 | A0-08 / S6 | Quyền/scope/thời điểm khóa | Khóa cả doanh nghiệp/tháng hay từng người; có cần hai người confirm/lock? Chỉ khóa khi hết tháng hay cutoff khác? Pending leave/adjustment có chặn không? Đây chưa được chốt chỉ từ yêu cầu “khóa kỳ” |
 | A0-09 / S6 | Yêu cầu sai sót sau khóa: ai ghi/ai nhận/quy trình xử lý | **Không unlock và phải ghi nhận request có lý do/audit đã chốt.** Còn cần quyền tạo/xem, người tiếp nhận, lifecycle và căn cứ xử lý. RECORDED là trạng thái receipt đề xuất; có bù kỳ sau hay chứng từ riêng phải duyệt, không tự áp vào lương hoặc hỏi lại việc cho unlock trước publish |
 | A0-10 / S7–S9 | Lương hợp đồng, rule tùy chọn và nghĩa vụ | Nguồn rate/effective, whitelist/base các khoản, làm tròn VND và giới hạn Decimal? Thuế/BH nhập số HR đối soát hay demo trước nghĩa vụ? Không tự phát hành như net hoàn chỉnh khi chưa đủ dữ liệu, không biến “đối soát” thành phạt |
 
-**S1 DONE ngày 22/10/2026:** người dùng xác nhận QA localhost PASS và `done`, sau Backend/Frontend và Codex re-review có evidence trong checklist. Các quyết định lễ/quy đổi công/khóa/Payroll vẫn OPEN và chặn slice tương ứng; QA S1 không tự duyệt gate S2.
+**S1 DONE ngày 22/10/2026; nghiệp vụ S2 đã xác nhận.** Lễ/hoán đổi/hiệu lực và cho phép raw OUT_OF_SCHEDULE đã chốt. S2A contract APPROVED/Backend READY theo ủy quyền người dùng; chưa Frontend/QA. S2B schema/DTO và các chính sách quy đổi công/khóa/Payroll còn gate riêng; không tự suy thành được phép implement.
 
 ### Ranh giới pháp lý cần review
 
@@ -181,6 +183,8 @@ Cấm phạt tiền/cắt lương thay xử lý kỷ luật là ranh giới cầ
 
 ## 9. Điểm dừng và bước tiếp theo
 
-Backend/Frontend S1, Codex re-review và người dùng QA/done đã hoàn tất ngày 22/10/2026 theo checklist; không seed/activate hoặc thay check-in/out. Bước tiếp theo chỉ chuẩn bị gate/contract S2; lỗi logic tiếp tục thuộc Codex dù nằm ở frontend, chỉ lỗi thuần UI giao Anti. Chưa code S2. Tests/acceptance của các slice sau vẫn là kế hoạch, không phải kết quả PASS.
+Backend/Frontend S1, Codex re-review và người dùng QA/done đã hoàn tất. [S2A Backend](../codex-reports/attendance-payroll-s2a-backend.md) READY theo contract v1 người dùng duyệt, migration localhost + 115 tests/build PASS. Chưa Frontend/review tích hợp/QA S2A, chưa activate hoặc thay Attendance. Workflow Codex Backend/logic → Anti Frontend/UI → Codex review → người dùng QA/done; người dùng tự commit/push sau QA PASS. Chỉ acceptance Backend đã chạy mới ghi PASS.
+
+Nguồn quyết định và compatibility review OUT_OF_SCHEDULE: [plan S2](attendance-payroll-s2-calendar-proposal.md). S2A = Calendar Exceptions + Monthly Preview; S2B = Activation + Attendance Integration. Đã chuẩn bị [brief Anti S2A](../agents/ATTENDANCE_PAYROLL_S2A_FRONTEND_BRIEF.md), chưa tự triển khai UI/nhắn agent hoặc mở S2B.
 
 Cách giải thích khi phỏng vấn sau khi đã triển khai: “Hệ thống tách chấm công thô, tính công và chốt công. Backend kết hợp lịch có hiệu lực, ngày lễ, phép hợp lệ và các điều chỉnh được duyệt; HR giải quyết bất thường trước khi khóa snapshot. Payroll đọc snapshot đó nên thay lịch hay sửa chấm công sau này không làm đổi lương lịch sử.” Hiện đây là kiến trúc dự kiến, chưa mô tả như tính năng đã hoàn thành trong CV.

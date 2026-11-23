@@ -26,6 +26,8 @@ model User {
   createdWorkSchedules WorkScheduleVersion[] @relation("WorkScheduleCreator")
   updatedWorkSchedules WorkScheduleVersion[] @relation("WorkScheduleUpdater")
   workScheduleAudits WorkScheduleAudit[]
+  createdCalendarExceptions CalendarException[] @relation("CalendarExceptionCreator")
+  updatedCalendarExceptions CalendarException[] @relation("CalendarExceptionUpdater")
 }
 
 model WorkScheduleVersion {
@@ -47,6 +49,7 @@ model WorkScheduleVersion {
   creator          User @relation("WorkScheduleCreator", fields: [createdBy], references: [id], onDelete: Restrict)
   updater          User @relation("WorkScheduleUpdater", fields: [updatedBy], references: [id], onDelete: Restrict)
   audits           WorkScheduleAudit[]
+  exceptions       CalendarException[]
 
   @@index([status, version])
 }
@@ -73,6 +76,34 @@ enum WorkScheduleStatus {
 enum WorkScheduleAuditAction {
   CREATE
   UPDATE
+  EXCEPTION_CREATE
+  EXCEPTION_UPDATE
+  EXCEPTION_DELETE
+}
+
+model CalendarException {
+  id                String @id @default(uuid()) @db.Uuid
+  scheduleVersionId String @db.Uuid
+  kind              CalendarExceptionKind
+  payload           Json
+  firstAffectedDate DateTime @db.Date
+  lastAffectedDate  DateTime @db.Date
+  createdBy         String @db.Uuid
+  updatedBy         String @db.Uuid
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  scheduleVersion   WorkScheduleVersion @relation(fields: [scheduleVersionId], references: [id], onDelete: Restrict)
+  creator           User @relation("CalendarExceptionCreator", fields: [createdBy], references: [id], onDelete: Restrict)
+  updater           User @relation("CalendarExceptionUpdater", fields: [updatedBy], references: [id], onDelete: Restrict)
+
+  @@index([scheduleVersionId, firstAffectedDate, id])
+}
+
+enum CalendarExceptionKind {
+  HOLIDAY
+  COMPENSATORY_OFF
+  SWAP
+  WORK_OVERRIDE
 }
 
 model Employee {

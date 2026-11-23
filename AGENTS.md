@@ -108,6 +108,7 @@ Phân công hiện hành, áp dụng từ lượt re-review S1 và các slice sa
 - **Anti:** React UI/UX, CSS, layout, responsive, visual và kiểm thử giao diện. Chỉ giao Anti lỗi thuần giao diện; không giao lỗi logic/API/state dưới nhãn UI.
 - Lỗi có cả logic và giao diện: Codex xử lý logic trước, bàn giao rõ phần visual còn lại cho Anti. Không hai agent sửa cùng file đồng thời; không tự nhắn agent/thread khác khi chưa được người dùng cho phép.
 - Người dùng quyết định chính sách còn OPEN, QA localhost và xác nhận `done`; test tự động hoặc review PASS không thay thế xác nhận này. Quy tắc trên thay thế phân công cũ chỉ dựa vào ranh giới frontend/backend trong tài liệu bàn giao lịch sử.
+- Từ S2, workflow từng slice là Codex Backend/logic → Anti Frontend/UI → Codex review → người dùng QA/done. Người dùng tự commit/push sau QA PASS; agent không tự stage/commit/push nếu không có yêu cầu rõ ràng mới. S2A chỉ Calendar Exceptions + Monthly Preview DRAFT, S2B mới Activation + Attendance Integration; đọc [contract S2A](docs/modules/work-calendar-s2a.md) và checklist trước làm, không vượt gate. Ngày nghỉ/ngoài lịch vẫn được check-in/out và ghi OUT_OF_SCHEDULE để HR đối soát, không tự tính công/OT; representation Attendance phải review tương thích trước schema S2B.
 
 Task thông thường:
 

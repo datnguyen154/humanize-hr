@@ -16,21 +16,32 @@ import type {
   UpdateWorkScheduleRequest,
   WorkScheduleListParams,
 } from '../types/work-schedule.types'
+import { invalidateCalendarVersion } from '../lib/work-calendar.cache'
+import { workScheduleQueryKeys } from '../lib/work-calendar.query-keys'
+export { workScheduleQueryKeys } from '../lib/work-calendar.query-keys'
 
-export const workScheduleQueryKeys = {
-  all: ['work-schedule'] as const,
-  lists: () => [...workScheduleQueryKeys.all, 'list'] as const,
-  list: (params?: WorkScheduleListParams) =>
-    [...workScheduleQueryKeys.lists(), params] as const,
-  details: () => [...workScheduleQueryKeys.all, 'detail'] as const,
-  detail: (id: string) => [...workScheduleQueryKeys.details(), id] as const,
-}
-
-export function useWorkScheduleListQuery(params?: WorkScheduleListParams) {
+export function useWorkScheduleListQuery(params?: WorkScheduleListParams, enabled = true) {
   return useQuery({
     queryKey: workScheduleQueryKeys.list(params),
     queryFn: ({ signal }) => getWorkScheduleVersions(params, signal),
     placeholderData: keepPreviousData,
+    enabled,
+  })
+}
+
+export function useWorkScheduleOptionsQuery() {
+  return useQuery({
+    queryKey: workScheduleQueryKeys.options(),
+    queryFn: async ({ signal }) => {
+      const data = []
+      let page = 1
+      while (true) {
+        const response = await getWorkScheduleVersions({ page, limit: 100 }, signal)
+        data.push(...response.data)
+        if (!response.meta.hasNextPage) return [...new Map(data.map((item) => [item.id, item])).values()]
+        page += 1
+      }
+    },
   })
 }
 
@@ -71,6 +82,7 @@ export function useUpdateWorkScheduleMutation() {
       void queryClient.invalidateQueries({
         queryKey: workScheduleQueryKeys.lists(),
       })
+      void invalidateCalendarVersion(queryClient, result.id)
     },
   })
 }
