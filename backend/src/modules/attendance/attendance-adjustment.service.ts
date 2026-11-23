@@ -3,7 +3,7 @@ import { prisma } from "../../config/prisma";
 import { employeeRepository } from "../employee/employee.repository";
 import { attendanceAdjustmentRepository } from "./attendance-adjustment.repository";
 import { notificationService } from "../notification/notification.service";
-import { getAttendanceStatus, getCompanyDateContext } from "./attendance.service";
+import { classifyAttendance, getCompanyDateContext } from "./attendance.service";
 
 export class AttendanceAdjustmentError extends Error {
     constructor(message: string, public readonly statusCode: number) {
@@ -211,18 +211,18 @@ export const attendanceAdjustmentService = {
                     }
                     const checkInTime = request.requestedCheckInTime;
                     const checkOutTime = request.requestedCheckOutTime;
-                    const statusValue = getAttendanceStatus(getCompanyDateContext(checkInTime).secondsSinceMidnight);
+                    const { status: statusValue, outOfSchedule } = await classifyAttendance(checkInTime, tx);
                     if (current) {
                         const updated = await tx.attendance.updateMany({
                             where: { id: current.id, updatedAt: current.updatedAt },
-                            data: { checkInTime, checkOutTime, status: statusValue },
+                            data: { checkInTime, checkOutTime, status: statusValue, outOfSchedule },
                         });
                         if (updated.count !== 1) throw new AttendanceAdjustmentError("Attendance changed since request", 409);
                         attendanceId = current.id;
                     } else {
                         const created = await tx.attendance.create({
                             data: { employeeId: request.employeeId, attendanceDate: request.attendanceDate,
-                                checkInTime, checkOutTime, status: statusValue },
+                                checkInTime, checkOutTime, status: statusValue, outOfSchedule },
                         });
                         attendanceId = created.id;
                     }

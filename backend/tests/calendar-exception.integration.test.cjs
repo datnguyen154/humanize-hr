@@ -145,7 +145,7 @@ test('S2A real PostgreSQL + HTTP (isolated schema)', {
         for(const suffix of ['?page=1&page=2','?kind[]=HOLIDAY','?unknown=1','?fromDate=2026-11-01']) assert.equal((await call(collection(s.id)+suffix)).status,400);
         assert.equal((await call(`/preview?versionId=${s.id}&year=2026&year=2027&month=11`)).status,400);
         assert.equal((await call(`/preview?versionId=${s.id}&year=2026&month=11&kind=HOLIDAY`)).status,400);
-        assert.equal((await call('/versions/'+s.id+'/activate','POST',{})).status,404);
+        assert.equal((await call('/versions/'+s.id+'/activate','POST',{})).status,400);
         await db.workScheduleVersion.update({where:{id:s.id},data:{status:'ACTIVE'}});
         for(const [method,path,body] of [['GET',collection(s.id)],['GET',collection(s.id)+`/${item.id}`],
             ['POST',collection(s.id),{expectedRevision:2,exception:holiday('2026-11-03')}],

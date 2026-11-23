@@ -67,3 +67,17 @@ export async function updateWorkScheduleVersion(
   )
   return response.data.data
 }
+
+export async function activateWorkScheduleVersion(
+  id: string,
+  expectedRevision: number,
+): Promise<WorkScheduleDto> {
+  const response = await axiosInstance.post<{ data: WorkScheduleDto }>(
+    `${endpoint}/${id}/activate`,
+    { expectedRevision },
+    {
+      headers: authHeaders(),
+    },
+  )
+  return response.data.data
+}

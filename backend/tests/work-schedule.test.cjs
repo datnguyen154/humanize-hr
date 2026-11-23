@@ -121,7 +121,9 @@ test('missing/non-draft records are never editable; invalid revisions/bodies fai
 });
 
 test('list returns stable pagination and rejects ambiguous query parameters', async (t) => {
-    t.mock.method(repository, 'list', async (skip, take) => {
+    const statuses = [];
+    t.mock.method(repository, 'list', async (skip, take, status) => {
+        statuses.push(status);
         assert.equal(skip, 10);
         assert.equal(take, 10);
         return { data: [row()], totalItems: 11 };
@@ -130,12 +132,14 @@ test('list returns stable pagination and rejects ambiguous query parameters', as
     assert.equal(result.meta.totalPages, 2);
     assert.equal(result.meta.hasNextPage, false);
     assert.equal(result.data[0].status, 'DRAFT');
-    for (const query of [{ page: ['1', '2'] }, { page: '1.5' }, { limit: '101' }, { status: 'ACTIVE' }]) {
+    await service.list({ page: '2', status: 'ACTIVE' });
+    assert.deepEqual(statuses, ['DRAFT', 'ACTIVE']);
+    for (const query of [{ page: ['1', '2'] }, { page: '1.5' }, { limit: '101' }, { status: 'ARCHIVED' }, { status: ['ACTIVE'] }]) {
         await assert.rejects(service.list(query), { statusCode: 400 });
     }
 });
 
-test('HTTP routes enforce ADMIN, return envelopes and expose no activate/delete capability', async (t) => {
+test('HTTP routes enforce ADMIN, return envelopes, validate activate and expose no delete capability', async (t) => {
     const express = require('express');
     const jwt = require('jsonwebtoken');
     const { env } = require('../dist/config/env');
@@ -148,7 +152,7 @@ test('HTTP routes enforce ADMIN, return envelopes and expose no activate/delete 
     t.after(() => new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve())));
     const url = `http://127.0.0.1:${server.address().port}/api/work-calendar/versions`;
     const token = (role) => jwt.sign({ userId: actor, role }, env.jwtAccessSecret, { expiresIn: '1m' });
-    for (const [method, suffix] of [['GET', ''], ['GET', `/${id}`], ['POST', ''], ['PATCH', `/${id}`]]) {
+    for (const [method, suffix] of [['GET', ''], ['GET', `/${id}`], ['POST', ''], ['PATCH', `/${id}`], ['POST', `/${id}/activate`]]) {
         const request = (bearer) => fetch(`${url}${suffix}`, { method, headers: bearer ? { Authorization: `Bearer ${bearer}` } : {} });
         assert.equal((await request()).status, 401);
         assert.equal((await request(token('EMPLOYEE'))).status, 403);
@@ -157,6 +161,8 @@ test('HTTP routes enforce ADMIN, return envelopes and expose no activate/delete 
     const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body()) });
     assert.equal(response.status, 201);
     assert.deepEqual(await response.json(), { data: { id, status: 'DRAFT' } });
-    assert.equal((await fetch(`${url}/${id}/activate`, { method: 'POST', headers })).status, 404);
+    const activate = await fetch(`${url}/${id}/activate`, { method: 'POST', headers, body: JSON.stringify({ expectedRevision: 1, status: 'ACTIVE' }) });
+    assert.equal(activate.status, 400);
+    assert.equal((await activate.json()).code, 'VALIDATION_ERROR');
     assert.equal((await fetch(`${url}/${id}`, { method: 'DELETE', headers })).status, 404);
 });

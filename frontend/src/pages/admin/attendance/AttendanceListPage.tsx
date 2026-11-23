@@ -315,10 +315,15 @@ export function AttendanceListPage() {
                         <p className="mb-1 text-xs font-medium text-muted-foreground">
                           Trạng thái
                         </p>
-                        <StatusBadge
-                          label={attendanceStatusLabel[attendance.status]}
-                          tone={attendanceStatusTone[attendance.status]}
-                        />
+                        <span className="flex flex-col items-end gap-1">
+                          <StatusBadge
+                            label={attendanceStatusLabel[attendance.status]}
+                            tone={attendanceStatusTone[attendance.status]}
+                          />
+                          {attendance.outOfSchedule ? (
+                            <StatusBadge label="Ngoài lịch" tone="neutral" />
+                          ) : null}
+                        </span>
                       </div>
                     </div>
 
@@ -393,10 +398,15 @@ export function AttendanceListPage() {
                             : 'Chưa chấm công ra'}
                         </TableCell>
                         <TableCell className="text-center">
-                          <StatusBadge
-                            label={attendanceStatusLabel[attendance.status]}
-                            tone={attendanceStatusTone[attendance.status]}
-                          />
+                          <span className="inline-flex flex-wrap items-center justify-center gap-1">
+                            <StatusBadge
+                              label={attendanceStatusLabel[attendance.status]}
+                              tone={attendanceStatusTone[attendance.status]}
+                            />
+                            {attendance.outOfSchedule ? (
+                              <StatusBadge label="Ngoài lịch" tone="neutral" />
+                            ) : null}
+                          </span>
                         </TableCell>
                       </TableRow>
                     ))}

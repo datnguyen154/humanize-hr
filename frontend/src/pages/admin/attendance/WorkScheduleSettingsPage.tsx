@@ -7,6 +7,7 @@ import {
   Clock,
   Eye,
   Pencil,
+  PlayCircle,
   RotateCw,
 } from 'lucide-react'
 import { useRef, useState, type KeyboardEvent } from 'react'
@@ -14,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import {
   Card,
   CardContent,
@@ -36,12 +38,17 @@ import {
   formatEffectiveDate,
   formatWeekdayList,
   getWorkScheduleVersionById,
+  parseCalendarExceptionError,
+  useActivateWorkScheduleMutation,
   useWorkScheduleListQuery,
   workScheduleQueryKeys,
   type WorkScheduleDto,
   type WorkScheduleListResponse,
 } from '@/features/work-schedule'
+import { showErrorToast, showSuccessToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
+
+import { ActiveScheduleCard } from './components/ActiveScheduleCard'
 
 import { CalendarTabContent } from './components/CalendarTabContent'
 import { WorkScheduleDetailDialog } from './components/WorkScheduleDetailDialog'
@@ -99,6 +106,26 @@ export function WorkScheduleSettingsPage() {
   const handleNextPage = () => {
     if (!canGoNext) return
     setPage((curr) => (curr < totalPages ? curr + 1 : curr))
+  }
+
+  // Activation
+  const activateMutation = useActivateWorkScheduleMutation()
+  const [activateTarget, setActivateTarget] = useState<WorkScheduleDto | null>(null)
+  const handleActivate = () => {
+    if (!activateTarget || activateMutation.isPending) return
+    activateMutation.mutate(
+      { id: activateTarget.id, expectedRevision: activateTarget.revision },
+      {
+        onSuccess: (result) => {
+          showSuccessToast(`Lịch phiên bản v${result.version} sẽ áp dụng cho chấm công từ ${formatEffectiveDate(result.effectiveFrom)}.`, 'Đã kích hoạt lịch')
+          setActivateTarget(null)
+        },
+        onError: (error) => {
+          showErrorToast(parseCalendarExceptionError(error, 'Không thể kích hoạt lịch làm việc. Vui lòng thử lại.').message)
+          setActivateTarget(null)
+        },
+      },
+    )
   }
 
   // Dialog state
@@ -275,12 +302,14 @@ export function WorkScheduleSettingsPage() {
         <CalendarTabContent />
       ) : (
         <>
+          <ActiveScheduleCard />
+
           {/* Main Content Card */}
           <Card className="border-border shadow-sm" id="settings-schedules-panel" role="tabpanel" aria-labelledby="settings-schedules-tab">
             <CardHeader className="border-b border-border">
               <CardTitle className="text-lg">Danh sách bản nháp (DRAFT)</CardTitle>
               <CardDescription>
-                Các bản nháp cấu hình ca làm việc. Chưa kích hoạt hoặc tác động đến việc tính công.
+                Bản nháp chưa tác động tới chấm công cho đến khi được kích hoạt.
               </CardDescription>
             </CardHeader>
 
@@ -481,6 +510,15 @@ export function WorkScheduleSettingsPage() {
                         <Pencil className="size-3.5" aria-hidden="true" />
                         Chỉnh sửa
                       </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => setActivateTarget(item)}
+                        className="h-8 gap-1 text-xs"
+                      >
+                        <PlayCircle className="size-3.5" aria-hidden="true" />
+                        Kích hoạt
+                      </Button>
                     </div>
                   </article>
                 ))}
@@ -562,6 +600,15 @@ export function WorkScheduleSettingsPage() {
                               <Pencil className="size-3.5" aria-hidden="true" />
                               Sửa
                             </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              onClick={() => setActivateTarget(item)}
+                              className="h-8 gap-1 px-2.5 text-xs"
+                            >
+                              <PlayCircle className="size-3.5" aria-hidden="true" />
+                              Kích hoạt
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -642,6 +689,19 @@ export function WorkScheduleSettingsPage() {
           setFormOpen(true)
         }}
         onRestoreFocus={handleRestoreFocus}
+      />
+
+      <ConfirmDialog
+        open={activateTarget !== null}
+        title={`Kích hoạt lịch phiên bản v${activateTarget?.version ?? ''}?`}
+        description={activateTarget
+          ? `Chấm công sẽ tính đi muộn theo lịch này từ ngày ${formatEffectiveDate(activateTarget.effectiveFrom)}. Sau khi kích hoạt, giờ làm và các ngoại lệ của lịch không thể chỉnh sửa. Ngày nghỉ vẫn cho chấm công và được đánh dấu "Ngoài lịch".`
+          : ''}
+        actionLabel="Kích hoạt lịch"
+        pendingLabel="Đang kích hoạt..."
+        isPending={activateMutation.isPending}
+        onOpenChange={(next) => { if (!next) setActivateTarget(null) }}
+        onConfirm={handleActivate}
       />
         </>
       )}

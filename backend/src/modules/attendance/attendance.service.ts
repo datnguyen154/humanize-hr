@@ -1,6 +1,8 @@
 import { AttendanceStatus, Prisma } from "@prisma/client";
 
+import { prisma } from "../../config/prisma";
 import { employeeRepository } from "../employee/employee.repository";
+import { classifyCheckIn, createCalendarResolver, loadActiveCalendars } from "../work-calendar/effective-calendar";
 import {
     attendanceRepository,
     type AttendanceSortBy,
@@ -106,6 +108,17 @@ export const getCompanyDateContext = (
         attendanceDate: new Date(Date.UTC(year, month - 1, day)),
         secondsSinceMidnight: hour * 60 * 60 + minute * 60 + second,
     };
+};
+
+/** Status + outOfSchedule for a check-in, using the ACTIVE work calendar when one covers the date. */
+export const classifyAttendance = async (
+    checkInTime: Date,
+    db: Prisma.TransactionClient = prisma,
+): Promise<{ status: AttendanceStatus; outOfSchedule: boolean }> => {
+    const { attendanceDate, secondsSinceMidnight } = getCompanyDateContext(checkInTime);
+    const day = createCalendarResolver(await loadActiveCalendars(db))(attendanceDate.toISOString().slice(0, 10));
+    const { late, outOfSchedule } = classifyCheckIn(day, secondsSinceMidnight, CHECK_IN_CUTOFF_SECONDS);
+    return { status: late ? AttendanceStatus.LATE : AttendanceStatus.PRESENT, outOfSchedule };
 };
 
 const getEmployeeProfile = async (userId: string | undefined) => {
@@ -230,8 +243,7 @@ export const attendanceService = {
     async checkIn(userId: string | undefined): Promise<AttendanceWithEmployee> {
         const employee = await getEmployeeProfile(userId);
         const now = new Date();
-        const { attendanceDate, secondsSinceMidnight } =
-            getCompanyDateContext(now);
+        const { attendanceDate } = getCompanyDateContext(now);
         const existingAttendance =
             await attendanceRepository.findAttendanceByEmployeeAndDate(
                 employee.id,
@@ -245,7 +257,7 @@ export const attendanceService = {
             );
         }
 
-        const status = getAttendanceStatus(secondsSinceMidnight);
+        const { status, outOfSchedule } = await classifyAttendance(now);
 
         try {
             return await attendanceRepository.createAttendance({
@@ -254,6 +266,7 @@ export const attendanceService = {
                 checkInTime: now,
                 checkOutTime: null,
                 status,
+                outOfSchedule,
             });
         } catch (error) {
             if (

@@ -221,5 +221,6 @@ test('six real HTTP routes enforce ADMIN and preserve list/detail/mutation/previ
     }
     const headers={Authorization:`Bearer ${token('ADMIN')}`};
     assert.equal((await fetch(base+collection+'/e?unknown=x',{headers})).status,400);
-    assert.equal((await fetch(`${base}/versions/${versionId}/activate`,{method:'POST',headers})).status,404);
+    // Activation lives in P1 and validates its own body before touching the database.
+    assert.equal((await fetch(`${base}/versions/${versionId}/activate`,{method:'POST',headers})).status,400);
 });

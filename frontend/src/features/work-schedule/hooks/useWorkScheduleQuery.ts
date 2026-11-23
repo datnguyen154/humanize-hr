@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query'
 
 import {
+  activateWorkScheduleVersion,
   createWorkScheduleVersion,
   getWorkScheduleVersionById,
   getWorkScheduleVersions,
@@ -82,6 +83,20 @@ export function useUpdateWorkScheduleMutation() {
       void queryClient.invalidateQueries({
         queryKey: workScheduleQueryKeys.lists(),
       })
+      void invalidateCalendarVersion(queryClient, result.id)
+    },
+  })
+}
+
+export function useActivateWorkScheduleMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, expectedRevision }: { id: string; expectedRevision: number }) =>
+      activateWorkScheduleVersion(id, expectedRevision),
+    onSuccess: (result) => {
+      // The version leaves the DRAFT list and joins the ACTIVE list; calendar caches are now stale.
+      queryClient.removeQueries({ queryKey: workScheduleQueryKeys.detail(result.id) })
+      void queryClient.invalidateQueries({ queryKey: workScheduleQueryKeys.lists() })
       void invalidateCalendarVersion(queryClient, result.id)
     },
   })

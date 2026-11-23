@@ -25,6 +25,9 @@ vi.mock('@/features/work-schedule/api/work-schedule.api', () => ({
   updateWorkScheduleVersion: vi.fn(),
 }))
 
+// The ACTIVE-calendar card has its own query and tests (work-schedule-activation.test.tsx).
+vi.mock('@/pages/admin/attendance/components/ActiveScheduleCard', () => ({ ActiveScheduleCard: () => null }))
+
 vi.mock('@/lib/toast', () => ({
   showSuccessToast: vi.fn(),
   showErrorToast: vi.fn(),

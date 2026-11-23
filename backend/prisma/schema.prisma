@@ -79,6 +79,7 @@ enum WorkScheduleAuditAction {
   EXCEPTION_CREATE
   EXCEPTION_UPDATE
   EXCEPTION_DELETE
+  ACTIVATE
 }
 
 model CalendarException {
@@ -194,6 +195,7 @@ model Attendance {
   checkInTime    DateTime
   checkOutTime   DateTime?
   status         AttendanceStatus
+  outOfSchedule  Boolean          @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
 

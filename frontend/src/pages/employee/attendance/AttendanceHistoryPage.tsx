@@ -159,10 +159,15 @@ export function AttendanceHistoryPage() {
                           : '--:--'}
                       </TableCell>
                       <TableCell className="text-center">
-                        <StatusBadge
-                          label={attendanceStatusLabel[attendance.status]}
-                          tone={attendanceStatusTone[attendance.status]}
-                        />
+                        <span className="inline-flex flex-wrap items-center justify-center gap-1">
+                          <StatusBadge
+                            label={attendanceStatusLabel[attendance.status]}
+                            tone={attendanceStatusTone[attendance.status]}
+                          />
+                          {attendance.outOfSchedule ? (
+                            <StatusBadge label="Ngoài lịch" tone="neutral" />
+                          ) : null}
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))}

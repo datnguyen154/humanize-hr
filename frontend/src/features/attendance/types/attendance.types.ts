@@ -24,6 +24,8 @@ export type AttendanceRecord = {
   checkInTime: string
   checkOutTime: string | null
   status: AttendanceStatus
+  /** Check-in on a day without a shift in the ACTIVE work calendar (weekly off, holiday...). */
+  outOfSchedule?: boolean
   createdAt: string
   updatedAt: string
 }

@@ -19,3 +19,4 @@ workScheduleRoutes.get("/versions", controller.list);
 workScheduleRoutes.get("/versions/:id", controller.getById);
 workScheduleRoutes.post("/versions", controller.create);
 workScheduleRoutes.patch("/versions/:id", controller.update);
+workScheduleRoutes.post("/versions/:id/activate", controller.activate);

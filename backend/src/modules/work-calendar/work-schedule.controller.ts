@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import { workScheduleActivationService as activation } from "./work-schedule-activation.service";
 import { WorkScheduleError, workScheduleService as service } from "./work-schedule.service";
 
 const handleError = (error: unknown, res: Response) => {
@@ -27,6 +28,10 @@ export const workScheduleController = {
     },
     async update(req: Request, res: Response) {
         try { return res.json({ data: await service.update(req.params.id, req.user!.userId, req.body) }); }
+        catch (error) { return handleError(error, res); }
+    },
+    async activate(req: Request, res: Response) {
+        try { return res.json({ data: await activation.activate(req.params.id, req.user!.userId, req.body) }); }
         catch (error) { return handleError(error, res); }
     },
 };

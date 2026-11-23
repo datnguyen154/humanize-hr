@@ -21,6 +21,7 @@ export type WorkScheduleDto = WorkScheduleConfig & {
 export type WorkScheduleListParams = {
   page?: number
   limit?: number
+  status?: 'DRAFT' | 'ACTIVE'
 }
 
 export type PaginationMeta = {

@@ -84,6 +84,12 @@ const ERROR_MESSAGES: Record<string, string> = {
   INTERNAL_SERVER_ERROR: 'Không thể xử lý ngoại lệ lịch làm việc. Vui lòng thử lại sau.',
 }
 
+const SERVER_MESSAGE_CODES = new Set([
+  'WORK_SCHEDULE_EFFECTIVE_FROM_TOO_EARLY',
+  'WORK_SCHEDULE_EFFECTIVE_FROM_OVERLAP',
+  'WORK_SCHEDULE_CALENDAR_BLOCKED',
+])
+
 export function parseCalendarExceptionError(error: unknown, fallback = 'Không thể xử lý ngoại lệ lịch làm việc.'): {
   code: string; message: string; details?: Record<string, string>; isRevisionConflict: boolean
 } {
@@ -91,12 +97,14 @@ export function parseCalendarExceptionError(error: unknown, fallback = 'Không t
   if (error instanceof AxiosError) {
     if (error.code === 'ECONNABORTED') return { code: 'TIMEOUT_ERROR', message: 'Hết thời gian chờ phản hồi từ máy chủ. Vui lòng thử lại.', isRevisionConflict: false }
     if (!error.response) return { code: 'NETWORK_ERROR', message: 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng và thử lại.', isRevisionConflict: false }
-    const data = error.response.data as { code?: unknown; details?: unknown } | undefined
+    const data = error.response.data as { code?: unknown; details?: unknown; message?: unknown } | undefined
     const code = typeof data?.code === 'string' ? data.code : 'UNKNOWN_ERROR'
     const details = code === 'VALIDATION_ERROR' && data?.details && typeof data.details === 'object'
       ? Object.fromEntries(Object.entries(data.details).filter((entry): entry is [string, string] => typeof entry[1] === 'string' && Boolean(entry[1].trim())))
       : undefined
-    return { code, message: ERROR_MESSAGES[code] ?? fallback, details, isRevisionConflict: code === 'WORK_SCHEDULE_REVISION_CONFLICT' }
+    // Activation messages carry dates computed by the backend, so its Vietnamese text is shown as-is.
+    const serverMessage = SERVER_MESSAGE_CODES.has(code) && typeof data?.message === 'string' ? data.message : undefined
+    return { code, message: ERROR_MESSAGES[code] ?? serverMessage ?? fallback, details, isRevisionConflict: code === 'WORK_SCHEDULE_REVISION_CONFLICT' }
   }
   return { code: 'UNKNOWN_ERROR', message: fallback, isRevisionConflict: false }
 }

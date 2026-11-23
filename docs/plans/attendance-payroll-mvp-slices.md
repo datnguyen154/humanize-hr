@@ -22,7 +22,7 @@ Mỗi slice đi hết chuỗi: **duyệt nghiệp vụ/contract → Codex Backen
 | S0 — Quyết định/handoff | [x] Gate/contract S1 | N/A | N/A | [x] Source/context | N/A: người dùng đã xác nhận policy S1 và yêu cầu triển khai BE | Gate S1 đã duyệt; A0 của các slice sau còn OPEN |
 | S1 — Lịch draft | [x] v1 | [x] Retest 52 PASS | [x] Anti UI + Codex logic/tests | [x] Re-review PASS 22/10 | [x] Người dùng QA PASS + done 22/10 | DONE |
 | S2A — Calendar Exceptions + Monthly Preview | [x] v1 duyệt; mở rộng v1.1 theo yêu cầu người dùng | [x]137 tests PostgreSQL/full build PASS, không migration mới | [ ] v1.1 có; còn FUI-01 mobile batch table | [ ] Logic đã sửa,110 Vitest+5 Node/lint/build PASS; chờ UI fix re-review | [ ] | Chưa PASS toàn slice/QA done |
-| P1 — Kích hoạt lịch + gắn chấm công (gộp S2B) | [ ] Nghiệp vụ đã chốt, schema/DTO cần contract ngắn | [ ] | [ ] | [ ] | [ ] | Chờ S2A QA/done |
+| P1 — Kích hoạt lịch + gắn chấm công (gộp S2B) | [x] `POST /work-calendar/versions/:id/activate {expectedRevision}`, `GET /versions?status=ACTIVE`, cờ `Attendance.outOfSchedule` | [x] 126 tests + build PASS (2 integration DB skip) | [x] UI kích hoạt + card lịch đang áp dụng + badge "Ngoài lịch"; 113 Vitest/lint/build PASS | [x] Evidence Playwright mock `docs/evidence/p1/` | [ ] | Chờ người dùng QA localhost với PostgreSQL thật |
 | P2 — Bảng công tháng tính on-demand (gộp S3–S5) | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu; đối soát dùng Attendance Adjustment có sẵn |
 | P3 — Tạo bảng lương từ bảng công (gộp S6–S9 rút gọn) | [ ] | [ ] | [ ] | [ ] | [ ] | Chưa bắt đầu; lương tháng nhập tay khi tạo bảng lương |
 

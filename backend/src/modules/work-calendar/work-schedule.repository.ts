@@ -2,11 +2,11 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../config/prisma";
 
 export const workScheduleRepository = {
-    list(skip: number, take: number) {
+    list(skip: number, take: number, status: "DRAFT" | "ACTIVE" = "DRAFT") {
         return prisma.$transaction(async (tx) => {
-            const where = { status: "DRAFT" as const };
+            const where = { status };
             const data = await tx.workScheduleVersion.findMany({
-                where, skip, take, orderBy: { version: "desc" },
+                where, skip, take, orderBy: status === "ACTIVE" ? { effectiveFrom: "desc" } : { version: "desc" },
             });
             const totalItems = await tx.workScheduleVersion.count({ where });
             return { data, totalItems };

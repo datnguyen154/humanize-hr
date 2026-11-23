@@ -89,10 +89,12 @@ const positiveQueryInt = (value: unknown, fallback: number, max: number, field: 
 
 export const workScheduleService = {
     async list(query: Record<string, unknown>) {
-        allowKeys(query, ["page", "limit"]);
+        allowKeys(query, ["page", "limit", "status"]);
         const page = positiveQueryInt(query.page, 1, 1000000, "page");
         const limit = positiveQueryInt(query.limit, 10, 100, "limit");
-        const result = await repository.list((page - 1) * limit, limit);
+        const status = query.status ?? "DRAFT";
+        if (status !== "DRAFT" && status !== "ACTIVE") return invalid("status", "Trạng thái phải là DRAFT hoặc ACTIVE.");
+        const result = await repository.list((page - 1) * limit, limit, status);
         const totalPages = Math.ceil(result.totalItems / limit);
         return { data: result.data.map(dto), meta: { page, limit, totalItems: result.totalItems, totalPages,
             hasNextPage: page < totalPages, hasPreviousPage: page > 1 && totalPages > 0 } };

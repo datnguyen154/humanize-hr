@@ -111,6 +111,8 @@ function mockReviewTransaction(t, request, current, claimCount = 1) {
             updateMany: async () => ({ count: claimCount }),
             update: async (query) => { calls.requestUpdates.push(query); return { ...request, ...query.data, status: calls.decision }; },
         },
+        // No ACTIVE work calendar: approval keeps the legacy 08:00 cutoff.
+        workScheduleVersion: { findMany: async () => [] },
         attendance: {
             updateMany: async (query) => { calls.attendanceUpdates.push(query); return { count: 1 }; },
             create: async (query) => { calls.attendanceCreates.push(query); return { id: 'created-attendance' }; },
@@ -130,6 +132,7 @@ test('approve existing attendance updates it and recomputes PRESENT/LATE', async
     await service.review(id, admin, { status: 'APPROVED', reviewNote: '' });
     assert.equal(calls.attendanceUpdates.length, 1);
     assert.equal(calls.attendanceUpdates[0].data.status, 'LATE');
+    assert.equal(calls.attendanceUpdates[0].data.outOfSchedule, false);
     assert.equal(calls.requestUpdates[0].data.attendanceId, 'attendance-id');
 });
 
