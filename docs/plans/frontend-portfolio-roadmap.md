@@ -4,6 +4,20 @@
 > nhập tay khi tạo bảng lương. Checklist [attendance-payroll-mvp-slices.md](attendance-payroll-mvp-slices.md)
 > đã được đồng bộ. Các quyết định đã chốt nằm ở mục 5.
 
+## Tiến độ (cập nhật 23/11/2026)
+
+| Hạng mục | Trạng thái |
+| --- | --- |
+| FUI-01 (S2A mobile batch preview) | Xong code + evidence; chờ người dùng QA S2A |
+| P1 Kích hoạt lịch + chấm công | Xong code, test (gồm integration PostgreSQL), evidence `docs/evidence/p1/`; chờ QA |
+| P2 Bảng công tháng | Xong code, test, evidence `docs/evidence/p2/`; chờ QA |
+| P3 Bảng lương từ bảng công | Xong code, test, evidence `docs/evidence/p3/`; chờ QA |
+| Cold-start UX | Xong, evidence `docs/evidence/cold-start/` |
+| Seed demo | Xong (lịch ACTIVE từ 01/10/2026 + chấm công 01/10–20/11), đã thử 2 lần trên schema tạm |
+| README | Đã cập nhật luồng Lịch → Công → Lương, kiểm thử, API |
+| Nội dung CV | Bản nháp tại `docs/cv/humanize-hr-cv-entry.md` |
+| Production | Vercel đã có frontend mới; **backend Render vẫn chạy bản cũ** (route `/api/work-calendar/*` trả 404). Cần người dùng kiểm tra Render: auto-deploy và log build/migrate |
+
 ## 1. Mục tiêu và ràng buộc
 
 - Đây là dự án cá nhân, dùng để ứng tuyển **Frontend Developer Intern**. Nhà tuyển dụng thường chỉ mở
