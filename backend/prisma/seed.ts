@@ -9,6 +9,7 @@ import {
     PrismaClient,
     Role,
     UserStatus,
+    WorkScheduleStatus,
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -47,7 +48,7 @@ type SampleAttendance = {
     employeeCode: string;
     attendanceDate: Date;
     checkInTime: Date;
-    checkOutTime: Date;
+    checkOutTime: Date | null;
     status: AttendanceStatus;
 };
 
@@ -309,6 +310,28 @@ const sampleEmployees: SampleEmployee[] = [
 
 const sampleLeaveRequests: SampleLeaveRequest[] = [
     {
+        id: "10000000-0000-4000-8000-000000000101",
+        employeeCode: "EMP001",
+        leaveType: LeaveType.ANNUAL,
+        startDate: new Date("2026-10-15T00:00:00.000Z"),
+        endDate: new Date("2026-10-16T00:00:00.000Z"),
+        reason: "Nghỉ phép năm về quê.",
+        status: LeaveRequestStatus.APPROVED,
+        reviewedAt: new Date("2026-10-12T02:00:00.000Z"),
+        reviewNote: "Đồng ý.",
+    },
+    {
+        id: "10000000-0000-4000-8000-000000000102",
+        employeeCode: "EMP003",
+        leaveType: LeaveType.SICK,
+        startDate: new Date("2026-11-05T00:00:00.000Z"),
+        endDate: new Date("2026-11-05T00:00:00.000Z"),
+        reason: "Nghỉ ốm theo chỉ định của bác sĩ.",
+        status: LeaveRequestStatus.APPROVED,
+        reviewedAt: new Date("2026-11-05T01:00:00.000Z"),
+        reviewNote: null,
+    },
+    {
         id: "10000000-0000-4000-8000-000000000001",
         employeeCode: "EMP001",
         leaveType: LeaveType.ANNUAL,
@@ -454,6 +477,42 @@ const sampleAttendances: SampleAttendance[] = attendanceEmployeeCodes.flatMap(
         }),
 );
 
+// Demo work calendar + punches so the timesheet (P2) and payroll from timesheet (P3) have data:
+// Mon–Fri 08:00–17:00 from 01/10/2026, punches on working days 01/10–20/11/2026.
+const DEMO_SCHEDULE_ID = "20000000-0000-4000-8000-000000000001";
+const DEMO_CALENDAR_FROM = "2026-10-01";
+const DEMO_PUNCHES_TO = "2026-11-20";
+const demoLeaveDays = new Set(["EMP001:2026-10-15", "EMP001:2026-10-16", "EMP003:2026-11-05"]);
+
+const demoWorkdays = (): string[] => {
+    const days: string[] = [];
+    for (let d = new Date(`${DEMO_CALENDAR_FROM}T00:00:00.000Z`); d.toISOString().slice(0, 10) <= DEMO_PUNCHES_TO; d.setUTCDate(d.getUTCDate() + 1)) {
+        const weekday = d.getUTCDay();
+        if (weekday !== 0 && weekday !== 6) days.push(d.toISOString().slice(0, 10));
+    }
+    return days;
+};
+
+const demoTimesheetAttendances: SampleAttendance[] = sampleEmployees
+    .filter((employee) => employee.status === EmployeeStatus.ACTIVE)
+    .flatMap(({ employeeCode, joinedAt }, employeeIndex) =>
+    demoWorkdays().flatMap((date, dayIndex) => {
+        const key = employeeIndex * 7 + dayIndex;
+        if (date < joinedAt.toISOString().slice(0, 10)) return [];
+        // Deterministic gaps: a few absences, some late arrivals, a rare missing check-out.
+        if (key % 19 === 0 || demoLeaveDays.has(`${employeeCode}:${date}`)) return [];
+        const isLate = key % 6 === 0;
+        const checkIn = isLate ? lateCheckInTimes[key % lateCheckInTimes.length] : presentCheckInTimes[key % presentCheckInTimes.length];
+        return [{
+            employeeCode,
+            attendanceDate: new Date(`${date}T00:00:00.000Z`),
+            checkInTime: companyDateTime(date, checkIn),
+            checkOutTime: key % 23 === 0 ? null : companyDateTime(date, checkOutTimes[key % checkOutTimes.length]),
+            status: isLate ? AttendanceStatus.LATE : AttendanceStatus.PRESENT,
+        }];
+    }),
+);
+
 const main = async (): Promise<void> => {
     const password = "12345678";
     const passwordHash = await bcrypt.hash(password, 10);
@@ -557,7 +616,7 @@ const main = async (): Promise<void> => {
             ...sampleLeaveRequests.map(
                 (sampleLeaveRequest) => sampleLeaveRequest.employeeCode,
             ),
-            ...sampleAttendances.map(
+            ...[...sampleAttendances, ...demoTimesheetAttendances].map(
                 (sampleAttendance) => sampleAttendance.employeeCode,
             ),
         ]),
@@ -622,7 +681,25 @@ const main = async (): Promise<void> => {
         });
     }
 
-    for (const sampleAttendance of sampleAttendances) {
+    await prisma.workScheduleVersion.upsert({
+        where: { id: DEMO_SCHEDULE_ID },
+        update: {},
+        create: {
+            id: DEMO_SCHEDULE_ID,
+            status: WorkScheduleStatus.ACTIVE,
+            effectiveFrom: new Date(`${DEMO_CALENDAR_FROM}T00:00:00.000Z`),
+            timezone: "Asia/Ho_Chi_Minh",
+            weekdays: [1, 2, 3, 4, 5],
+            startMinute: 8 * 60,
+            endMinute: 17 * 60,
+            breakStartMinute: 12 * 60,
+            breakEndMinute: 13 * 60,
+            createdBy: admin.id,
+            updatedBy: admin.id,
+        },
+    });
+
+    for (const sampleAttendance of [...sampleAttendances, ...demoTimesheetAttendances]) {
         const employeeId = employeeIdByCode.get(
             sampleAttendance.employeeCode,
         );
@@ -660,7 +737,8 @@ const main = async (): Promise<void> => {
     console.log(`Seeded sample departments: ${sampleDepartments.length}`);
     console.log(`Seeded sample employees: ${sampleEmployees.length}`);
     console.log(`Seeded sample leave requests: ${sampleLeaveRequests.length}`);
-    console.log(`Seeded sample attendance: ${sampleAttendances.length}`);
+    console.log(`Seeded sample attendance: ${sampleAttendances.length + demoTimesheetAttendances.length}`);
+    console.log(`Seeded ACTIVE demo calendar from ${DEMO_CALENDAR_FROM}`);
     console.log("Seeded credentials:");
     console.log(`ADMIN    -> email: ${admin.email}, password: ${password}`);
     console.log(`EMPLOYEE -> email: ${employee.email}, password: ${password}`);
