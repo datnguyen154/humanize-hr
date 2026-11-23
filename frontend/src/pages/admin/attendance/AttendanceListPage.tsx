@@ -8,6 +8,7 @@ import {
   Clock3,
   ClipboardClock,
   CalendarClock,
+  CalendarRange,
   Search,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -158,6 +159,7 @@ export function AttendanceListPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button variant="outline" asChild><Link to="/admin/attendance/adjustments"><ClipboardClock className="size-4" aria-hidden="true" />Yêu cầu điều chỉnh</Link></Button>
+              <Button variant="outline" asChild><Link to="/admin/attendance/timesheet"><CalendarRange className="size-4" aria-hidden="true" />Bảng công tháng</Link></Button>
               <Button variant="outline" asChild><Link to="/admin/attendance/report"><CalendarDays className="size-4" aria-hidden="true" />Tổng hợp tháng</Link></Button>
               <Button variant="outline" asChild><Link to="/admin/attendance/settings"><CalendarClock className="size-4" aria-hidden="true" />Cài đặt lịch làm việc</Link></Button>
             </div>

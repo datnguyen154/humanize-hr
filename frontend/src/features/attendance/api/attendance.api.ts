@@ -1,6 +1,7 @@
 import { authStorage } from '@/features/auth'
 import { axiosInstance } from '@/shared/api'
 import type { AttendanceMonthlyReport, AttendanceReportPeriod } from '../types/attendance-report.types'
+import type { CompanyTimesheet, EmployeeTimesheet } from '../types/timesheet.types'
 
 import type {
   AttendanceHistoryQueryParams,
@@ -81,5 +82,26 @@ export const checkOut = async () => {
     },
   )
 
+  return response.data.data
+}
+
+export async function getCompanyTimesheet(params: AttendanceReportPeriod, signal?: AbortSignal) {
+  const response = await axiosInstance.get<{ data: CompanyTimesheet }>('/attendance/timesheet', {
+    params, signal, headers: getAuthHeaders(),
+  })
+  return response.data.data
+}
+
+export async function getEmployeeTimesheet(employeeId: string, params: AttendanceReportPeriod, signal?: AbortSignal) {
+  const response = await axiosInstance.get<{ data: EmployeeTimesheet }>(`/attendance/timesheet/employees/${employeeId}`, {
+    params, signal, headers: getAuthHeaders(),
+  })
+  return response.data.data
+}
+
+export async function getMyTimesheet(params: AttendanceReportPeriod, signal?: AbortSignal) {
+  const response = await axiosInstance.get<{ data: EmployeeTimesheet }>('/attendance/timesheet/me', {
+    params, signal, headers: getAuthHeaders(),
+  })
   return response.data.data
 }

@@ -16,6 +16,11 @@ export const attendanceQueryKeys = {
   adjustmentDetail: (id: string) =>
     [...attendanceQueryKeys.adjustments(), 'detail', id] as const,
   monthlyReport: (period: AttendanceReportPeriod) => [...attendanceQueryKeys.all, 'monthly-report', period] as const,
+  timesheets: () => [...attendanceQueryKeys.all, 'timesheet'] as const,
+  companyTimesheet: (period: AttendanceReportPeriod) => [...attendanceQueryKeys.timesheets(), 'company', period] as const,
+  employeeTimesheet: (employeeId: string, period: AttendanceReportPeriod) =>
+    [...attendanceQueryKeys.timesheets(), 'employee', employeeId, period] as const,
+  myTimesheet: (period: AttendanceReportPeriod) => [...attendanceQueryKeys.timesheets(), 'me', period] as const,
   lists: () => [...attendanceQueryKeys.all, 'list'] as const,
   list: (params: AttendanceListQueryParams) =>
     [...attendanceQueryKeys.lists(), params] as const,

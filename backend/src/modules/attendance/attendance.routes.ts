@@ -14,6 +14,9 @@ attendanceRoutes.patch("/adjustment-requests/:id/review", authenticate, requireR
 
 attendanceRoutes.get("/monthly-report", authenticate, requireRole("ADMIN"), attendanceController.getMonthlyReport);
 attendanceRoutes.get("/monthly-report/export", authenticate, requireRole("ADMIN"), attendanceController.exportMonthlyReport);
+attendanceRoutes.get("/timesheet", authenticate, requireRole("ADMIN"), attendanceController.getCompanyTimesheet);
+attendanceRoutes.get("/timesheet/me", authenticate, requireRole("EMPLOYEE"), attendanceController.getMyTimesheet);
+attendanceRoutes.get("/timesheet/employees/:employeeId", authenticate, requireRole("ADMIN"), attendanceController.getEmployeeTimesheet);
 
 attendanceRoutes.post(
     "/check-in",

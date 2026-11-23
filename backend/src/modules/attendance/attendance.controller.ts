@@ -1,6 +1,7 @@
 import { AttendanceStatus } from "@prisma/client";
 import type { Request, Response } from "express";
 import { attendanceReportService, parseAttendanceReportPeriod } from "./attendance-report.service";
+import { timesheetService } from "./timesheet.service";
 
 import type {
     AttendanceSortBy,
@@ -116,6 +117,30 @@ const handleError = (error: unknown, res: Response): Response => {
 };
 
 export const attendanceController = {
+    async getCompanyTimesheet(req: Request, res: Response): Promise<Response> {
+        try {
+            return res.status(200).json({ data: await timesheetService.getCompanyTimesheet(req.query) });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async getEmployeeTimesheet(req: Request, res: Response): Promise<Response> {
+        try {
+            return res.status(200).json({ data: await timesheetService.getEmployeeTimesheet(req.params.employeeId, req.query) });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
+    async getMyTimesheet(req: Request, res: Response): Promise<Response> {
+        try {
+            return res.status(200).json({ data: await timesheetService.getMyTimesheet(getAuthenticatedUserId(req), req.query) });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async getMonthlyReport(req: Request, res: Response): Promise<Response> {
         try {
             const period = parseAttendanceReportPeriod(req.query.year, req.query.month);

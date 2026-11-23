@@ -33,14 +33,16 @@ type Props = {
   onSuccess: () => void
   onClose?: () => void
   onPendingChange?: (pending: boolean) => void
+  /** YYYY-MM-DD to prefill, e.g. when opened from an absent day in the timesheet. */
+  initialDate?: string
 }
 
-export function AttendanceAdjustmentForm({ onSuccess, onClose, onPendingChange }: Props) {
+export function AttendanceAdjustmentForm({ onSuccess, onClose, onPendingChange, initialDate }: Props) {
   const mutation = useCreateAttendanceAdjustmentMutation()
   const [serverError, setServerError] = useState<string | null>(null)
   const { control, register, handleSubmit, formState: { errors }, getValues, reset, setValue } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { attendanceDate: '', checkInTime: '', checkOutTime: '', reason: '' },
+    defaultValues: { attendanceDate: initialDate ?? '', checkInTime: '', checkOutTime: '', reason: '' },
   })
   const date = useWatch({ control, name: 'attendanceDate' })
   const historyParams = { page: 1, limit: 1, fromDate: date, toDate: date }

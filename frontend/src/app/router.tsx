@@ -7,6 +7,8 @@ import { AdminDashboardPage } from '../pages/admin/dashboard/AdminDashboardPage'
 import { AttendanceListPage } from '../pages/admin/attendance/AttendanceListPage'
 import { AttendanceMonthlyReportPage } from '../pages/admin/attendance/AttendanceMonthlyReportPage'
 import { WorkScheduleSettingsPage } from '../pages/admin/attendance/WorkScheduleSettingsPage'
+import { CompanyTimesheetPage } from '../pages/attendance-timesheet/CompanyTimesheetPage'
+import { EmployeeTimesheetPage } from '../pages/attendance-timesheet/EmployeeTimesheetPage'
 import { CreateDepartmentPage } from '../pages/admin/departments/CreateDepartmentPage'
 import { DepartmentDetailPage } from '../pages/admin/departments/DepartmentDetailPage'
 import { EditDepartmentPage } from '../pages/admin/departments/EditDepartmentPage'
@@ -67,6 +69,8 @@ export const router = createBrowserRouter([
         path: 'attendance/report',
         element: <AttendanceMonthlyReportPage />,
       },
+      { path: 'attendance/timesheet', element: <CompanyTimesheetPage /> },
+      { path: 'attendance/timesheet/:employeeId', element: <EmployeeTimesheetPage audience="ADMIN" /> },
       { path: 'attendance/adjustments', element: <AttendanceAdjustmentListPage audience="ADMIN" /> },
       { path: 'attendance/adjustments/:id', element: <AttendanceAdjustmentDetailPage audience="ADMIN" /> },
       {
@@ -149,6 +153,7 @@ export const router = createBrowserRouter([
         path: 'attendance',
         element: <AttendanceHistoryPage />,
       },
+      { path: 'attendance/timesheet', element: <EmployeeTimesheetPage audience="EMPLOYEE" /> },
       { path: 'attendance/adjustments', element: <AttendanceAdjustmentListPage audience="EMPLOYEE" /> },
       { path: 'attendance/adjustments/new', element: <CreateAttendanceAdjustmentPage /> },
       { path: 'attendance/adjustments/:id', element: <AttendanceAdjustmentDetailPage audience="EMPLOYEE" /> },

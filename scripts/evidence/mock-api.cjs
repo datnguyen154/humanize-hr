@@ -22,7 +22,7 @@ const pageOf = (items, q) => {
 
 /** Mutable world shared by all handlers; scenarios seed and inspect it. */
 function createStore() {
-  return { schedules: [], exceptions: [], attendance: [], extra: [] }
+  return { schedules: [], exceptions: [], attendance: [], employees: [], leaves: [], today: '2026-11-23', extra: [] }
 }
 
 function respond(store, role, method, url, body) {
@@ -68,11 +68,43 @@ function respond(store, role, method, url, body) {
     let items = [...store.attendance]
     if (p === '/attendance/history') items = items.filter((a) => a.employee.fullName === users.EMPLOYEE.fullName)
     if (q.get('status')) items = items.filter((a) => a.status === q.get('status'))
+    if (q.get('fromDate')) items = items.filter((a) => a.attendanceDate.slice(0, 10) >= q.get('fromDate'))
+    if (q.get('toDate')) items = items.filter((a) => a.attendanceDate.slice(0, 10) <= q.get('toDate'))
     items.sort((a, b) => b.attendanceDate.localeCompare(a.attendanceDate) || a.employee.fullName.localeCompare(b.employee.fullName))
     return pageOf(items, q)
   }
+  if (p.startsWith('/attendance/timesheet')) {
+    const year = Number(q.get('year')), month = Number(q.get('month'))
+    const sheet = timesheetFor(store, year, month)
+    const period = { year, month }
+    if (p === '/attendance/timesheet') {
+      return { data: { period, standardDays: sheet.standardDays, isCalendarComplete: sheet.standardDays !== null,
+        employees: store.employees.map((e) => ({ employee: e, summary: sheet.build(e).summary })) } }
+    }
+    const employee = p === '/attendance/timesheet/me'
+      ? store.employees.find((e) => e.fullName === users.EMPLOYEE.fullName)
+      : store.employees.find((e) => e.id === p.split('/').pop())
+    return { data: { period, standardDays: sheet.standardDays, isCalendarComplete: sheet.standardDays !== null, employee, ...sheet.build(employee) } }
+  }
   console.log('  [mock] fallback', method, p)
   return { data: [], meta: meta(0) }
+}
+
+/** Same computation as backend timesheet.service, over the in-memory store. */
+function timesheetFor(store, year, month) {
+  const { buildEmployeeTimesheet, monthDates, standardDays } = dist('attendance/timesheet.engine.js')
+  const { createCalendarResolver } = dist('work-calendar/effective-calendar.js')
+  const calendars = store.schedules.filter((s) => s.status === 'ACTIVE')
+    .map((schedule) => ({ schedule, events: store.exceptions.filter((e) => e.scheduleVersionId === schedule.id) }))
+  const resolveDay = createCalendarResolver(calendars)
+  const dates = monthDates(year, month)
+  return {
+    standardDays: standardDays(dates, resolveDay),
+    build: (employee) => buildEmployeeTimesheet({ dates, today: store.today, joinedAt: employee.joinedAt, resolveDay,
+      attendance: new Map(store.attendance.filter((a) => a.employeeId === employee.id)
+        .map((a) => [a.attendanceDate.slice(0, 10), { status: a.status, outOfSchedule: a.outOfSchedule, checkInTime: a.checkInTime, checkOutTime: a.checkOutTime }])),
+      leaves: store.leaves.filter((l) => l.employeeId === employee.id) }),
+  }
 }
 
 async function openApp({ role = 'ADMIN', store, width = 1440, height = 900 }) {
@@ -108,4 +140,4 @@ const schedule = (extra) => ({ id: '11111111-1111-4111-8111-111111111111', versi
   breaks: [{ startTime: '12:00', endTime: '13:00' }], createdBy: actor, updatedBy: actor,
   createdAt: '2026-11-20T02:00:00.000Z', updatedAt: '2026-11-20T02:00:00.000Z', ...extra })
 
-module.exports = { createStore, openApp, schedule, users, dist, root }
+module.exports = { createStore, openApp, schedule, users, dist, root, timesheetFor }

@@ -4,6 +4,7 @@ import {
   ChevronRight,
   Clock3,
   ClipboardClock,
+  CalendarRange,
 } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -94,6 +95,7 @@ export function AttendanceHistoryPage() {
           Theo dõi thời gian vào, ra và lịch sử chấm công của bạn.
         </p>
         </div>
+        <Button variant="outline" asChild><Link to="/employee/attendance/timesheet"><CalendarRange className="size-4" aria-hidden="true" /> Bảng công của tôi</Link></Button>
         <Button variant="outline" asChild><Link to="/employee/attendance/adjustments"><ClipboardClock className="size-4" /> Yêu cầu điều chỉnh</Link></Button>
       </div>
 
