@@ -247,6 +247,10 @@ model Payroll {
   bonus       Decimal       @default(0) @db.Decimal(12, 2)
   deduction   Decimal       @default(0) @db.Decimal(12, 2)
   netSalary   Decimal       @db.Decimal(12, 2)
+  // Timesheet-based payroll snapshot (null for manually entered payroll).
+  monthlySalary Decimal?    @db.Decimal(12, 2)
+  payableDays   Int?
+  standardDays  Int?
   note        String?
   status      PayrollStatus @default(DRAFT)
   createdAt   DateTime      @default(now())

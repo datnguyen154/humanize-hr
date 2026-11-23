@@ -209,6 +209,18 @@ export function PayrollDetailDialog({
                                         />
                                     }
                                 />
+                                {payroll.monthlySalary !== null && payroll.payableDays !== null ? (
+                                    <>
+                                        <DetailField
+                                            label="Lương tháng (hợp đồng)"
+                                            value={formatCurrency(payroll.monthlySalary)}
+                                        />
+                                        <DetailField
+                                            label="Ngày công hưởng lương"
+                                            value={`${payroll.payableDays} / ${payroll.standardDays} ngày công chuẩn`}
+                                        />
+                                    </>
+                                ) : null}
                                 <DetailField
                                     label="Lương cơ bản"
                                     value={formatCurrency(payroll.baseSalary)}

@@ -20,6 +20,13 @@ payrollRoutes.post(
     payrollController.createPayroll,
 );
 
+payrollRoutes.post(
+    "/from-timesheet",
+    authenticate,
+    requireRole("ADMIN"),
+    payrollController.createPayrollFromTimesheet,
+);
+
 payrollRoutes.patch(
     "/:id/publish",
     authenticate,

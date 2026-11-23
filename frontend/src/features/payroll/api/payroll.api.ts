@@ -1,6 +1,7 @@
 import { axiosInstance } from "@/shared/api";
 
 import type {
+    CreatePayrollFromTimesheetRequest,
     CreatePayrollRequest,
     CreatePayrollResponse,
     EmployeePayrollsQueryParams,
@@ -55,6 +56,15 @@ export const downloadEmployeePayrollPdf = async (
 export const createPayroll = async (payload: CreatePayrollRequest) => {
     const response = await axiosInstance.post<CreatePayrollResponse>(
         "/payrolls",
+        payload,
+    );
+
+    return response.data.data;
+};
+
+export const createPayrollFromTimesheet = async (payload: CreatePayrollFromTimesheetRequest) => {
+    const response = await axiosInstance.post<CreatePayrollResponse>(
+        "/payrolls/from-timesheet",
         payload,
     );
 

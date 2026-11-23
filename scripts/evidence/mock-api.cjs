@@ -22,7 +22,7 @@ const pageOf = (items, q) => {
 
 /** Mutable world shared by all handlers; scenarios seed and inspect it. */
 function createStore() {
-  return { schedules: [], exceptions: [], attendance: [], employees: [], leaves: [], today: '2026-11-23', extra: [] }
+  return { schedules: [], exceptions: [], attendance: [], employees: [], leaves: [], payrolls: [], today: '2026-11-23', extra: [] }
 }
 
 function respond(store, role, method, url, body) {
@@ -86,6 +86,24 @@ function respond(store, role, method, url, body) {
       : store.employees.find((e) => e.id === p.split('/').pop())
     return { data: { period, standardDays: sheet.standardDays, isCalendarComplete: sheet.standardDays !== null, employee, ...sheet.build(employee) } }
   }
+  if (p === '/employees' && method === 'GET') return { data: store.employees, meta: meta(store.employees.length, 1, 100) }
+  if (p === '/payrolls' && method === 'GET') {
+    const items = store.payrolls.map((pr) => ({ ...pr, employee: store.employees.find((e) => e.id === pr.employeeId) }))
+    const page = Number(q.get('page') ?? 1), limit = Number(q.get('limit') ?? 10)
+    return { data: items.slice((page - 1) * limit, page * limit), pagination: meta(items.length, page, limit) }
+  }
+  if (p === '/employees/me/payrolls') {
+    const me = store.employees.find((e) => e.fullName === users.EMPLOYEE.fullName)
+    const items = store.payrolls.filter((pr) => pr.employeeId === me.id && pr.status === 'PUBLISHED')
+    return { data: items, pagination: meta(items.length) }
+  }
+  if (p === '/payrolls/from-timesheet' && method === 'POST') return { data: createFromTimesheet(store, body) }
+  const publish = p.match(/^\/payrolls\/([^/]+)\/publish$/)
+  if (publish) {
+    const payroll = store.payrolls.find((pr) => pr.id === publish[1])
+    payroll.status = 'PUBLISHED'
+    return { data: payroll }
+  }
   console.log('  [mock] fallback', method, p)
   return { data: [], meta: meta(0) }
 }
@@ -107,9 +125,34 @@ function timesheetFor(store, year, month) {
   }
 }
 
-async function openApp({ role = 'ADMIN', store, width = 1440, height = 900 }) {
+/** Mirrors payrollService.createPayrollFromTimesheet over the store, using the backend proration helpers. */
+function createFromTimesheet(store, body) {
+  const { Prisma } = require(path.join(root, 'backend/node_modules/@prisma/client'))
+  const { proratedBaseSalary, isPeriodClosed } = dist('payroll/payroll-proration.js')
+  const fail = (statusCode, message) => { throw Object.assign(new Error(message), { statusCode }) }
+  const year = Number(body.year), month = Number(body.month)
+  if (!isPeriodClosed(year, month, store.today)) fail(409, 'Kỳ công chưa kết thúc. Chỉ tạo bảng lương sau ngày cuối cùng của tháng.')
+  if (store.payrolls.some((pr) => pr.employeeId === body.employeeId && pr.year === year && pr.month === month)) fail(409, 'Nhân viên đã có bảng lương cho kỳ này.')
+  const sheet = timesheetFor(store, year, month)
+  if (sheet.standardDays === null) fail(409, 'Tháng này chưa có lịch làm việc được kích hoạt đầy đủ nên chưa xác định được ngày công chuẩn.')
+  const employee = store.employees.find((e) => e.id === body.employeeId)
+  const payableDays = sheet.build(employee).summary.payableDays
+  const monthly = new Prisma.Decimal(String(body.monthlySalary))
+  const base = proratedBaseSalary(monthly, payableDays, sheet.standardDays)
+  const bonus = new Prisma.Decimal(String(body.bonus ?? 0)), deduction = new Prisma.Decimal(String(body.deduction ?? 0))
+  const payroll = { id: `${String(store.payrolls.length + 1).padStart(8, '0')}-0000-4000-8000-000000000000`, employeeId: employee.id, month, year,
+    baseSalary: base.toString(), bonus: bonus.toString(), deduction: deduction.toString(), netSalary: base.plus(bonus).minus(deduction).toString(),
+    monthlySalary: monthly.toString(), payableDays, standardDays: sheet.standardDays, note: body.note ?? null, status: 'DRAFT',
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+  store.payrolls.push(payroll)
+  return payroll
+}
+
+async function openApp({ role = 'ADMIN', store, width = 1440, height = 900, now }) {
   const browser = await chromium.launch({ channel: 'chrome' })
   const page = await browser.newPage({ viewport: { width, height } })
+  // Freeze the browser clock when a scenario needs "after the month ended".
+  if (now) await page.clock.setFixedTime(new Date(now))
   const errors = []
   page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()) })
   await page.route('http://localhost:3000/api/**', async (route) => {

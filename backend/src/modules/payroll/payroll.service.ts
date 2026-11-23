@@ -9,6 +9,9 @@ import {
     type PayrollSortOrder,
     type PayrollWithEmployee,
 } from "./payroll.repository";
+import { getCompanyDateContext } from "../attendance/attendance.service";
+import { timesheetService } from "../attendance/timesheet.service";
+import { isPeriodClosed, proratedBaseSalary } from "./payroll-proration";
 
 type CreatePayrollInput = {
     employeeId?: unknown;
@@ -20,8 +23,11 @@ type CreatePayrollInput = {
     note?: unknown;
 };
 
+type CreatePayrollFromTimesheetInput = Omit<CreatePayrollInput, "baseSalary"> & { monthlySalary?: unknown };
+
 type UpdatePayrollInput = {
     baseSalary?: unknown;
+    monthlySalary?: unknown;
     bonus?: unknown;
     deduction?: unknown;
     note?: unknown;
@@ -37,6 +43,9 @@ type CreatedPayroll = Pick<
     | "bonus"
     | "deduction"
     | "netSalary"
+    | "monthlySalary"
+    | "payableDays"
+    | "standardDays"
     | "note"
     | "status"
     | "createdAt"
@@ -268,6 +277,9 @@ const toCreatedPayroll = (payroll: Payroll): CreatedPayroll => ({
     bonus: payroll.bonus,
     deduction: payroll.deduction,
     netSalary: payroll.netSalary,
+    monthlySalary: payroll.monthlySalary,
+    payableDays: payroll.payableDays,
+    standardDays: payroll.standardDays,
     note: payroll.note,
     status: payroll.status,
     createdAt: payroll.createdAt,
@@ -515,6 +527,47 @@ export const payrollService = {
         return toCreatedPayroll(payroll);
     },
 
+    /**
+     * P3: base salary = monthlySalary × payableDays / standardDays from the employee's timesheet. Only for a
+     * finished month with a complete ACTIVE calendar; the day counts are stored as a snapshot on the payroll.
+     */
+    async createPayrollFromTimesheet(data: CreatePayrollFromTimesheetInput): Promise<CreatedPayroll> {
+        const employeeId = parseRequiredString(data.employeeId, "employeeId");
+        if (!UUID_REGEX.test(employeeId)) {
+            throw new PayrollServiceError("employeeId must be a valid UUID", 400);
+        }
+        const month = parseRequiredInteger(data.month, "month");
+        const year = parseRequiredInteger(data.year, "year");
+        if (month < 1 || month > 12 || year < 1 || year > 9999) {
+            throw new PayrollServiceError("Kỳ lương không hợp lệ.", 400);
+        }
+        const monthlySalary = parseRequiredDecimal(data.monthlySalary, "monthlySalary");
+        if (monthlySalary.isZero()) {
+            throw new PayrollServiceError("Lương tháng phải lớn hơn 0.", 400);
+        }
+        const bonus = parseOptionalDecimal(data.bonus, "bonus", "0");
+        const deduction = parseOptionalDecimal(data.deduction, "deduction", "0");
+        const note = parseOptionalNote(data.note);
+        const today = getCompanyDateContext(new Date()).attendanceDate.toISOString().slice(0, 10);
+        if (!isPeriodClosed(year, month, today)) {
+            throw new PayrollServiceError("Kỳ công chưa kết thúc. Chỉ tạo bảng lương sau ngày cuối cùng của tháng.", 409);
+        }
+        if (await payrollRepository.findPayrollByEmployeeMonthYear(employeeId, month, year)) {
+            throw new PayrollServiceError("Nhân viên đã có bảng lương cho kỳ này.", 409);
+        }
+        const timesheet = await timesheetService.getEmployeeTimesheet(employeeId, { year: String(year), month: String(month) });
+        if (timesheet.standardDays === null) {
+            throw new PayrollServiceError("Tháng này chưa có lịch làm việc được kích hoạt đầy đủ nên chưa xác định được ngày công chuẩn.", 409);
+        }
+        const baseSalary = proratedBaseSalary(monthlySalary, timesheet.summary.payableDays, timesheet.standardDays);
+        const payroll = await payrollRepository.createPayroll({
+            employeeId, month, year, baseSalary, bonus, deduction,
+            netSalary: baseSalary.plus(bonus).minus(deduction), note,
+            monthlySalary, payableDays: timesheet.summary.payableDays, standardDays: timesheet.standardDays,
+        });
+        return toCreatedPayroll(payroll);
+    },
+
     async updatePayroll(
         id: string,
         data: UpdatePayrollInput,
@@ -536,10 +589,22 @@ export const payrollService = {
             );
         }
 
-        const baseSalary = parseOptionalUpdateDecimal(
+        const requestedBaseSalary = parseOptionalUpdateDecimal(
             data.baseSalary,
             "baseSalary",
         );
+        const monthlySalary = parseOptionalUpdateDecimal(data.monthlySalary, "monthlySalary");
+        const fromTimesheet = existingPayroll.payableDays !== null && existingPayroll.standardDays !== null;
+        // Timesheet payroll keeps base salary derived from its snapshot; only the monthly salary is editable.
+        if (fromTimesheet && requestedBaseSalary !== undefined) {
+            throw new PayrollServiceError("Bảng lương tính từ bảng công: hãy sửa lương tháng thay vì lương cơ bản.", 400);
+        }
+        if (!fromTimesheet && monthlySalary !== undefined) {
+            throw new PayrollServiceError("Bảng lương nhập tay không có lương tháng để tính theo ngày công.", 400);
+        }
+        const baseSalary = fromTimesheet && monthlySalary !== undefined
+            ? proratedBaseSalary(monthlySalary, existingPayroll.payableDays!, existingPayroll.standardDays!)
+            : requestedBaseSalary;
         const bonus = parseOptionalUpdateDecimal(data.bonus, "bonus");
         const deduction = parseOptionalUpdateDecimal(
             data.deduction,
@@ -556,6 +621,7 @@ export const payrollService = {
 
         const updateData = {
             baseSalary,
+            monthlySalary,
             bonus,
             deduction,
             note,

@@ -192,7 +192,9 @@ export function EmployeePayrollDetailDialog({
                             />
                             <DetailField
                                 label="Lương cơ bản"
-                                value={formatCurrency(payroll.baseSalary)}
+                                value={payroll.payableDays !== null && payroll.standardDays !== null
+                                    ? `${formatCurrency(payroll.baseSalary)} · ${payroll.payableDays}/${payroll.standardDays} ngày công`
+                                    : formatCurrency(payroll.baseSalary)}
                                 className="order-3"
                             />
                             <DetailField

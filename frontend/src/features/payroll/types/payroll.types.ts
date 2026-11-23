@@ -28,6 +28,10 @@ export type Payroll = {
     bonus: string;
     deduction: string;
     netSalary: string;
+    /** Set only for payroll created from the timesheet (P3); null for manually entered payroll. */
+    monthlySalary: string | null;
+    payableDays: number | null;
+    standardDays: number | null;
     note: string | null;
     status: PayrollStatus;
     createdAt: string;
@@ -48,8 +52,13 @@ export type CreatePayrollRequest = {
     note?: string | null;
 };
 
+export type CreatePayrollFromTimesheetRequest = Omit<CreatePayrollRequest, "baseSalary"> & {
+    monthlySalary: number | string;
+};
+
 export type UpdatePayrollRequest = {
     baseSalary?: number;
+    monthlySalary?: number;
     bonus?: number;
     deduction?: number;
     note?: string | null;

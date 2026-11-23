@@ -2,10 +2,11 @@
 // holiday on 20/11, six employees, November punches up to "today" (23/11/2026) and approved leaves.
 const { createStore, schedule, users, dist } = require('./mock-api.cjs')
 
-function seedCompany() {
+function seedCompany({ today = '2026-11-23' } = {}) {
   const { classifyCheckIn, createCalendarResolver } = dist('work-calendar/effective-calendar.js')
   const { monthDates } = dist('attendance/timesheet.engine.js')
   const store = createStore()
+  store.today = today
   const active = schedule({ id: '33333333-3333-4333-8333-333333333333', status: 'ACTIVE', revision: 2, effectiveFrom: '2026-11-01' })
   const holiday = { id: '55555555-5555-4555-8555-555555555555', scheduleVersionId: active.id, firstAffectedDate: '2026-11-20',
     createdBy: active.createdBy, updatedBy: active.createdBy, createdAt: active.createdAt, updatedAt: active.updatedAt,

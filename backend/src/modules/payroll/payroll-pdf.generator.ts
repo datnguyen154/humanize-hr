@@ -75,6 +75,10 @@ export const generatePayrollPdf = (
 
         addRow(doc, "Tháng: ", String(payroll.month).padStart(2, "0"));
         addRow(doc, "Năm: ", String(payroll.year));
+        if (payroll.monthlySalary !== null && payroll.payableDays !== null && payroll.standardDays !== null) {
+            addRow(doc, "Lương tháng: ", formatCurrency(payroll.monthlySalary));
+            addRow(doc, "Ngày công hưởng lương: ", `${payroll.payableDays} / ${payroll.standardDays} ngày công chuẩn`);
+        }
         addRow(doc, "Lương cơ bản: ", formatCurrency(payroll.baseSalary));
         addRow(doc, "Thưởng: ", formatCurrency(payroll.bonus));
         addRow(doc, "Khấu trừ: ", formatCurrency(payroll.deduction));

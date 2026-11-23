@@ -166,10 +166,21 @@ export const payrollController = {
         }
     },
 
+    async createPayrollFromTimesheet(req: Request, res: Response): Promise<Response> {
+        try {
+            const { employeeId, month, year, monthlySalary, bonus, deduction, note } = (req.body ?? {}) as Record<string, unknown>;
+            const payroll = await payrollService.createPayrollFromTimesheet({ employeeId, month, year, monthlySalary, bonus, deduction, note });
+            return res.status(201).json({ data: payroll });
+        } catch (error) {
+            return handleError(error, res);
+        }
+    },
+
     async updatePayroll(req: Request, res: Response): Promise<Response> {
         try {
-            const { baseSalary, bonus, deduction, note } = req.body as {
+            const { baseSalary, monthlySalary, bonus, deduction, note } = req.body as {
                 baseSalary?: unknown;
+                monthlySalary?: unknown;
                 bonus?: unknown;
                 deduction?: unknown;
                 note?: unknown;
@@ -177,6 +188,7 @@ export const payrollController = {
 
             const payroll = await payrollService.updatePayroll(req.params.id, {
                 baseSalary,
+                monthlySalary,
                 bonus,
                 deduction,
                 note,

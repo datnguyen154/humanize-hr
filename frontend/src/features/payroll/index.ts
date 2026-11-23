@@ -1,4 +1,5 @@
-export { useCreatePayrollMutation } from "./hooks/useCreatePayrollMutation";
+export { useCreatePayrollFromTimesheetMutation, useCreatePayrollMutation } from "./hooks/useCreatePayrollMutation";
+export { proratedBaseSalary } from "./lib/payroll-proration";
 export { useDownloadEmployeePayrollPdfMutation } from "./hooks/useDownloadEmployeePayrollPdfMutation";
 export { useEmployeePayrollsQuery } from "./hooks/useEmployeePayrollsQuery";
 export { usePayrollsQuery } from "./hooks/usePayrollsQuery";
@@ -6,6 +7,7 @@ export { usePublishPayrollMutation } from "./hooks/usePublishPayrollMutation";
 export { useUpdatePayrollMutation } from "./hooks/useUpdatePayrollMutation";
 export { payrollQueryKeys } from "./lib/payroll.query-keys";
 export type {
+    CreatePayrollFromTimesheetRequest,
     CreatePayrollRequest,
     CreatePayrollResponse,
     EmployeePayroll,

@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  proratedBaseSalary,
   useUpdatePayrollMutation,
   type Payroll,
   type PayrollMutationResult,
@@ -72,6 +73,9 @@ const getUpdatePayrollErrorMessage = (error: unknown) => {
       if (message === 'Published payroll cannot be updated') {
         return 'Bảng lương đã phát hành không thể chỉnh sửa.'
       }
+      if (message?.startsWith('Bảng lương')) {
+        return message
+      }
 
       return 'Không thể cập nhật bảng lương. Vui lòng kiểm tra lại thông tin.'
     }
@@ -83,6 +87,16 @@ const getUpdatePayrollErrorMessage = (error: unknown) => {
 
   return 'Không thể cập nhật bảng lương. Vui lòng thử lại sau.'
 }
+
+const isFromTimesheet = (payroll: Payroll) =>
+  payroll.monthlySalary !== null && payroll.payableDays !== null && payroll.standardDays !== null
+
+const formDefaults = (payroll: Payroll): EditPayrollFormInput => ({
+  baseSalary: toNumber(isFromTimesheet(payroll) ? payroll.monthlySalary! : payroll.baseSalary),
+  bonus: toNumber(payroll.bonus),
+  deduction: toNumber(payroll.deduction),
+  note: payroll.note ?? '',
+})
 
 export function EditPayrollDialog({
   payroll,
@@ -101,25 +115,16 @@ export function EditPayrollDialog({
     formState: { errors },
   } = useForm<EditPayrollFormInput, unknown, EditPayrollFormValues>({
     resolver: zodResolver(editPayrollSchema),
-    defaultValues: {
-      baseSalary: toNumber(payroll.baseSalary),
-      bonus: toNumber(payroll.bonus),
-      deduction: toNumber(payroll.deduction),
-      note: payroll.note ?? '',
-    },
+    defaultValues: formDefaults(payroll),
   })
+  const fromTimesheet = isFromTimesheet(payroll)
 
   useEffect(() => {
     if (!open) {
       return
     }
 
-    reset({
-      baseSalary: toNumber(payroll.baseSalary),
-      bonus: toNumber(payroll.bonus),
-      deduction: toNumber(payroll.deduction),
-      note: payroll.note ?? '',
-    })
+    reset(formDefaults(payroll))
   }, [open, payroll, reset])
 
   const [baseSalary, bonus, deduction] = useWatch({
@@ -127,8 +132,10 @@ export function EditPayrollDialog({
     name: ['baseSalary', 'bonus', 'deduction'],
   })
 
-  const previewNetSalary =
-    (Number(baseSalary) || 0) + (Number(bonus) || 0) - (Number(deduction) || 0)
+  const previewBaseSalary = fromTimesheet
+    ? proratedBaseSalary(Number(baseSalary) || 0, payroll.payableDays!, payroll.standardDays!)
+    : Number(baseSalary) || 0
+  const previewNetSalary = previewBaseSalary + (Number(bonus) || 0) - (Number(deduction) || 0)
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
     if (updatePayrollMutation.isPending) {
@@ -137,12 +144,7 @@ export function EditPayrollDialog({
 
     if (!nextOpen) {
       setFormError(null)
-      reset({
-        baseSalary: toNumber(payroll.baseSalary),
-        bonus: toNumber(payroll.bonus),
-        deduction: toNumber(payroll.deduction),
-        note: payroll.note ?? '',
-      })
+      reset(formDefaults(payroll))
     }
 
     onOpenChange(nextOpen)
@@ -155,7 +157,7 @@ export function EditPayrollDialog({
       const updatedPayroll = await updatePayrollMutation.mutateAsync({
         id: payroll.id,
         payload: {
-          baseSalary: values.baseSalary,
+          ...(fromTimesheet ? { monthlySalary: values.baseSalary } : { baseSalary: values.baseSalary }),
           bonus: values.bonus,
           deduction: values.deduction,
           note: values.note?.trim() || null,
@@ -209,7 +211,7 @@ export function EditPayrollDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="edit-baseSalary">
-              Lương cơ bản (VNĐ) <span className="text-destructive">*</span>
+              {fromTimesheet ? 'Lương tháng theo hợp đồng (VNĐ)' : 'Lương cơ bản (VNĐ)'} <span className="text-destructive">*</span>
             </Label>
             <Input
               id="edit-baseSalary"
@@ -222,6 +224,12 @@ export function EditPayrollDialog({
             {errors.baseSalary ? (
               <p className="text-xs text-destructive">
                 {errors.baseSalary.message}
+              </p>
+            ) : null}
+            {fromTimesheet ? (
+              <p className="text-xs text-muted-foreground">
+                Theo bảng công {payroll.payableDays}/{payroll.standardDays} ngày → lương cơ bản{' '}
+                <span className="font-medium text-foreground tabular-nums">{formatCurrency(previewBaseSalary)}</span>
               </p>
             ) : null}
           </div>
